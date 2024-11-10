@@ -1,0 +1,147 @@
+.hide-sm {
+	@include media-breakpoint-down(sm) {
+		display: none;
+	}
+}
+
+.list-container {
+	display: flex;
+	font-size: 18px;
+	flex-direction: column;
+}
+
+.quiz-li {
+	cursor: pointer;
+
+	&:hover {
+		background-color: rgba(white, 0.05);
+	}
+}
+
+.correct_answer {
+	background: #3af3bc3d !important;
+	cursor: auto;
+}
+
+.wrong_answer {
+	background: #f136363d !important;
+	cursor: auto;
+}
+
+.not_perfect_answer {
+	background: #f3e73756 !important;
+	cursor: pointer;
+}
+
+
+.analysis-toolbar {
+	display: flex;
+
+	align-items: center;
+	justify-content: space-between;
+
+	.analysis-control-box {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 20px;
+
+		@include media-breakpoint-down(md) {
+			gap: 10px;
+		}
+	}
+
+	@include media-breakpoint-down(md) {
+		flex-direction: column;
+		gap: 15px;
+	}
+}
+
+.progress-state {
+	position: relative;
+	display: flex;
+	flex: 1 1 0%;
+	justify-content: space-between;
+	width: 100%;
+	padding: 0.1rem 1rem;
+
+	transition: .3s ease-in-out;
+	transition-duration: 500ms;
+	transition-delay: 300ms;
+	transition-property: padding, background-color;
+
+	.progress-state-background-box {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+
+		.progress-state-background {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			transition: .3s all ease-in-out;
+			transition-duration: 500ms;
+			transition-delay: 300ms;
+			transform-origin: left;
+		}
+	}
+
+	.progress-state-label {
+		line-height: 2rem;
+		word-break: break-word;
+		overflow-wrap: anywhere;
+	}
+
+	.progress-state-percent-label {
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		margin-top: 0.5rem;
+		margin-right: 1rem;
+
+		transition: .3s ease-in-out;
+		transition-duration: 700ms;
+		opacity: 1;
+	}
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.anlyticsTableHeadCell {
+	&:hover {
+		background: rgba(white, 0.2);
+	}
+}
+
+.card_hover {
+	cursor: pointer;
+
+	&:hover {
+		background: rgba($white, .15);
+	}
+}
+
+.tool-but {
+	transition: .3s all ease-in-out;
+
+	&:hover {
+		color: $theme
+	}
+}
+
+.customized-toast {
+	background-color: rgba(mix(#324650, #0d101b, 50%), .85);
+	border: 1px solid rgba($white, .15);
+	border-radius: 0px;
+
+	.Toastify__progress-bar-theme--dark {
+		background: $theme;
+	}
+}

@@ -1,0 +1,18 @@
+.landing {
+	min-height: 100vh;
+	display: block;
+	align-items: center;
+	img {
+		display: block;
+		max-width: 100%;
+		height: auto;
+	}
+
+	@include media-breakpoint-down(md) {
+		padding: $spacer;
+	}
+
+	& .landing-content {
+		display: block;
+	}
+}

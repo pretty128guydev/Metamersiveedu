@@ -1,0 +1,20 @@
+.overview {
+	min-height: 100vh;
+	padding: $spacer * 3 $spacer;
+	display: flex;
+	align-items: center;
+	background-image: url('../../assets/img/Overview Background.jpg');
+
+	@include media-breakpoint-down(md) {
+		padding: $spacer;
+	}
+
+	& .overview-content {
+		max-width: rem-num(800px);
+		margin: 0 auto;
+		position: relative;
+		flex: 1;
+	}
+
+
+}

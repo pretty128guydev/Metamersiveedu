@@ -1,0 +1,10 @@
+export const get_teacher = "admin/user/teacherbyschoolId";
+export const get_student = "admin/user/student";
+export const update_user = "admin/user/update";
+export const delete_user = "admin/user/delete";
+export const class_api_url = "admin/class";
+export const school_url = "admin/school";
+export const app_url = "admin/app";
+export const get_requests = "admin/request";
+export const approve_request = "admin/approve-request";
+export const school_limits = "admin/school-limits";

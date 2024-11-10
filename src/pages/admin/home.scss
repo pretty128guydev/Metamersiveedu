@@ -1,0 +1,143 @@
+.admin-home {
+  padding: 20px;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .body {
+    padding: 20px;
+
+    width: 100%;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .ant-col {
+      padding: 5px;
+
+      .ant-card {
+
+        .ant-card-body {
+          min-height: 250px;
+
+          p {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            margin-bottom: 0;
+            border-radius: 5px;
+            padding: 0 5px;
+
+            flex: 1 1 auto;
+          }
+
+          .edit {
+            // background-color: transparent;
+            color: #303030;
+            padding: 7px;
+            height: auto;
+
+            &:hover {
+              color: #1677FF;
+            }
+          }
+
+          .about {
+            font-size: 12px;
+            color: gray;
+          }
+
+          .allow {
+            background-color: #F2BD27;
+          }
+
+          .block {
+            color: white;
+            background-color: #303030;
+          }
+
+          .description {
+            color: black;
+          }
+        }
+
+        .ant-card-actions {
+          li {
+            padding: 0px 3px;
+
+            .ant-btn {
+              width: 100%;
+            }
+          }
+        }
+      }
+    }
+  }
+
+}
+
+.ant-btn {
+  height: auto;
+  align-items: center;
+  // display: flex;
+  // align-items: center;
+  // justify-content: center;
+}
+
+.add-school {
+
+  .ant-modal-content {
+
+    .ant-modal-close {
+      display: none;
+    }
+
+    .ant-modal-body {
+      .ant-form {
+        .ant-form-item {
+          .ant-input-number {
+            width: 100%;
+          }
+
+          .ant-input-number-affix-wrapper {
+            width: 100%;
+          }
+
+          .ant-picker {
+            width: 100%;
+          }
+        }
+      }
+    }
+
+    .ant-form-item-row {
+      display: block;
+    }
+  }
+
+  .ant-modal-footer {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.ant-btn {
+  border-radius: 20px;
+  background-color: #00B96B;
+  color: white;
+  border: none;
+
+  &:hover {
+    color: #303030 !important;
+  }
+}
+
+.ant-modal-confirm-btns {
+  display: flex;
+  justify-content: center;
+}

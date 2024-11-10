@@ -1,0 +1,28 @@
+.ql-editor{
+    min-height:200px;
+}
+.text-editor {
+    margin: 0 auto;
+}
+
+.ql-editor {
+    min-height: 100px;
+}
+
+.ql-editor strong {
+    font-weight: bold;
+}
+
+.ql-toolbar .ql-stroke {
+    fill: none;
+    stroke: #999;
+}
+
+.ql-toolbar .ql-fill {
+    fill: #999;
+    stroke: none;
+}
+
+.ql-toolbar .ql-picker {
+    color: #999;
+}

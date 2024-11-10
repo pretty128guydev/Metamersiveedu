@@ -1,0 +1,33 @@
+.admin-layout {
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 35px;
+
+    .welcome-text {
+      font-size: 18px;
+    }
+  }
+
+
+  .body {
+    height: calc(100vh - 67px);
+
+    .left-pane {
+
+      a {
+        color: inherit;
+        text-decoration: none !important;
+      }
+
+      .ant-menu {
+        height: 100%;
+      }
+    }
+
+    .right-pane {
+      padding: 1rem;
+    }
+  }
+}

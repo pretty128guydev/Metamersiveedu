@@ -1,0 +1,28 @@
+.r-and-j {
+  // background: white;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0px;
+
+    .right {
+      display: flex;
+
+      .back {
+        border-radius: 30px;
+        padding: 3px 20px;
+        text-decoration: none;
+        border: 1px solid white;
+      }
+    }
+  }
+}
+
+.ant-modal {
+  .ant-modal-content {
+    .ant-modal-close-x {
+      display: none;
+    }
+  }
+}

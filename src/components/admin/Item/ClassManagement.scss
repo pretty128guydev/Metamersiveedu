@@ -1,0 +1,38 @@
+.class-manage {
+  .title {
+    padding: 1rem;
+
+    .tool-bar {}
+  }
+
+  .body {
+    .pagination {
+      padding-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .ant-pagination {
+        color: white;
+
+        .ant-pagination-prev {
+          color: white;
+
+          button {
+            color: white;
+          }
+        }
+
+        .ant-pagination-next {
+          button {
+            color: white;
+          }
+        }
+
+        .ant-pagination-item-active {
+          background: black;
+        }
+      }
+    }
+  }
+}

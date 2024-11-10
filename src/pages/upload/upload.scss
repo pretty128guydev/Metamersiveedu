@@ -1,0 +1,35 @@
+.upload {
+    .nav-item {
+        cursor: pointer;
+    }
+    .text-align-right {
+        text-align: right;
+    }
+    .text-align-center {
+        text-align: center;
+    }
+    .ant-pagination {
+        color: #999 !important;
+    }
+    .ant-pagination-item-link {
+        color: #999 !important;
+    }
+    .ant-pagination-item-active, .ant-select-selector {
+        background-color: rgb(60, 210, 165) !important;
+        border-color: rgb(60, 210, 165) !important;
+        color: black !important;
+    }
+    .ant-pagination-options-quick-jumper {
+        input {
+            background-color: rgb(60, 210, 165) !important;
+            border-color: rgb(60, 210, 165) !important;
+            color: black !important;
+        }
+    }
+    .ant-empty-description {
+        color: white;
+    }
+    strong {
+        font-weight: bold !important;
+    }
+}

@@ -1,0 +1,99 @@
+.tag-question-check {
+    min-height: 100vh;
+
+    .menu-hold {
+        border-radius: 0px;
+        display: flex;
+        font-size: 16px;
+        width: 64px;
+        height: 64px;
+        background: white;
+        color: black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &-header {
+        padding: 0;
+        position: relative;
+        display: flex;
+
+        .state {
+            position: fixed;
+            top: 0;
+            left: 50%;
+        }
+    }
+
+    .whole {
+        .head {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        pre {
+            border: none;
+        }
+
+        color: black;
+        margin-bottom: 1rem;
+
+        .correct {
+            color: red;
+        }
+
+        .wrong {
+            color: black;
+        }
+    }
+}
+
+.edit-modal {
+    .ant-modal-content {
+        background: rgba(0, 0, 0, .8);
+        color: white;
+        text-align: center;
+    }
+
+    .ant-form {
+        .ant-form-item-row {
+            display: block;
+
+            .ant-select-selector {
+                min-width: 400px;
+            }
+        }
+
+        label {
+            color: white;
+        }
+
+        .possible-answer {
+            .answer-label {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+
+                .delete-button {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-left: 1rem;
+                    height: auto;
+                    width: auto;
+                    padding: 5px 15px;
+                }
+            }
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    }
+
+    label {
+        color: white;
+    }
+}

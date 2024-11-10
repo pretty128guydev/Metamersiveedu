@@ -1,0 +1,16 @@
+.quiz-game {
+
+  // background: white;
+  .header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0px;
+
+    .back {
+      border-radius: 30px;
+      padding: 3px 20px;
+      text-decoration: none;
+      border: 1px solid white;
+    }
+  }
+}

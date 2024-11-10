@@ -1,0 +1,128 @@
+.mark-modal {
+  .ant-modal-close-x {
+    display: none;
+  }
+
+  .ant-modal-close {
+    display: none;
+  }
+
+  .ant-modal-content {
+    background: slategrey;
+  }
+}
+
+.text-orange {
+  color: orange;
+}
+
+.skill-drill-detail {
+  .trainee {
+    cursor: pointer;
+    border: none;
+    color: white !important;
+    font-size: 14px;
+    background-color: #34568B;
+  }
+
+  .rookie {
+    cursor: pointer;
+    border: none;
+    color: white !important;
+    font-size: 14px;
+    background-color: #FF6F61;
+  }
+
+  .pro {
+    cursor: pointer;
+    border: none;
+    color: white !important;
+    font-size: 14px;
+    background-color: #6B5B95;
+  }
+
+  .inf-question {
+    padding: 1rem;
+    border-bottom: 1px solid white;
+    color: white;
+  }
+
+  .ant-tabs-tab {
+    color: white;
+  }
+
+  .ant-table {
+    background: transparent;
+  }
+
+  .ant-table-content {
+    background: transparent;
+
+    tbody {
+      tr {
+        background: transparent;
+
+        &:hover {
+          .ant-table-cell {
+            background: transparent;
+          }
+        }
+      }
+    }
+  }
+
+  span.ant-tag {
+    color: cornflowerblue;
+  }
+
+  .ant-menu {
+    background: transparent;
+    color: white;
+  }
+
+  .batch-content {
+    .arrow {
+      margin: .5rem;
+      color: white;
+    }
+
+    label {
+      color: white;
+    }
+
+    .question {
+      color: white;
+    }
+
+    .answer {
+      color: white;
+    }
+
+    .correct-answer {
+      color: white;
+    }
+
+    .result {
+      border-top: 2px solid white;
+    }
+
+    td {
+      color: white;
+    }
+  }
+
+  .filter {
+    display: flex;
+    margin-bottom: 1rem;
+    align-items: center;
+    justify-content: center;
+
+    .filter-level {
+      margin-right: .5rem;
+
+      span {
+        color: dark;
+      }
+    }
+  }
+}

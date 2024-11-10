@@ -1,0 +1,51 @@
+.table {
+	&.table-card {
+
+		& thead,
+		& tbody {
+			&>tr {
+
+				& td,
+				& th {
+					&:first-child {
+						@if $enable-rtl {
+							padding-right: $card-spacer-x;
+						}
+
+						@else {
+							padding-left: $card-spacer-x;
+						}
+					}
+
+					&:last-child {
+						@if $enable-rtl {
+							padding-left: $card-spacer-x;
+						}
+
+						@else {
+							padding-right: $card-spacer-x;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	&.table-xs {
+		font-size: rem-num(12px);
+
+		& thead,
+		& tbody,
+		& tfoot {
+			& th {
+				padding-top: rem-num(4px);
+				padding-bottom: rem-num(4px);
+				padding-left: rem-num(8px);
+			}
+
+			& td {
+				padding: rem-num(5px) rem-num(8px);
+			}
+		}
+	}
+}
