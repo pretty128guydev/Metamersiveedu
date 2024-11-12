@@ -35,6 +35,7 @@ const TeacherManagement = () => {
   const [additionalClassName, setAdditionalClassName] = useState();
   const [addSelectedStudent, setAddSelectedStudent] = useState();
   const [editStudent, setEditStudent] = useState(0);
+  const [studentcount, setstudentcount] = useState(0);
   const [editStudentStatus, setEditStudentStatus] = useState("blocked");
   const [loading, setLoading] = useState(false);
 
@@ -146,9 +147,7 @@ const TeacherManagement = () => {
     // Fetch teachers by school ID
     AdminAPI.getTeacherBySchoolId({ schoolId: userInfo.schoolId })
       .then(async (data) => {
-        console.log(data.data.teachers);
         setTableData(data.data.teachers); // Set initial table data with teacher info
-
         // Fetch classroom data for each teacher from each API in parallel
         const classroomDataPromises = data.data.teachers.map((teacher) =>
           Promise.all([
@@ -192,6 +191,7 @@ const TeacherManagement = () => {
       .then((data) => {
         setAllStudents(data.data.rows);
         setMissedStudents(data.data.rows);
+        setstudentcount(data.data.rows.length);
       })
       .catch((err) =>
         notification.error({
@@ -384,7 +384,7 @@ const TeacherManagement = () => {
     }
   };
 
-  const handleDeleteClass = () => {
+  const handleDeleteTeacher = () => {
     VillageApi.deleteClassroom({ class_id: selectedTable.id })
       .then((data) => {
         setTableData(tableData.filter((item) => item.id !== selectedTable.id));
@@ -578,7 +578,7 @@ const TeacherManagement = () => {
       )
     : [];
 
-  console.log(selectedTable);
+    console.log(selectedTable)
 
   return (
     <div className="h-100">
@@ -732,6 +732,12 @@ const TeacherManagement = () => {
                         {/* {selectedTable ? selectedTable.id : "-"} */}
                       </b>
                     </div>
+                    <div className="order">
+                      {translate("Count of Students")}:{" "}
+                      <b className="text-theme text-dark fs-5">
+                        {studentcount}
+                      </b>
+                    </div>
                   </div>
                   <hr className="m-0 opacity-3 text-primary" />
                   <PerfectScrollbar className="pos-sidebar-body">
@@ -762,8 +768,8 @@ const TeacherManagement = () => {
                       >
                         <span className="text-decoration-underline mr-1">
                           Tag Game:{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length}{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length >= 2
+                          {selectedTable?.classrooms?.tagClassrooms?.ret.length}{" "}
+                          {selectedTable?.classrooms?.tagClassrooms?.ret.length >= 2
                             ? "Classes"
                             : "Class"}
                         </span>
@@ -775,8 +781,8 @@ const TeacherManagement = () => {
                       >
                         <span className="text-decoration-underline mr-1">
                           Word Dash:{" "}
-                          {selectedTable?.classrooms.wordClassrooms.length}{" "}
-                          {selectedTable?.classrooms.wordClassrooms.length >= 2
+                          {selectedTable?.classrooms?.wordClassrooms?.ret.length}{" "}
+                          {selectedTable?.classrooms?.wordClassrooms?.ret.length >= 2
                             ? "Classes"
                             : "Class"}
                         </span>
@@ -788,8 +794,8 @@ const TeacherManagement = () => {
                       >
                         <span className="text-decoration-underline mr-1">
                           Village:{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length}{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length >= 2
+                          {selectedTable?.classrooms?.villageClassrooms?.ret.length}{" "}
+                          {selectedTable?.classrooms?.villageClassrooms?.ret.length >= 2
                             ? "Classes"
                             : "Class"}
                         </span>
@@ -797,19 +803,19 @@ const TeacherManagement = () => {
                       </div>
                     </div>
                   </PerfectScrollbar>
-                  {selectedTable && userInfo.type !== "Student" && (
+                  {/* {selectedTable && userInfo.type !== "Student" && (
                     <div className="pos-sidebar-footer">
                       <div className="mt-3">
                         <button
                           type="button"
                           className="btn btn-outline-danger btn-lg w-100"
-                          onClick={handleDeleteClass}
+                          onClick={handleDeleteTeacher}
                         >
-                          {translate("delete-selected-class")}
+                          {translate("delete-selected-teacher")}
                         </button>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>

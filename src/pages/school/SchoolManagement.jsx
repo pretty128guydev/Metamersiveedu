@@ -46,7 +46,6 @@ const SchoolManagement = () => {
   const [missedStudents, setMissedStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [addedGmail, setAddedGmail] = useState("");
   const userInfo = useSelector((store) => store.auth.userInfo);
 
   const modalAddClass = document.getElementById("modalAddClass");
@@ -68,8 +67,6 @@ const SchoolManagement = () => {
     inputId.focus();
     setJoinClassLoading(loadingState.before);
   });
-
-  console.log(userInfo)
 
   function toggleMobileSidebar(event, table) {
     event.preventDefault();
@@ -127,17 +124,11 @@ const SchoolManagement = () => {
     setSelectedTable([]);
   }
 
-  const handleNavigate = (type) => {
-    const teacherId = selectedTable?.classrooms.teacherId;
-    if (teacherId) {
+  const handleNavigate = () => {
+    const school_id = selectedTable?.id;
+    if (school_id) {
       let url;
-      if (type === "tag") {
-        url = `/tag/${teacherId}`;
-      } else if (type === "word-dash") {
-        url = `/word-dash/${teacherId}`;
-      } else if (type === "village") {
-        url = `/village/${teacherId}`;
-      }
+      url = `/school-management/${school_id}`;
       navigate(url);
     }
   };
@@ -145,41 +136,21 @@ const SchoolManagement = () => {
   useEffect(() => {
     setLoading(true); // Start loading state
 
-    // Fetch teachers by school ID
-    AdminAPI.getTeacherBySchoolId({ schoolId: userInfo.schoolId })
-      .then(async (data) => {
-        console.log(data.data.teachers);
-        setTableData(data.data.teachers); // Set initial table data with teacher info
+    AdminAPI.getSchools({})
+      .then((data) => {
+        setTableData(data.data);
+        // Set initial data
+        // const initialTabState = {};
+        // data.data.forEach((item) => {
+        //   for (const app of appTabList) {
+        //     if (Object.keys(item).includes(app.key)) {
+        //       initialTabState[`${item.id}`] = app.key;
+        //       return;
+        //     }
+        //   }
+        // });
 
-        // Fetch classroom data for each teacher from each API in parallel
-        const classroomDataPromises = data.data.teachers.map((teacher) =>
-          Promise.all([
-            VillageApi.getClassroomsByTeacherId({ teacher_id: teacher.id }),
-            TagApi.getClassroomsByTeacherId({ teacher_id: teacher.id }),
-            WordApi.getClassroomsByTeacherId({ teacher_id: teacher.id }),
-          ]).then(([villageRes, tagRes, wordRes]) => {
-            // Combine results of all three API calls for this teacher
-            return {
-              teacherId: teacher.id,
-              villageClassrooms: villageRes.data,
-              tagClassrooms: tagRes.data,
-              wordClassrooms: wordRes.data,
-            };
-          })
-        );
-
-        // Wait for all classroom data to be fetched
-        const allClassroomData = await Promise.all(classroomDataPromises);
-
-        // Update the table with the combined classroom data
-        setTableData((prevTableData) =>
-          prevTableData.map((teacher) => ({
-            ...teacher,
-            classrooms: allClassroomData.find(
-              (classroom) => classroom.teacherId === teacher.id
-            ),
-          }))
-        );
+        // setActiveTab(initialTabState);
       })
       .catch((err) =>
         notification.error({
@@ -188,20 +159,64 @@ const SchoolManagement = () => {
         })
       )
       .finally(() => setLoading(false));
+
+    // Fetch teachers by school ID
+    // AdminAPI.getTeacherBySchoolId({ schoolId: userInfo.schoolId })
+    //   .then(async (data) => {
+    //     console.log(data.data.teachers);
+    //     setTableData(data.data.teachers); // Set initial table data with teacher info
+
+    //     // Fetch classroom data for each teacher from each API in parallel
+    //     const classroomDataPromises = data.data.teachers.map((teacher) =>
+    //       Promise.all([
+    //         VillageApi.getClassroomsByTeacherId({ teacher_id: teacher.id }),
+    //         TagApi.getClassroomsByTeacherId({ teacher_id: teacher.id }),
+    //         WordApi.getClassroomsByTeacherId({ teacher_id: teacher.id }),
+    //       ]).then(([villageRes, tagRes, wordRes]) => {
+    //         // Combine results of all three API calls for this teacher
+    //         return {
+    //           teacherId: teacher.id,
+    //           villageClassrooms: villageRes.data,
+    //           tagClassrooms: tagRes.data,
+    //           wordClassrooms: wordRes.data,
+    //         };
+    //       })
+    //     );
+
+    //     // Wait for all classroom data to be fetched
+    //     const allClassroomData = await Promise.all(classroomDataPromises);
+
+    //     // Update the table with the combined classroom data
+    //     setTableData((prevTableData) =>
+    //       prevTableData.map((teacher) => ({
+    //         ...teacher,
+    //         classrooms: allClassroomData.find(
+    //           (classroom) => classroom.teacherId === teacher.id
+    //         ),
+    //       }))
+    //     );
+    //   })
+    //   .catch((err) =>
+    //     notification.error({
+    //       message: "Error",
+    //       description: err.response.data.message,
+    //     })
+    //   )
+    //   .finally(() => setLoading(false));
 
     // Fetch students by school ID
-    AdminAPI.getStudent({ schoolId: userInfo.schoolId })
-      .then((data) => {
-        setAllStudents(data.data.rows);
-        setMissedStudents(data.data.rows);
-      })
-      .catch((err) =>
-        notification.error({
-          message: "Error",
-          description: err.response.data.message,
-        })
-      )
-      .finally(() => setLoading(false));
+    // AdminAPI.getStudent({ schoolId: userInfo.schoolId })
+    //   .then((data) => {
+    //     setAllStudents(data.data.rows);
+    //     setMissedStudents(data.data.rows);
+    //   })
+    //   .catch((err) =>
+    //     notification.error({
+    //       message: "Error",
+    //       description: err.response.data.message,
+    //     })
+    //   )
+    //   .finally(() => setLoading(false));
 
     // Set full-screen content settings
     context.setAppContentFullHeight(true);
@@ -215,104 +230,6 @@ const SchoolManagement = () => {
 
     // eslint-disable-next-line
   }, []);
-
-  const handleAddStudent = () => {
-    setJoinClassLoading(loadingState.loading);
-    const exists = isStudentIdExists(addSelectedStudent.student_id);
-
-    if (!exists) {
-      VillageApi.joinClassroom(addSelectedStudent)
-        .then((res) => {
-          let tmpTableData = tableData;
-          console.log("Start => ", tmpTableData, selectedTable);
-          for (let i = 0; i < tmpTableData.length; i++) {
-            if (tmpTableData[i].id === selectedTable.id) {
-              console.log("Second => ", tmpTableData[i]);
-              tmpTableData[i].school_id = selectedTable.id;
-              if (!tmpTableData[i].students)
-                tmpTableData[i].students = [
-                  {
-                    name: addSelectedStudent.name,
-                    student_id: addSelectedStudent.student_id,
-                  },
-                ];
-              else
-                tmpTableData[i].students.push({
-                  name: addSelectedStudent.name,
-                  student_id: addSelectedStudent.student_id,
-                });
-              console.log("Third => ", tmpTableData[i]);
-              break;
-            }
-          }
-
-          console.log("Finish => ", tmpTableData);
-          setTableData(tmpTableData);
-          setMissedStudents(
-            missedStudents.filter(
-              (item) => item.id !== addSelectedStudent.student_id
-            )
-          );
-
-          setJoinClassLoading(loadingState.after);
-        })
-        .catch((_err) => {
-          setJoinClassLoading(loadingState.after);
-        });
-    } else {
-      setJoinClassLoading(loadingState.after);
-      toast.error("Already that student has existed.", { autoClose: 3000 });
-    }
-  };
-
-  const handleAddStudentByGmail = () => {
-    setJoinClassLoading(loadingState.loading);
-    const addedStudentByGmail = getStudentInfoByEmail(addedGmail);
-    const exists = isStudentIdExists(addedStudentByGmail.student_id);
-    if (!exists) {
-      VillageApi.joinClassroom(addedStudentByGmail)
-        .then((res) => {
-          let tmpTableData = tableData;
-          console.log("Start => ", tmpTableData, selectedTable);
-          for (let i = 0; i < tmpTableData.length; i++) {
-            if (tmpTableData[i].id === selectedTable.id) {
-              console.log("Second => ", tmpTableData[i]);
-              tmpTableData[i].school_id = selectedTable.id;
-              if (!tmpTableData[i].students)
-                tmpTableData[i].students = [
-                  {
-                    name: addedStudentByGmail.name,
-                    student_id: addedStudentByGmail.student_id,
-                  },
-                ];
-              else
-                tmpTableData[i].students.push({
-                  name: addedStudentByGmail.name,
-                  student_id: addedStudentByGmail.student_id,
-                });
-              console.log("Third => ", tmpTableData[i]);
-              break;
-            }
-          }
-
-          console.log("Finish => ", tmpTableData);
-          setTableData(tmpTableData);
-          setMissedStudents(
-            missedStudents.filter(
-              (item) => item.id !== addedStudentByGmail.student_id
-            )
-          );
-
-          setJoinClassLoading(loadingState.after);
-        })
-        .catch((_err) => {
-          setJoinClassLoading(loadingState.after);
-        });
-    } else {
-      setJoinClassLoading(loadingState.after);
-      toast.error("Already that student has existed.", { autoClose: 3000 });
-    }
-  };
 
   const handleAddClass = (event) => {
     event.preventDefault();
@@ -427,153 +344,6 @@ const SchoolManagement = () => {
     }
   };
 
-  const blockStudent = () => {
-    if (
-      selectedTable &&
-      selectedTable.students &&
-      selectedTable.students.length > 0
-    ) {
-      let updatedStudents = selectedTable?.students;
-      updatedStudents[editStudent].status = "blocked";
-
-      const body = {
-        teacher_id: userInfo.uid,
-        school_id: selectedTable.id,
-        students: updatedStudents,
-      };
-
-      VillageApi.editClassroom(body)
-        .then((res) => {
-          const index = tableData.findIndex(
-            (item) => item.id === selectedTable.id
-          );
-          const tmpTableData = tableData;
-          const updatedData = {
-            students: updatedStudents,
-          };
-
-          if (index !== -1) {
-            tmpTableData[index] = { ...tmpTableData[index], ...updatedData };
-            let tmpSelectedData = selectedTable;
-            tmpSelectedData = { ...selectedTable, ...updatedData };
-            setSelectedTable(tmpSelectedData);
-            setTableData(tmpTableData);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => console.log("Finished!"));
-    }
-  };
-
-  const activeStudent = () => {
-    if (
-      selectedTable &&
-      selectedTable.students &&
-      selectedTable.students.length > 0
-    ) {
-      let updatedStudents = selectedTable?.students;
-      updatedStudents[editStudent].status = "active";
-
-      const body = {
-        teacher_id: userInfo.uid,
-        school_id: selectedTable.id,
-        students: updatedStudents,
-      };
-
-      VillageApi.editClassroom(body)
-        .then((res) => {
-          const index = tableData.findIndex(
-            (item) => item.id === selectedTable.id
-          );
-          const tmpTableData = tableData;
-          const updatedData = {
-            students: updatedStudents,
-          };
-
-          if (index !== -1) {
-            tmpTableData[index] = { ...tmpTableData[index], ...updatedData };
-            let tmpSelectedData = selectedTable;
-            tmpSelectedData = { ...selectedTable, ...updatedData };
-            setSelectedTable(tmpSelectedData);
-            setTableData(tmpTableData);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => console.log("Finished!"));
-    }
-  };
-
-  const handleRemoveStudent = () => {
-    let removedStudents = [...selectedTable?.students];
-    removedStudents.splice(editStudent, 1);
-
-    // Adjust `editStudent` if it's out of bounds after the removal
-    const newEditStudent = Math.min(editStudent, removedStudents.length - 1);
-
-    const body = {
-      teacher_id: userInfo.uid,
-      school_id: selectedTable.id,
-      students: removedStudents,
-    };
-
-    VillageApi.editClassroom(body)
-      .then((res) => {
-        const index = tableData.findIndex(
-          (item) => item.id === selectedTable.id
-        );
-        const tmpTableData = [...tableData];
-        const updatedData = {
-          students: removedStudents,
-        };
-
-        if (index !== -1) {
-          tmpTableData[index] = { ...tmpTableData[index], ...updatedData };
-          let tmpSelectedData = { ...selectedTable, ...updatedData };
-          setSelectedTable(tmpSelectedData);
-          setTableData(tmpTableData);
-        }
-
-        // Update editStudent to the new valid index
-        setEditStudent(newEditStudent);
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => console.log("Finished!"));
-  };
-
-  const handleJoinClass = (event) => {
-    event.preventDefault();
-
-    const classId = event.target.classroomId.value;
-
-    if (classId !== "") {
-      const body = {
-        class_id: classId,
-        student_id: userInfo.uid,
-        name: userInfo.name,
-      };
-
-      setJoinClassLoading(loadingState.loading);
-      VillageApi.joinClassroom(body)
-        .then((res) => {
-          const updatedData = {
-            ...res.data,
-            id: res.data.school_id, // Add the "id" field
-          };
-          setTableData([...tableData, updatedData]);
-          setJoinClassLoading(loadingState.after);
-        })
-        .catch((_err) => {
-          setJoinClassLoading(loadingState.after);
-        });
-    }
-  };
-
   const filteredStudents = missedStudents
     ? missedStudents.filter((student) =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -663,11 +433,11 @@ const SchoolManagement = () => {
                                     <div className="status">
                                       <i className="bi bi-circle-fill"></i>
                                     </div>
-                                    <div className="fw-bold">Teacher</div>
-                                    <div className="fw-bold display-6">
-                                      {table.name.substr(0, 5) +
-                                        (table.name.length > 5 ? "..." : "")}
-                                    </div>
+                                    <div className="fw-bold">School</div>
+                                    {/* <div className="fw-bold display-6">
+                                      {table.id.substr(0, 5) +
+                                        (table.id.length > 5 ? "..." : "")}
+                                    </div> */}
                                     <div className="text-primary text-opacity-50">
                                       {translate("id")}: {table.id}
                                     </div>
@@ -737,10 +507,7 @@ const SchoolManagement = () => {
                   </div>
                   <hr className="m-0 opacity-3 text-primary" />
                   <PerfectScrollbar className="pos-sidebar-body">
-                    <div className="d-flex justify-content-between w-100">
-                      <h5 className="pos-order py-3 my-0">Teacher Name: </h5>
-                      <h5 className="mx-3 py-3 my-0">{selectedTable?.name}</h5>
-                      {/* {userInfo.type != "Student" && selectedTable ? (
+                    {/* {userInfo.type != "Student" && selectedTable ? (
                         <button
                           type="button"
                           className="btn btn-light btn-sm"
@@ -752,54 +519,45 @@ const SchoolManagement = () => {
                       ) : (
                         ""
                       )} */}
-                    </div>
                     <hr className="m-0 opacity-3 text-primary" />
                     <div className="h-100">
                       {/* <div className="pos-order py-3 h-50 text-wrap text-break overflow-auto">
                         {selectedTable?.description}
                       </div> */}
-                      <div
-                        className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
-                        onClick={() => handleNavigate("tag")}
-                      >
-                        <span className="text-decoration-underline mr-1">
-                          Tag Game:{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length}{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length >= 2
-                            ? "Classes"
-                            : "Class"}
-                        </span>
-                        <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
-                      </div>
-                      <div
-                        className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
-                        onClick={() => handleNavigate("word-dash")}
-                      >
-                        <span className="text-decoration-underline mr-1">
-                          Word Dash:{" "}
-                          {selectedTable?.classrooms.wordClassrooms.length}{" "}
-                          {selectedTable?.classrooms.wordClassrooms.length >= 2
-                            ? "Classes"
-                            : "Class"}
-                        </span>
-                        <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
-                      </div>
-                      <div
-                        className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
-                        onClick={() => handleNavigate("village")}
-                      >
-                        <span className="text-decoration-underline mr-1">
-                          Village:{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length}{" "}
-                          {selectedTable?.classrooms.tagClassrooms.length >= 2
-                            ? "Classes"
-                            : "Class"}
-                        </span>
-                        <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
-                      </div>
+                      {selectedTable?.id && (
+                        <div
+                          className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
+                          onClick={handleNavigate}
+                        >
+                          <span className="text-decoration-underline mr-1">
+                            See more about school {`"${selectedTable?.id}"`}
+                          </span>
+                          <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
+                        </div>
+                      )}
+                      {selectedTable?.teacherCount > 1 && (
+                        <div
+                          className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
+                        >
+                          <span className="text-decoration-underline mr-1">
+                            Count of Teachers:{" "}
+                            {`${selectedTable?.teacherCount - 1}`}
+                          </span>
+                        </div>
+                      )}
+                      {selectedTable?.studentCount > 0 && (
+                        <div
+                          className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
+                        >
+                          <span className="text-decoration-underline mr-1">
+                            Count of Students:{" "}
+                            {`${selectedTable?.studentCount}`}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </PerfectScrollbar>
-                  {selectedTable && userInfo.type !== "Student" && (
+                  {/* {selectedTable && userInfo.type !== "Student" && (
                     <div className="pos-sidebar-footer">
                       <div className="mt-3">
                         <button
@@ -811,7 +569,7 @@ const SchoolManagement = () => {
                         </button>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>
@@ -882,213 +640,6 @@ const SchoolManagement = () => {
         </div>
       </div>
 
-      <div className="modal fade" id="modalAddStudent">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Add Student</h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
-            </div>
-            <form>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">
-                    Students
-                    <span className="text-danger">*</span>
-                  </label>
-                  <div className="d-flex justify-content-between align-items-start">
-                    {filteredStudents &&
-                    filteredStudents.length > 0 &&
-                    selectedTable ? (
-                      <select
-                        className="form-select"
-                        style={{ width: 200 }}
-                        onChange={(e) => {
-                          setAddSelectedStudent({
-                            student_id: filteredStudents[e.target.value].id,
-                            name: filteredStudents[e.target.value].name,
-                            class_id: selectedTable.id,
-                          });
-                        }}
-                      >
-                        {filteredStudents.map((student, idx) => (
-                          <option value={idx}>{student.name}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <h6> No available students </h6>
-                    )}
-                    <div>
-                      <input
-                        type="text"
-                        className="form-control mb-2"
-                        placeholder="Search students..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                {joinClassLoading === loadingState.before && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-theme"
-                    onClick={handleAddStudent}
-                  >
-                    <label className="form-label mb-0">Add Student</label>
-                  </button>
-                )}
-                {joinClassLoading === loadingState.loading && <BarsScale />}
-                {joinClassLoading === loadingState.after && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-theme"
-                    data-bs-dismiss="modal"
-                    onClick={() => setJoinClassLoading(loadingState.before)}
-                  >
-                    <label className="form-label mb-0">
-                      {translate("done")}
-                    </label>
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div className="modal fade" id="modalAddStudentByGmail">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Add Student By Email</h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
-            </div>
-            <form>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">
-                    Students
-                    <span className="text-danger">*</span>
-                  </label>
-                  <div className="d-flex justify-content-between align-items-start">
-                    <input
-                      type="text"
-                      className="form-control mb-2"
-                      placeholder="Write Gmail..."
-                      value={addedGmail}
-                      onChange={(e) => setAddedGmail(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                {joinClassLoading === loadingState.before && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-theme"
-                    onClick={handleAddStudentByGmail}
-                  >
-                    <label className="form-label mb-0">Add Student</label>
-                  </button>
-                )}
-                {joinClassLoading === loadingState.loading && <BarsScale />}
-                {joinClassLoading === loadingState.after && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-theme"
-                    data-bs-dismiss="modal"
-                    onClick={() => setJoinClassLoading(loadingState.before)}
-                  >
-                    <label className="form-label mb-0">
-                      {translate("done")}
-                    </label>
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div className="modal fade" id="modalEditStudent">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Edit Student</h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
-            </div>
-            <form>
-              <div className="modal-body">
-                <div className="mb-3">
-                  {selectedTable &&
-                  selectedTable.students &&
-                  selectedTable.students.length > 0 ? (
-                    <div>
-                      <label className="form-label">
-                        {`Name: ${selectedTable.students[editStudent].name}`}
-                      </label>
-                      <br />
-
-                      <label className="form-label">
-                        {`ID: ${selectedTable.students[editStudent].student_id}`}
-                      </label>
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                </div>
-              </div>
-              <div className="modal-footer">
-                <div>
-                  <button
-                    type="button"
-                    className="btn btn-danger m-1"
-                    data-bs-dismiss="modal"
-                    onClick={handleRemoveStudent}
-                  >
-                    Remove
-                  </button>
-                  {editStudentStatus === "active" ? (
-                    <button
-                      type="button"
-                      className="btn btn-warning"
-                      data-bs-dismiss="modal"
-                      onClick={blockStudent}
-                    >
-                      Block
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="btn btn-success m-1"
-                      data-bs-dismiss="modal"
-                      onClick={activeStudent}
-                    >
-                      Active
-                    </button>
-                  )}
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
       <div className="modal fade" id="modalEditClass">
         <div className="modal-dialog">
           <div className="modal-content">
@@ -1148,54 +699,6 @@ const SchoolManagement = () => {
                     onClick={() => setEditClassLoading(loadingState.before)}
                   >
                     <label className="form-label">{translate("done")}</label>
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div className="modal fade" id="modalJoinClass">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">{translate("join-classroom")}</h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
-            </div>
-            <form onSubmit={handleJoinClass}>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">
-                    {translate("classroom-id")}
-                    <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control form-control-lg bg-white bg-opacity-5"
-                    placeholder=""
-                    id="classroomId"
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                {joinClassLoading === loadingState.before && (
-                  <button type="submit" className="btn btn-outline-theme">
-                    {translate("join")}
-                  </button>
-                )}
-                {joinClassLoading === loadingState.loading && <BarsScale />}
-                {joinClassLoading === loadingState.after && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-theme"
-                    data-bs-dismiss="modal"
-                  >
-                    {translate("done")}
                   </button>
                 )}
               </div>

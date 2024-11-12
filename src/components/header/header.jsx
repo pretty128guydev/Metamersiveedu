@@ -254,6 +254,15 @@ function Header() {
               </div>
             </div>
           </div> */}
+          <div className="menu-item dropdown dropdown-mobile-full schoolname">
+            <div className="menu-text d-sm-block d-none">
+              {isLoggedIn
+                ? userInfo.type == "SPAdmin"
+                  ? "Super Admin"
+                  : `${userInfo.schoolId}`
+                : ""}
+            </div>
+          </div>
           <div className="menu-item dropdown dropdown-mobile-full">
             <a
               href="#/"
@@ -331,6 +340,23 @@ function Header() {
                 <i className="bi bi-gear ms-auto text-theme fs-16px my-n1"></i>
               </Link>
               <div className="dropdown-divider"></div> */}
+              <div
+                className="text-primary dropdown-item d-flex align-items-center"
+                style={{ cursor: "pointer" }}
+              >
+                {isLoggedIn &&
+                  userInfo.type === "Teacher" &&
+                  translate("teacher")}
+                {isLoggedIn &&
+                  userInfo.type === "Student" &&
+                  translate("student")}
+                {isLoggedIn &&
+                  userInfo.type === "SPAdmin" &&
+                  translate("Super Admin")}
+                {isLoggedIn &&
+                  userInfo.type === "SGAdmin" &&
+                  translate("School Admin")}
+              </div>
               <div
                 className="text-primary dropdown-item d-flex align-items-center"
                 style={{ cursor: "pointer" }}

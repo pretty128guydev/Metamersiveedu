@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useContext, useState } from "react";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { notification } from "antd";
 import { Card, CardBody } from "../../../components/card/card.jsx";
 import { AppSettings } from "../../../config/app-settings.js";
@@ -41,11 +41,18 @@ const TagGameForAdmin = () => {
   const [editClassLoading, setEditClassLoading] = useState(loadingState.before);
   const [addedGmail, setAddedGmail] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [teacherName, setteacherName] = useState("");
   const [allStudents, setAllStudents] = useState([]);
+  const [schoolId, setschoolId] = useState("");
+  const navigate = useNavigate();
 
   const userInfo = useSelector((store) => store.auth.userInfo);
 
   const modalAddClass = document.getElementById("modalAddClass");
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
 
   modalAddClass?.addEventListener("shown.bs.modal", () => {
     const inputName = document.getElementById("classroomName");
@@ -70,7 +77,11 @@ const TagGameForAdmin = () => {
     event.preventDefault();
 
     setPosMobileSidebarToggled(true);
-    setSelectedTable(table);
+    setSelectedTable({
+      ...table,
+      students:
+        table.students?.sort((a, b) => a.name.localeCompare(b.name)) || [],
+    });
 
     setClassName(table.name);
     setClassDesc(table.description);
@@ -123,52 +134,57 @@ const TagGameForAdmin = () => {
   }
 
   useEffect(() => {
-    // context.setAppHeaderNone(true);
-    // context.setAppSidebarNone(true);
+    const fetchClassroomAndStudents = async () => {
+      setLoading(true);
+
+      try {
+        // First API call to get classrooms by teacher ID
+        const classroomResponse = await TagApi.getClassroomsByTeacherId({
+          teacher_id,
+        });
+        const tmpschoolId = classroomResponse.data.ret[0].schoolId;
+
+        // Determine the appropriate school ID based on user type
+        const resolvedSchoolId =
+          userInfo.type === "SPAdmin" ? tmpschoolId : userInfo.schoolId;
+        setschoolId(resolvedSchoolId); // Set the school ID for use in subsequent API calls
+        setteacherName(classroomResponse.data.teacherName);
+        setTableData(classroomResponse.data.ret);
+
+        // Second API call to get students, using the resolved school ID
+        const studentResponse = await AdminAPI.getStudent({
+          schoolId: resolvedSchoolId,
+        });
+        setAllStudents(studentResponse.data.rows);
+        setMissedStudents(studentResponse.data.rows);
+      } catch (error) {
+        notification.error({
+          message: "Error",
+          description: error.response?.data?.message || "An error occurred",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClassroomAndStudents();
+
+    // Set layout context settings
     context.setAppContentFullHeight(true);
     context.setAppContentClass("p-1 ps-xl-4 pe-xl-4 pt-xl-3 pb-xl-3");
 
-    setLoading(true);
-    TagApi.getClassroomsByTeacherId({ teacher_id })
-      .then((res) => {
-        setTableData(res.data);
-      })
-      .finally(() => setLoading(false));
-
-    AdminAPI.getStudent({
-      schoolId: userInfo.schoolId,
-    })
-      .then((data) => {
-        // setAllData(data.data.rows.map(item => ({ ...item, key: item.id })));
-        // setStudentData(data.data.rows.map(item => ({
-        //   ...item,
-        //   key: item.id,
-        // })));
-        setAllStudents(data.data.rows);
-        setMissedStudents(data.data.rows);
-      })
-      .catch((err) =>
-        notification.error({
-          message: "Error",
-          description: err.response.data.message,
-        })
-      )
-      .finally(() => setLoading(false));
-
     return function cleanUp() {
-      // context.setAppHeaderNone(false);
-      // context.setAppSidebarNone(false);
       context.setAppContentFullHeight(false);
       context.setAppContentClass("");
     };
 
     // eslint-disable-next-line
-  }, []);
+  }, [teacher_id, userInfo]); // Adding dependencies ensures this effect runs when teacher_id or userInfo changes
 
   const handleAddStudent = () => {
     setJoinClassLoading(loadingState.loading);
     console.log(addSelectedStudent);
-    const exists = isStudentIdExists(addSelectedStudent.student_id);
+    const exists = isStudentIdExists(addSelectedStudent?.student_id);
 
     if (!exists) {
       TagApi.joinClassroom(addSelectedStudent)
@@ -238,6 +254,10 @@ const TagGameForAdmin = () => {
       let updatedStudents = selectedTable?.students;
       updatedStudents[editStudent].status = "blocked";
 
+      updatedStudents = updatedStudents.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+
       const body = {
         teacher_id: teacher_id,
         school_id: selectedTable.id,
@@ -277,6 +297,10 @@ const TagGameForAdmin = () => {
     ) {
       let updatedStudents = selectedTable?.students;
       updatedStudents[editStudent].status = "active";
+
+      updatedStudents = updatedStudents.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
 
       const body = {
         teacher_id: teacher_id,
@@ -378,7 +402,7 @@ const TagGameForAdmin = () => {
         name: name,
         description: description,
         teacher_id: teacher_id,
-        schoolId: userInfo.schoolId,
+        schoolId: schoolId,
       };
 
       setAddClassLoading(loadingState.loading);
@@ -402,7 +426,7 @@ const TagGameForAdmin = () => {
         description: classDesc,
         school_id: selectedTable.id,
         teacher_id: teacher_id,
-        schoolId: userInfo.schoolId,
+        schoolId: schoolId,
       };
 
       setEditClassLoading(loadingState.loading);
@@ -458,6 +482,10 @@ const TagGameForAdmin = () => {
     let removedStudents = [...selectedTable?.students];
     removedStudents.splice(editStudent, 1);
 
+    removedStudents = removedStudents.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
     // Adjust `editStudent` if it's out of bounds after the removal
     const newEditStudent = Math.min(editStudent, removedStudents.length - 1);
 
@@ -512,19 +540,34 @@ const TagGameForAdmin = () => {
             ...res.data,
             id: res.data.school_id, // Add the "id" field
           };
-          setTableData([...tableData, updatedData]);
+          // Check if the class already exists in tableData by class_id
+          const classExists = tableData.some(
+            (classroom) => classroom.class_id === updatedData.class_id
+          );
+
+          if (!classExists) {
+            // Only add the class if it does not already exist
+            setTableData([...tableData, updatedData]);
+          } else {
+            toast.info("You are already enrolled in this class.", {
+              autoClose: 3000,
+            });
+          }
           setJoinClassLoading(loadingState.after);
         })
         .catch((_err) => {
+          toast.error(_err.response.data.status, { autoClose: 3000 });
           setJoinClassLoading(loadingState.after);
         });
     }
   };
 
   const filteredStudents = missedStudents
-    ? missedStudents.filter((student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? missedStudents
+        .filter((student) =>
+          student.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
     : [];
 
   return (
@@ -535,10 +578,22 @@ const TagGameForAdmin = () => {
         </li>
       </ul>
 
-      <h1 className="page-header">
-        <i className="fas fa-lg fa-fw me-2 fa-heartbeat"></i>
-        {translate("tag-game")}{" "}
-        <small>{translate("manage-classrooms-here")}...</small>
+      <h1 className="page-header d-flex justify-content-between align-items-center">
+        <div>
+          <i className="fas fa-lg fa-fw me-2 fa-heartbeat"></i>
+          {translate("tag-game")}{" "}
+          <small>{translate("manage-classrooms-here")}...</small>
+        </div>
+        <div className="mt-3">
+          <button
+            type="button"
+            className="btn btn-outline-info btn-lg w-100 d-flex gap-1"
+            onClick={handleGoBack}
+          >
+            <i class="bi bi-arrow-left"></i>
+            {translate("Go Back")}
+          </button>
+        </div>
       </h1>
 
       <Card
@@ -558,7 +613,9 @@ const TagGameForAdmin = () => {
                     style={{ fontSize: "1.5rem" }}
                   ></i>
                 </div>
-                <div className="logo-text">{translate("classrooms")}</div>
+                <div className="logo-text">
+                  Tag Game {translate("classrooms")}
+                </div>
               </Link>
             </div>
 
@@ -566,15 +623,28 @@ const TagGameForAdmin = () => {
               <div className="hide-sm me-4">
                 {tableData ? tableData.length : 0} {translate("founded")}
               </div>
-              <button
-                type="button"
-                className="btn btn-theme btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#modalAddClass"
-              >
-                <i className="fas fa-lg fa-fw me-2 fa-plus"></i>
-                {translate("add-class")}
-              </button>
+              {userInfo.type !== "Student" && (
+                <button
+                  type="button"
+                  className="btn btn-theme btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalAddClass"
+                >
+                  <i className="fas fa-lg fa-fw me-2 fa-plus"></i>
+                  {translate("add-class")}
+                </button>
+              )}
+              {userInfo.type === "Student" && (
+                <button
+                  type="button"
+                  className="btn btn-theme btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalJoinClass"
+                >
+                  <i className="fas fa-lg fa-fw me-2 fa-plus"></i>
+                  {translate("join-classroom")}
+                </button>
+              )}
             </div>
           </div>
 
@@ -728,7 +798,9 @@ const TagGameForAdmin = () => {
                   <hr className="m-0 opacity-3 text-primary" />
                   <PerfectScrollbar className="pos-sidebar-body">
                     <div className="d-flex justify-content-between w-100">
-                      <h5 className="pos-order py-3">{selectedTable?.name}</h5>
+                      <h5 className="pos-order py-3">
+                        Class Name: {selectedTable?.name}
+                      </h5>
                       {userInfo.type != "Student" && selectedTable ? (
                         <button
                           type="button"
@@ -742,7 +814,23 @@ const TagGameForAdmin = () => {
                         ""
                       )}
                     </div>
+                    <div className="d-flex justify-content-between w-100">
+                      <h5 className="pos-order py-3">
+                        Teacher Name: {teacherName}
+                      </h5>
+                    </div>
                     <hr className="m-0 opacity-3 text-primary" />
+                    {selectedTable?.status && (
+                      <div
+                        className={`pos-order py-3 ${
+                          selectedTable?.status === "active"
+                            ? "bg-success"
+                            : "bg-danger"
+                        }`}
+                      >
+                        {selectedTable?.status}
+                      </div>
+                    )}
                     <div>
                       <div className="pos-order py-3">
                         {selectedTable?.description}

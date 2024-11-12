@@ -21,7 +21,7 @@ const Menu = [
   {
     path: "/mock",
     icon: "bi bi-envelope",
-    title: "Mock Papers",
+    title: "Practice Drills",
     children: [
       {
         path: "",
@@ -113,15 +113,15 @@ const Menu = [
       { path: "/class/village", title: "Village" },
     ],
   },
-  // {
-  //   path: "/analytics",
-  //   icon: "bi bi-bar-chart",
-  //   title: "Analytics",
-  //   children: [
-  //     // { path: "/analytics/normalQuiz", title: "Stand Alone Quiz" },
-  //     // { path: "/analytics/adaptiveQuiz", title: "Skill Drill" },
-  //   ],
-  // },
+  {
+    path: "/analytics",
+    icon: "bi bi-bar-chart",
+    title: "Analytics",
+    children: [
+      { path: "/analytics/normalQuiz", title: "Stand Alone Quiz" },
+      { path: "/analytics/adaptiveQuiz", title: "Skill Drill" },
+    ],
+  },
 ];
 
 export default Menu;

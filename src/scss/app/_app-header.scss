@@ -66,12 +66,17 @@
 		}
 
 		@else {
-			margin-right: auto;
+			margin-right: '';
 		}
 
 		@include media-breakpoint-down(md) {
 			display: none;
 		}
+	}
+
+	& .schoolname {
+		margin-right: auto;
+		color: #FFFFFF;
 	}
 
 	& .brand {
@@ -144,7 +149,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
-		flex: 1;
+		margin-left: auto;
+		width: 50%;
 
 		& .menu-item {
 			height: 100%;

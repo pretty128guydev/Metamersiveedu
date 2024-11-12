@@ -21,7 +21,7 @@ const Menu = [
   {
     path: "/mock",
     icon: "bi bi-envelope",
-    title: "Mock Papers",
+    title: "Practice Drills",
     children: [
       {
         path: "",
@@ -127,18 +127,18 @@ const Menu = [
     ],
   },
 
-  {
-    path: "/QB",
-    icon: "bi bi-bank",
-    title: "Question Bank",
-    children: [{ path: "/QB/subjects", title: "My Bank" }],
-  },
+  // {
+  //   path: "/QB",
+  //   icon: "bi bi-bank",
+  //   title: "Question Bank",
+  //   children: [{ path: "/QB/subjects", title: "My Bank" }],
+  // },
 
-  {
-    path: "/school-admin",
-    icon: "bi bi-gear",
-    title: "Settings",
-  },
+  // {
+  //   path: "/school-admin",
+  //   icon: "bi bi-gear",
+  //   title: "Contact Support",
+  // },
 
   {
     path: "/school-management",

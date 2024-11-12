@@ -62,7 +62,11 @@ const WordDash = () => {
   function toggleMobileSidebar(event, table) {
     event.preventDefault();
     setPosMobileSidebarToggled(true);
-    setSelectedTable(table);
+    setSelectedTable({
+      ...table,
+      students:
+        table.students?.sort((a, b) => a.name.localeCompare(b.name)) || [],
+    });
 
     setClassName(table.name);
     setClassDesc(table.description);
@@ -115,59 +119,72 @@ const WordDash = () => {
   }
 
   useEffect(() => {
-    setLoading(true);
+    const fetchStudentData = async () => {
+      setLoading(true);
+      try {
+        const query = { student_id: userInfo.uid };
+        const res = await WordApi.getJoinedClassrooms(query);
+
+        const updatedClassrooms = res.data.map((classroom) => {
+          const student = classroom.students.find(
+            (student) => student.student_id === userInfo.uid
+          );
+          if (student) {
+            classroom.status = student.status; // Add status to classroom data
+          }
+          return classroom;
+        });
+
+        setTableData(updatedClassrooms);
+      } catch (error) {
+        console.error("Error fetching student classrooms:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchTeacherData = async () => {
+      setLoading(true);
+      try {
+        const res = await WordApi.getClassroomsByTeacherId({
+          teacher_id: userInfo.uid,
+        });
+        setTableData(res.data.ret);
+
+        const studentsRes = await AdminAPI.getStudent({
+          schoolId: userInfo.schoolId,
+        });
+        setAllStudents(studentsRes.data.rows);
+        setMissedStudents(studentsRes.data.rows);
+      } catch (error) {
+        notification.error({
+          message: "Error",
+          description:
+            error.response?.data?.message || "An error occurred fetching data",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
     if (userInfo.type === "Student") {
-      const query = { student_id: userInfo.uid };
-      WordApi.getJoinedClassrooms(query)
-        .then((res) => {
-          setTableData(res.data);
-          setLoading(false);
-        })
-        .catch((_err) => {
-          setLoading(false);
-        });
+      fetchStudentData();
     } else {
-      WordApi.getClassroomsByTeacherId({ teacher_id: userInfo.uid })
-        .then((res) => {
-          setTableData(res.data);
-        })
-        .finally(() => setLoading(false));
-
-      AdminAPI.getStudent({
-        schoolId: userInfo.schoolId,
-      })
-        .then((data) => {
-          // setAllData(data.data.rows.map(item => ({ ...item, key: item.id })));
-          // setStudentData(data.data.rows.map(item => ({
-          //   ...item,
-          //   key: item.id,
-          // })));
-          setAllStudents(data.data.rows);
-          setMissedStudents(data.data.rows);
-        })
-        .catch((err) =>
-          notification.error({
-            message: "Error",
-            description: err.response.data.message,
-          })
-        )
-        .finally(() => setLoading(false));
+      fetchTeacherData();
     }
 
-    // context.setAppHeaderNone(true);
-    // context.setAppSidebarNone(true);
+    // Set layout context settings
     context.setAppContentFullHeight(true);
     context.setAppContentClass("p-1 ps-xl-4 pe-xl-4 pt-xl-3 pb-xl-3");
 
-    return function cleanUp() {
-      // context.setAppHeaderNone(false);
-      // context.setAppSidebarNone(false);
+    // Cleanup function to reset layout on component unmount
+    return () => {
       context.setAppContentFullHeight(false);
       context.setAppContentClass("");
     };
+
     // eslint-disable-next-line
-  }, []);
+  }, [userInfo]);
 
   const isStudentIdExists = (student_id) => {
     return (
@@ -343,6 +360,10 @@ const WordDash = () => {
       let updatedStudents = selectedTable?.students;
       updatedStudents[editStudent].status = "blocked";
 
+      updatedStudents = updatedStudents.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+
       const body = {
         teacher_id: userInfo.uid,
         school_id: selectedTable.id,
@@ -383,6 +404,10 @@ const WordDash = () => {
       let updatedStudents = selectedTable?.students;
       updatedStudents[editStudent].status = "active";
 
+      updatedStudents = updatedStudents.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+
       const body = {
         teacher_id: userInfo.uid,
         school_id: selectedTable.id,
@@ -417,6 +442,10 @@ const WordDash = () => {
   const handleRemoveStudent = () => {
     let removedStudents = [...selectedTable?.students];
     removedStudents.splice(editStudent, 1);
+
+    removedStudents = removedStudents.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
 
     // Adjust `editStudent` if it's out of bounds after the removal
     const newEditStudent = Math.min(editStudent, removedStudents.length - 1);
@@ -529,19 +558,34 @@ const WordDash = () => {
             ...res.data,
             id: res.data.school_id, // Add the "id" field
           };
-          setTableData([...tableData, updatedData]);
+          // Check if the class already exists in tableData by class_id
+          const classExists = tableData.some(
+            (classroom) => classroom.class_id === updatedData.class_id
+          );
+
+          if (!classExists) {
+            // Only add the class if it does not already exist
+            setTableData([...tableData, updatedData]);
+          } else {
+            toast.info("You are already enrolled in this class.", {
+              autoClose: 3000,
+            });
+          }
           setJoinClassLoading(loadingState.after);
         })
         .catch((_err) => {
+          toast.error(_err.response.data.status, { autoClose: 3000 });
           setJoinClassLoading(loadingState.after);
         });
     }
   };
 
   const filteredStudents = missedStudents
-    ? missedStudents.filter((student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? missedStudents
+        .filter((student) =>
+          student.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
     : [];
 
   return (
@@ -583,15 +627,28 @@ const WordDash = () => {
               <div className="hide-sm me-4">
                 {tableData ? tableData.length : 0} {translate("founded")}
               </div>
-              <button
-                type="button"
-                className="btn btn-theme btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#modalAddClass"
-              >
-                <i className="fas fa-lg fa-fw me-2 fa-plus"></i>
-                {translate("add-class")}
-              </button>
+              {userInfo.type !== "Student" && (
+                <button
+                  type="button"
+                  className="btn btn-theme btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalAddClass"
+                >
+                  <i className="fas fa-lg fa-fw me-2 fa-plus"></i>
+                  {translate("add-class")}
+                </button>
+              )}
+              {userInfo.type === "Student" && (
+                <button
+                  type="button"
+                  className="btn btn-theme btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalJoinClass"
+                >
+                  <i className="fas fa-lg fa-fw me-2 fa-plus"></i>
+                  {translate("join-classroom")}
+                </button>
+              )}
             </div>
           </div>
 
@@ -745,7 +802,9 @@ const WordDash = () => {
                   <hr className="m-0 opacity-3 text-primary" />
                   <PerfectScrollbar className="pos-sidebar-body">
                     <div className="d-flex justify-content-between w-100">
-                      <h5 className="pos-order py-3">{selectedTable?.name}</h5>
+                      <h5 className="pos-order py-3">
+                        Class Name: {selectedTable?.name}
+                      </h5>
                       {userInfo.type != "Student" && selectedTable ? (
                         <button
                           type="button"
@@ -759,7 +818,23 @@ const WordDash = () => {
                         ""
                       )}
                     </div>
+                    <div className="d-flex justify-content-between w-100">
+                      <h5 className="pos-order py-3">
+                        Teacher Name: {selectedTable?.teacherName}
+                      </h5>
+                    </div>
                     <hr className="m-0 opacity-3 text-primary" />
+                    {selectedTable?.status && (
+                      <div
+                        className={`pos-order py-3 ${
+                          selectedTable?.status === "active"
+                            ? "bg-success"
+                            : "bg-danger"
+                        }`}
+                      >
+                        {selectedTable?.status}
+                      </div>
+                    )}
                     <div>
                       <div className="pos-order py-3">
                         {selectedTable?.description}

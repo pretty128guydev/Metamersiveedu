@@ -109,6 +109,7 @@ import VillageForAdmin from "../pages/class/village/VillageForAdmin.jsx";
 import TagGameForAdmin from "../pages/class/taggame/TagGameForAdmin.jsx";
 import WordDashForAdmin from "../pages/class/worddash/WordDashForAdmin.jsx";
 import SchoolManagement from "../pages/school/SchoolManagement.jsx";
+import TeacherManagementForAdmin from "../pages/teacher/TeacherManagementForAdmin.jsx";
 
 const AppRoute = [
   {
@@ -384,6 +385,10 @@ const AppRoute = [
       {
         path: "word-dash/:teacher_id",
         element: <WordDashForAdmin />,
+      },
+      {
+        path: "school-management/:school_id",
+        element: <TeacherManagementForAdmin />,
       },
       // {
       //   path: 'FAQ',
