@@ -9,6 +9,327 @@ import BarsScale from "../../components/loading/BarsScale";
 import { AnalyticsAPI } from "../../api-clients/AnalyticsAPI";
 import { formatTimeFromMinutes } from "./utils";
 import VillageApi from "../../api-clients/VillageApi";
+import ReactApexChart from "react-apexcharts";
+import SkillProgress from "./students/skill-progress";
+
+const mockData = {
+  student1: {
+    student_name: "John Doe",
+    total_questions: 50,
+    total_spent_time: 30,
+    last_play_time: "2024-11-13T12:34:56Z",
+    data: [
+      {
+        game: "Word Dash",
+        level: "Advanced",
+        questions: {
+          total: 10,
+          score: 80,
+        },
+        spent_time: 10,
+      },
+      {
+        game: "Speed Quiz",
+        level: "Intermediate",
+        questions: {
+          total: 15,
+          score: 70,
+        },
+        spent_time: 8,
+      },
+    ],
+  },
+  student2: {
+    student_name: "Jane Smith",
+    total_questions: 45,
+    total_spent_time: 25,
+    last_play_time: "2024-11-12T10:20:00Z",
+    data: [
+      {
+        game: "Memory Match",
+        level: "Beginner",
+        questions: {
+          total: 8,
+          score: 90,
+        },
+        spent_time: 7,
+      },
+      {
+        game: "Math Challenge",
+        level: "Advanced",
+        questions: {
+          total: 12,
+          score: 65,
+        },
+        spent_time: 10,
+      },
+    ],
+  },
+  student3: {
+    student_name: "Mark Spencer",
+    total_questions: 60,
+    total_spent_time: 40,
+    last_play_time: null, // No practice yet
+    data: [
+      {
+        game: "Word Dash",
+        level: "Intermediate",
+        questions: {
+          total: 15,
+          score: 85,
+        },
+        spent_time: 15,
+      },
+      {
+        game: "Speed Quiz",
+        level: "Advanced",
+        questions: {
+          total: 20,
+          score: 90,
+        },
+        spent_time: 12,
+      },
+    ],
+  },
+};
+
+const mymockChartData = [
+  {
+    home: 30,
+    school: 20,
+    time: "2024-11-01T08:00:00Z", // Date for the x-axis
+  },
+  {
+    home: 40,
+    school: 25,
+    time: "2024-11-02T08:00:00Z",
+  },
+  {
+    home: 50,
+    school: 35,
+    time: "2024-11-03T08:00:00Z",
+  },
+  {
+    home: 60,
+    school: 40,
+    time: "2024-11-04T08:00:00Z",
+  },
+  {
+    home: 45,
+    school: 50,
+    time: "2024-11-05T08:00:00Z",
+  },
+  {
+    home: 55,
+    school: 30,
+    time: "2024-11-06T08:00:00Z",
+  },
+  {
+    home: 70,
+    school: 45,
+    time: "2024-11-07T08:00:00Z",
+  },
+];
+
+const ApexChart = () => {
+  // Define the original series data (not normalized)
+  const [originalSeries] = useState([
+    {
+      name: 'Marine Sprite',
+      data: [20, 18, 15, 10, 18, 13, 6],
+    },
+    {
+      name: 'Striking Calf',
+      data: [30, 20, 18, 22, 13, 9, 5],
+    },
+    {
+      name: 'Tank Picture',
+      data: [25, 28, 10, 28, 14, 15, 8],
+    },
+    {
+      name: 'Bucket Slope',
+      data: [15, 30, 22, 20, 16, 25, 10],
+    },
+    {
+      name: 'Reborn Kid',
+      data: [10, 15, 35, 20, 15, 12, 11],
+    },
+  ]);
+
+  // Normalize the data for each year to make the total = 100% for each year
+  const [series] = useState(() => {
+    // Calculate the normalized data
+    return originalSeries.map((seriesData) => {
+      return {
+        ...seriesData,
+        data: seriesData.data.map((value, index) => {
+          // Calculate the sum for each year (index)
+          const yearTotal = originalSeries.reduce((sum, series) => sum + series.data[index], 0);
+          // Normalize the value so the sum of all series for each year is 100%
+          return (value / yearTotal) * 100;
+        }),
+      };
+    });
+  });
+
+  const [options] = useState({
+    chart: {
+      type: 'bar',
+      height: 350,
+      stacked: true, // Stacked bars, with each bar summing to 100%
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true, // Horizontal bars
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ['#fff'], // White border between bars
+    },
+    title: {
+      text: 'Stacked Bar (100% Width)',
+    },
+    xaxis: {
+      categories: [2008, 2009, 2010, 2011, 2012, 2013, 2014], // Categories for the X-axis
+      max: 100, // Max value for X-axis is 100% (so bars take up 100%)
+    },
+    tooltip: {
+      enabled: false, // Disable tooltips completely
+    },
+    fill: {
+      opacity: 1, // Ensure bars are solid
+    },
+    dataLabels: {
+      enabled: false, // Disable any data labels on bars
+    },
+    legend: {
+      position: 'top',
+      horizontalAlign: 'left',
+      offsetX: 40,
+    },
+    yaxis: {
+      labels: {
+        formatter: function (value) {
+          return Math.round(value); // Remove decimals from the Y-axis labels (round the year value)
+        },
+      },
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        stacked: true, // This enables stacking of bars
+        columnWidth: '80%', // Adjust the width of the columns if needed
+      },
+    },
+  });
+
+  return (
+    <div>
+      <div id="chart">
+        <ReactApexChart options={options} series={series} type="bar" height={350} />
+      </div>
+      <div id="html-dist"></div>
+    </div>
+  );
+};
+
+
+const ApexLineChart = () => {
+  const state = {
+    series: [
+      {
+        name: "Person 1",
+        data: [80, 65, 90, 70, 85, 60]  // Data for Person 1
+      },
+      {
+        name: "Person 2",
+        data: [70, 60, 75, 85, 65, 90]  // Data for Person 2
+      },
+      {
+        name: "Person 3",
+        data: [60, 55, 80, 60, 75, 80]  // Data for Person 3
+      }
+    ],
+    options: {
+      chart: {
+        height: 350,
+        type: 'line',  // Line chart type
+        zoom: {
+          enabled: false
+        },
+        toolbar: {
+          show: true
+        },
+        margin: {
+          left: 50,   // Left margin for some space from the y-axis
+          right: 0    // No right padding
+        }
+      },
+      dataLabels: {
+        enabled: false  // Disable data labels inside the blocks
+      },
+      stroke: {
+        width: 2,  // Line thickness
+        curve: 'straight'  // No soft curves
+      },
+      title: {
+        text: 'Language Skills Progress',
+        align: 'left'
+      },
+      markers: {
+        size: 5,  // Default marker size
+        hover: {
+          size: 6  // Slightly bigger on hover
+        },
+        colors: ['#FF4560', '#00E396', '#FEB019'],  // Marker colors for different series
+        strokeColor: '#fff',  // White stroke around the markers
+        strokeWidth: 2
+      },
+      grid: {
+        row: {
+          colors: ['#f3f3f3', 'transparent'],  // Grid line colors
+          opacity: 0.5
+        }
+      },
+      xaxis: {
+        categories: ['Speaking', 'Writing', 'Reading', 'Listening A', 'Listening B', 'Pronunciation'],  // X-axis labels
+        axisBorder: {
+          show: false  // Hide the axis border
+        },
+        axisTicks: {
+          show: true  // Show axis ticks
+        },
+        labels: {
+          show: true,  // Show x-axis labels
+          style: {
+            fontSize: '12px'  // Adjust font size of x-axis labels
+          }
+        },
+        padding: {
+          left: 50,  // Adds space between the y-axis and the first category (Speaking)
+          right: 0   // No padding for the last category (Pronunciation)
+        }
+      },
+      yaxis: {
+        min: 0,
+        max: 100,
+        tickAmount: 5,  // Number of ticks on the y-axis
+        title: {
+          text: 'Percentage (%)'  // Y-axis title
+        }
+      }
+    }
+  };
+
+  return (
+    <div>
+      <div id="chart">
+        <ReactApexChart options={state.options} series={state.series} type="line" height={350} />
+      </div>
+    </div>
+  );
+};
 
 const ChartApex = ({ data }) => {
   const themeFont = getComputedStyle(document.body)
@@ -167,6 +488,7 @@ const ChartBar = ({ data }) => {
   );
 };
 
+
 const Students = () => {
   const [loading, setLoading] = useState(false);
   const [totalTimeByGame, setTotalTimeByGame] = useState(null);
@@ -183,14 +505,13 @@ const Students = () => {
       const classData = await VillageApi.getClassroomsByTeacherId({
         teacher_id: userInfo.uid,
       });
-      const classes = classData.data.map((item) => item.id);
+      const classes = classData.data.ret.map((item) => item.id);
       setClassData(classes);
 
       const timeData = await AnalyticsAPI.getTotalSpentTimeByGame({
         classId: classes[0],
       });
       setTotalTimeByGame(timeData.data);
-
       const locationData = await AnalyticsAPI.getTotalSpentTimeByLocation({
         classId: classes[0],
       });
@@ -259,11 +580,11 @@ const Students = () => {
                           <h3 className="mb-0">
                             {totalTimeByGame
                               ? formatTimeFromMinutes(
-                                  Object.values(totalTimeByGame).reduce(
-                                    (sum, currVal) => sum + +currVal,
-                                    0
-                                  )
+                                Object.values(totalTimeByGame).reduce(
+                                  (sum, currVal) => sum + +currVal,
+                                  0
                                 )
+                              )
                               : 0}
                           </h3>
                           {/* <div>PRACTICING</div> */}
@@ -290,12 +611,21 @@ const Students = () => {
                   <ChartApex data={totalTimeByGame} />
                 </Card>
                 <Card className="col-7">
-                  <ChartBar data={totalTimeByLocation} />
+                  <ChartBar data={mymockChartData} />
                 </Card>
               </div>
             </div>
             <div className="mt-4">
-              <StudentsByAnswers data={studentsData} />
+              <ApexChart />
+            </div>
+            <div className="mt-4">
+              <ApexLineChart />
+            </div>
+            <div className="mt-4">
+              <SkillProgress />
+            </div>
+            <div className="mt-4">
+              <StudentsByAnswers data={mockData} />
             </div>
           </>
         )}
