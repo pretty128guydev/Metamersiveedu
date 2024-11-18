@@ -10,7 +10,7 @@ const TroubleZone = () => {
       <div className="row">
         <TopQuestions />
         <TopQuestionsLevel />
-        <LevelsByPaper />
+        {/* <LevelsByPaper /> */}
       </div>
     </div>
   );

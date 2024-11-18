@@ -280,7 +280,7 @@ function Header() {
               </div>
             </a>
             <div className="dropdown-menu dropdown-menu-end me-lg-3 fs-11px mt-1">
-              {isLoggedIn && userInfo.sgAdmin && (
+              {/* {isLoggedIn && userInfo.sgAdmin && (
                 <Link
                   to="/sg-admin"
                   className="text-primary dropdown-item d-flex align-items-center"
@@ -288,7 +288,7 @@ function Header() {
                   {translate("school-group-admin")}{" "}
                   <UsergroupAddOutlined className="text-theme fs-16px ms-auto" />
                 </Link>
-              )}
+              )} */}
               {isLoggedIn &&
                 userInfo.ptAdmin &&
                 Object.keys(userInfo.ptAdmin)

@@ -12,6 +12,7 @@ import BarsScale from "../../../components/loading/BarsScale.jsx";
 import useLanguageToggle from "../../../hooks/useLanguageToggle.js";
 import { AdminAPI } from "../../../api-clients/AdminApi.js";
 import { toast } from "react-toastify";
+import "./WordDash.scss";
 
 const loadingState = {
   before: 0,
@@ -749,7 +750,7 @@ const WordDash = () => {
                       <div className="pos-order">
                         {userInfo.type != "Student" &&
                         selectedTable?.students ? (
-                          <div>
+                          <div className="pos-order-students">
                             {selectedTable.students.map((student, idx) => {
                               return (
                                 <span
@@ -820,7 +821,7 @@ const WordDash = () => {
                     </div>
                     <div className="d-flex justify-content-between w-100">
                       <h5 className="pos-order py-3">
-                        Teacher Name: {selectedTable?.teacherName}
+                        Teacher Name: {userInfo.name}
                       </h5>
                     </div>
                     <hr className="m-0 opacity-3 text-primary" />
@@ -964,7 +965,7 @@ const WordDash = () => {
                     <input
                       type="text"
                       className="form-control mb-2"
-                      placeholder="Write Gmail..."
+                      placeholder="Write Email..."
                       value={addedGmail}
                       onChange={(e) => setAddedGmail(e.target.value)}
                     />

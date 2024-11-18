@@ -11,6 +11,8 @@ import { formatTimeFromMinutes } from "./utils";
 import VillageApi from "../../api-clients/VillageApi";
 import ReactApexChart from "react-apexcharts";
 import SkillProgress from "./students/skill-progress";
+import UsageActivity from "./students/usage-activity";
+import PerformanceIndex from "./students/performanceindex";
 
 const mockData = {
   student1: {
@@ -130,110 +132,6 @@ const mymockChartData = [
     time: "2024-11-07T08:00:00Z",
   },
 ];
-
-const ApexChart = () => {
-  // Define the original series data (not normalized)
-  const [originalSeries] = useState([
-    {
-      name: 'Marine Sprite',
-      data: [20, 18, 15, 10, 18, 13, 6],
-    },
-    {
-      name: 'Striking Calf',
-      data: [30, 20, 18, 22, 13, 9, 5],
-    },
-    {
-      name: 'Tank Picture',
-      data: [25, 28, 10, 28, 14, 15, 8],
-    },
-    {
-      name: 'Bucket Slope',
-      data: [15, 30, 22, 20, 16, 25, 10],
-    },
-    {
-      name: 'Reborn Kid',
-      data: [10, 15, 35, 20, 15, 12, 11],
-    },
-  ]);
-
-  // Normalize the data for each year to make the total = 100% for each year
-  const [series] = useState(() => {
-    // Calculate the normalized data
-    return originalSeries.map((seriesData) => {
-      return {
-        ...seriesData,
-        data: seriesData.data.map((value, index) => {
-          // Calculate the sum for each year (index)
-          const yearTotal = originalSeries.reduce((sum, series) => sum + series.data[index], 0);
-          // Normalize the value so the sum of all series for each year is 100%
-          return (value / yearTotal) * 100;
-        }),
-      };
-    });
-  });
-
-  const [options] = useState({
-    chart: {
-      type: 'bar',
-      height: 350,
-      stacked: true, // Stacked bars, with each bar summing to 100%
-    },
-    plotOptions: {
-      bar: {
-        horizontal: true, // Horizontal bars
-      },
-    },
-    stroke: {
-      width: 1,
-      colors: ['#fff'], // White border between bars
-    },
-    title: {
-      text: 'Stacked Bar (100% Width)',
-    },
-    xaxis: {
-      categories: [2008, 2009, 2010, 2011, 2012, 2013, 2014], // Categories for the X-axis
-      max: 100, // Max value for X-axis is 100% (so bars take up 100%)
-    },
-    tooltip: {
-      enabled: false, // Disable tooltips completely
-    },
-    fill: {
-      opacity: 1, // Ensure bars are solid
-    },
-    dataLabels: {
-      enabled: false, // Disable any data labels on bars
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'left',
-      offsetX: 40,
-    },
-    yaxis: {
-      labels: {
-        formatter: function (value) {
-          return Math.round(value); // Remove decimals from the Y-axis labels (round the year value)
-        },
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: true,
-        stacked: true, // This enables stacking of bars
-        columnWidth: '80%', // Adjust the width of the columns if needed
-      },
-    },
-  });
-
-  return (
-    <div>
-      <div id="chart">
-        <ReactApexChart options={options} series={series} type="bar" height={350} />
-      </div>
-      <div id="html-dist"></div>
-    </div>
-  );
-};
-
 
 const ApexLineChart = () => {
   const state = {
@@ -512,10 +410,10 @@ const Students = () => {
         classId: classes[0],
       });
       setTotalTimeByGame(timeData.data);
-      const locationData = await AnalyticsAPI.getTotalSpentTimeByLocation({
-        classId: classes[0],
-      });
-      setTotalTimeByLocation(locationData.data);
+      // const locationData = await AnalyticsAPI.getTotalSpentTimeByLocation({
+      //   classId: classes[0],
+      // });
+      // setTotalTimeByLocation(locationData.data);
 
       const studentsData = await AnalyticsAPI.getStudentsData({
         classId: classes[0],
@@ -616,10 +514,10 @@ const Students = () => {
               </div>
             </div>
             <div className="mt-4">
-              <ApexChart />
+              <UsageActivity />
             </div>
             <div className="mt-4">
-              <ApexLineChart />
+              <PerformanceIndex />
             </div>
             <div className="mt-4">
               <SkillProgress />

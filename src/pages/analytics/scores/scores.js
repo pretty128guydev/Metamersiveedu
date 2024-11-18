@@ -32,6 +32,7 @@ const Scores = () => {
   const [loading, setLoading] = useState(false);
   const [classData, setClassData] = useState([]);
   const [studentData, setStudentData] = useState([]);
+  const [teacherData, setTeacherData] = useState([]);
   const [selectedGame, setSelectedGame] = useState("Village");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
@@ -91,12 +92,11 @@ const Scores = () => {
   const handleSelectGame = (e) => {
     setSelectedGame(e.target.value);
     setSelectedClass("");
-    setSelectedStudent("");
   };
 
   const handleSelectClass = (e) => {
     setSelectedClass(e.target.value);
-    setSelectedStudent("");
+    setStudentData(teacherData.find(item => item.id === e.target.value)?.students || []);
   };
 
   const handleSelectStudent = async (e) => {
@@ -136,6 +136,7 @@ const Scores = () => {
       setLoading(false);
     }
   };
+
   const getVillageScoreData = async (class_id, student_id) => {
     if (class_id === "" || student_id === "") return;
     try {
@@ -158,14 +159,14 @@ const Scores = () => {
 
     const fetchClass = async () => {
       const classData = await VillageApi.getClassroomsByTeacherId({
-        teacher_id: userInfo.uid,
+        teacher_id: 'HPa1WaUK68bgXNbTGlFw1h022D42',
       });
-      const classes = classData.data.map((item) => ({
+      const classes = classData.data.ret.map((item) => ({
         id: item.id,
         name: item.name,
       }));
-      setClassData([classes[0]]);
-      setStudentData(classData.data.map((item) => item.students)[0]);
+      setClassData(classes);
+      setTeacherData(classData.data.ret)
 
       setLoading(false);
     };
@@ -174,6 +175,9 @@ const Scores = () => {
       setLoading(false);
     });
   }, []);
+
+  console.log(studentData)
+
   return (
     <div>
       <div className="h5">STUDENT SCORE CHART</div>
@@ -234,9 +238,9 @@ const Scores = () => {
                   onChange={handleSelectStudent}
                 >
                   <option defaultValue={""}>Select Student</option>
-                  {studentData.map((item, index) => (
-                    <option value={item.student_id} key={index}>
-                      {item.name}
+                  {studentData?.map((item, index) => (
+                    <option value={item?.student_id} key={index}>
+                      {item?.name}
                     </option>
                   ))}
                 </select>
@@ -309,7 +313,7 @@ const Scores = () => {
                       </div>
                       <div
                         className="overflow-y-scroll"
-                        // style={{ maxHeight: "800px" }}
+                      // style={{ maxHeight: "800px" }}
                       >
                         {Object.keys(villageData).map((key, index) => {
                           const item = villageData[key];

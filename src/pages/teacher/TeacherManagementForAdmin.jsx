@@ -1019,7 +1019,7 @@ const TeacherManagementForAdmin = () => {
                     <input
                       type="text"
                       className="form-control mb-2"
-                      placeholder="Write Gmail..."
+                      placeholder="Write Email..."
                       value={addedGmail}
                       onChange={(e) => setAddedGmail(e.target.value)}
                     />

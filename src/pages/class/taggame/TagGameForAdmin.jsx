@@ -12,6 +12,7 @@ import BarsScale from "../../../components/loading/BarsScale.jsx";
 import useLanguageToggle from "../../../hooks/useLanguageToggle.js";
 import { toast } from "react-toastify";
 import { AdminAPI } from "../../../api-clients/AdminApi.js";
+import "./TagGame.scss";
 
 const loadingState = {
   before: 0,
@@ -745,7 +746,7 @@ const TagGameForAdmin = () => {
                       <div className="pos-order">
                         {userInfo.type != "Student" &&
                         selectedTable?.students ? (
-                          <div>
+                          <div className="pos-order-students">
                             {selectedTable.students.map((student, idx) => {
                               return (
                                 <span
@@ -1026,7 +1027,7 @@ const TagGameForAdmin = () => {
                     <input
                       type="text"
                       className="form-control mb-2"
-                      placeholder="Write Gmail..."
+                      placeholder="Write Email..."
                       value={addedGmail}
                       onChange={(e) => setAddedGmail(e.target.value)}
                     />

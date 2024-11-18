@@ -119,8 +119,8 @@ const Menu = [
         path: "/analytics/progress-improvement",
         title: "PROGRESS & IMPROVEMENT",
         // children: [
-        //   // { path: "/analytics/skills/practiced", title: "Skills Practiced" },
-        //   { path: "/analytics/skills/analysis", title: "Skills Analysis" },
+        //   { path: "/analytics/progress-improvement/practiced", title: "Skills Practiced" },
+        //   { path: "/analytics/progress-improvement/analysis", title: "Skills Analysis" },
         // ],
       },
       // { path: "/analytics/progress", title: "Progress" },

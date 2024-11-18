@@ -62,6 +62,7 @@ const TopQuestionsLevel = () => {
             <ul className="nav nav-tabs nav-tabs-v2">
               <li
                 className="nav-item me-3"
+                style={{ cursor: "pointer" }}
                 onClick={() => setCategory("listening")}
               >
                 <a
@@ -73,6 +74,7 @@ const TopQuestionsLevel = () => {
               </li>
               <li
                 className="nav-item me-3"
+                style={{ cursor: "pointer" }}
                 onClick={() => setCategory("writing")}
               >
                 <a className="nav-link px-2 text-black" data-bs-toggle="tab">
@@ -81,20 +83,23 @@ const TopQuestionsLevel = () => {
               </li>
               <li
                 className="nav-item me-3"
+                style={{ cursor: "pointer" }}
                 onClick={() => setCategory("reading")}
               >
                 <a className="nav-link px-2 text-black" data-bs-toggle="tab">
                   Reading
                 </a>
               </li>
-              <li className="nav-item" onClick={() => setCategory("speaking")}>
+              <li className="nav-item"
+                style={{ cursor: "pointer" }} onClick={() => setCategory("speaking")}>
                 <a className="nav-link px-2 text-black" data-bs-toggle="tab">
                   Speaking
                 </a>
               </li>
             </ul>
             <ul className="nav nav-tabs nav-tabs-v2">
-              <li className="nav-item me-3" onClick={() => setLevel(1)}>
+              <li className="nav-item me-3"
+                style={{ cursor: "pointer" }} onClick={() => setLevel(1)}>
                 <a
                   className="nav-link active px-2 text-black"
                   data-bs-toggle="tab"
@@ -102,17 +107,20 @@ const TopQuestionsLevel = () => {
                   Level 1
                 </a>
               </li>
-              <li className="nav-item me-3" onClick={() => setLevel(2)}>
+              <li className="nav-item me-3"
+                style={{ cursor: "pointer" }} onClick={() => setLevel(2)}>
                 <a className="nav-link px-2 text-black" data-bs-toggle="tab">
                   Level 2
                 </a>
               </li>
-              <li className="nav-item me-3" onClick={() => setLevel(3)}>
+              <li className="nav-item me-3"
+                style={{ cursor: "pointer" }} onClick={() => setLevel(3)}>
                 <a className="nav-link px-2 text-black" data-bs-toggle="tab">
                   Level 3
                 </a>
               </li>
-              <li className="nav-item" onClick={() => setLevel(4)}>
+              <li className="nav-item"
+                style={{ cursor: "pointer" }} onClick={() => setLevel(4)}>
                 <a className="nav-link px-2 text-black" data-bs-toggle="tab">
                   Level 4
                 </a>

@@ -258,7 +258,7 @@ const AppRoute = [
             ],
           },
           {
-            path: "activity",
+            path: "score-chart",
             children: [
               {
                 path: "",
@@ -270,17 +270,21 @@ const AppRoute = [
             path: "progress-improvement",
             children: [
               {
-                path: "practiced",
-                element: <SkillsPracticed />,
+                path: "",
+                element: <Progress />,
               },
-              {
-                path: "analysis",
-                element: <SkillsAnalysis />,
-              },
+              // {
+              //   path: "practiced",
+              //   element: <SkillsPracticed />,
+              // },
+              // {
+              //   path: "analysis",
+              //   element: <SkillsAnalysis />,
+              // },
             ],
           },
           {
-            path: "score-chart",
+            path: "activity",
             children: [
               {
                 path: "",

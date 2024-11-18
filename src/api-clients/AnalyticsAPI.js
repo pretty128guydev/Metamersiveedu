@@ -32,6 +32,7 @@ export const AnalyticsAPI = {
     return instance.get(result_skills_progress, { params: query });
   },
   getTop10WrongQuestions: (school_id, class_id) => {
+    console.log(school_id, class_id)
     return instance.get(
       top_10_wrong_questions + school_id + (class_id ? "/" + class_id : "")
     );

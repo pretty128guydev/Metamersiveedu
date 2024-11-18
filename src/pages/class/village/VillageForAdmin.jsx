@@ -13,6 +13,7 @@ import useLanguageToggle from "../../../hooks/useLanguageToggle.js";
 import VillageApi from "../../../api-clients/VillageApi.js";
 import { AdminAPI } from "../../../api-clients/AdminApi.js";
 import { toast } from "react-toastify";
+import "./Village.scss";
 
 const loadingState = {
   before: 0,
@@ -734,7 +735,7 @@ const VillageForAdmin = () => {
                       <div className="pos-order">
                         {userInfo.type != "Student" &&
                         selectedTable?.students ? (
-                          <div>
+                          <div className="pos-order-students">
                             {selectedTable.students.map((student, idx) => {
                               return (
                                 <span
@@ -1014,7 +1015,7 @@ const VillageForAdmin = () => {
                     <input
                       type="text"
                       className="form-control mb-2"
-                      placeholder="Write Gmail..."
+                      placeholder="Write Email..."
                       value={addedGmail}
                       onChange={(e) => setAddedGmail(e.target.value)}
                     />
