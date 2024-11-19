@@ -86,6 +86,7 @@ export const tag_get_question = "tag/hp-question";
 export const result_time_by_game = "analytics/game_result/time_by_game";
 export const result_time_by_location = "analytics/game_result/time_by_location";
 export const result_data_by_teacher = "analytics/game_result/data_by_teacher";
+export const data_by_teacher_for_year = "analytics/game_result/data_by_teacher_for_year";
 export const result_scores_by_student =
   "analytics/game_result/scores_by_student";
 export const result_skills_scores_by_student =

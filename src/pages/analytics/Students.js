@@ -393,41 +393,138 @@ const Students = () => {
   const [totalTimeByLocation, setTotalTimeByLocation] = useState(null);
   const [studentsData, setStudentsData] = useState([]);
   const [classData, setClassData] = useState([]);
+  const [classesData, setClassesData] = useState([]);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [selectedStudentName, setSelectedStudentName] = useState("");
+  const [studentData, setStudentData] = useState([]);
+  const [teacherData, setTeacherData] = useState([]);
 
   const userInfo = useSelector((store) => store.auth.userInfo);
+
+  const extractStudentNames = (data) => {
+    const students = [];
+
+    // Loop through each student ID in the data
+    for (const studentId in data) {
+      const student = data[studentId];
+
+      // Push the student_id and student_name into the array
+      if (student && student.student_name) {
+        students.push({
+          student_id: studentId,
+          name: student.student_name,
+        });
+      }
+    }
+
+    return students;
+  };
+
+  const handleSelectClass = async (e) => {
+    const classId = e.target.value;
+    console.log(classId);
+
+    if (classId == "Select Class") {
+      setSelectedClass('');
+    } else {
+      setSelectedClass(classId);
+    }
+
+    const studentsData = await AnalyticsAPI.getStudentsData({ classId });
+    // Extract the data in the desired format
+    const studentsList = await extractStudentNames(studentsData.data);
+
+    // Set the student data in the state
+    await setStudentData(studentsList);
+  };
+
+  const handleSelectStudent = async (e) => {
+    const selectedId = e.target.value;
+    if (e.target.value == "Select Student") {
+      setSelectedStudent('')
+    } else {
+      setSelectedStudent(e.target.value);
+    }
+
+    const selectedStudentData = studentData.find(
+      (student) => student.student_id === selectedId
+    );
+    setSelectedStudentName(selectedStudentData?.name)
+  };
 
   useEffect(() => {
     setLoading(true);
 
-    const fetchAllApis = async () => {
-      const classData = await VillageApi.getClassroomsByTeacherId({
-        teacher_id: userInfo.uid,
-      });
-      const classes = classData.data.ret.map((item) => item.id);
-      setClassData(classes);
+    const fetchAllApisForAllClasses = async () => {
+      try {
+        const classData = await VillageApi.getClassroomsByTeacherId({
+          teacher_id: userInfo.uid,
+        });
 
-      const timeData = await AnalyticsAPI.getTotalSpentTimeByGame({
-        classId: classes[0],
-      });
-      setTotalTimeByGame(timeData.data);
-      // const locationData = await AnalyticsAPI.getTotalSpentTimeByLocation({
-      //   classId: classes[0],
-      // });
-      // setTotalTimeByLocation(locationData.data);
+        const classes = classData.data.ret.map((item) => item.id);
+        const classesWithNames = classData.data.ret.map((item) => ({
+          id: item.id,
+          name: item.name,
+        }));
 
-      const studentsData = await AnalyticsAPI.getStudentsData({
-        classId: classes[0],
-      });
-      setStudentsData(studentsData.data);
-      // All API calls completed successfully
-      setLoading(false);
+        setClassData(classes);
+        setClassesData(classesWithNames);
+        setTeacherData(classData.data.ret);
+        // Fetch data for all classes concurrently
+        const [timeByGameData, timeByLocationData, studentsDataArray] = await Promise.all([
+          Promise.all(
+            classes.map((classId) =>
+              AnalyticsAPI.getTotalSpentTimeByGame({ classId })
+            )
+          ),
+          Promise.all(
+            classes.map((classId) =>
+              AnalyticsAPI.getTotalSpentTimeByLocation({ classId })
+            )
+          ),
+          Promise.all(
+            classes.map((classId) =>
+              AnalyticsAPI.getStudentsData({ classId })
+            )
+          ),
+        ]);
+
+        // Aggregate data for total time by game
+        const aggregatedTimeByGame = timeByGameData.reduce((acc, curr) => {
+          const data = curr.data;
+          for (let game in data) {
+            acc[game] = (acc[game] || 0) + data[game];
+          }
+          return acc;
+        }, {});
+
+        setTotalTimeByGame(aggregatedTimeByGame);
+
+        // Aggregate data for total time by location
+        const aggregatedTimeByLocation = [];
+        timeByLocationData.forEach((data) => {
+          aggregatedTimeByLocation.push(...data.data);
+        });
+        setTotalTimeByLocation(aggregatedTimeByLocation);
+
+        // Combine all students' data
+        const aggregatedStudentsData = studentsDataArray.reduce(
+          (acc, curr) => ({ ...acc, ...curr.data }),
+          {}
+        );
+        setStudentsData(aggregatedStudentsData);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data for all classes:", error);
+        setLoading(false);
+      }
     };
 
-    fetchAllApis().catch(() => {
-      // Handle errors gracefully if necessary
-      setLoading(false);
-    });
+    fetchAllApisForAllClasses();
   }, []);
+
 
   const totalQuestions = useMemo(() => {
     return Object.entries(studentsData).reduce(
@@ -435,6 +532,8 @@ const Students = () => {
       0
     );
   }, [studentsData]);
+
+
   return (
     <div>
       <>
@@ -446,6 +545,54 @@ const Students = () => {
         ) : (
           <>
             <div className="mt-4">
+              <div className="mt-2 row mb-2">
+                <div className="col">
+                  <div className="input-group">
+                    <label
+                      className="input-group-text"
+                      htmlFor="inputGroupSelect02"
+                    >
+                      Class
+                    </label>
+                    <select
+                      className="form-select"
+                      id="inputGroupSelect02"
+                      value={selectedClass}
+                      onChange={handleSelectClass}
+                    >
+                      <option defaultValue={""}>Select Class</option>
+                      {classesData.map((item, index) => (
+                        <option value={item.id} key={index}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="col">
+                  <div className="input-group">
+                    <label
+                      className="input-group-text"
+                      htmlFor="inputGroupSelect03"
+                    >
+                      Student
+                    </label>
+                    <select
+                      className="form-select"
+                      id="inputGroupSelect03"
+                      value={selectedStudent}
+                      onChange={handleSelectStudent}
+                    >
+                      <option defaultValue={""}>Select Student</option>
+                      {studentData?.map((item, index) => (
+                        <option value={item?.student_id} key={index}>
+                          {item?.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
               <Card>
                 {/* <CardHeader>
                   <h3 className="mb-0 fw-lighter">
@@ -509,21 +656,21 @@ const Students = () => {
                   <ChartApex data={totalTimeByGame} />
                 </Card>
                 <Card className="col-7">
-                  <ChartBar data={mymockChartData} />
+                  <ChartBar data={totalTimeByLocation} />
                 </Card>
               </div>
             </div>
             <div className="mt-4">
-              <UsageActivity />
+              <SkillProgress selectedClass={selectedClass} />
             </div>
             <div className="mt-4">
-              <PerformanceIndex />
+              <UsageActivity selectedClass={selectedClass} />
             </div>
             <div className="mt-4">
-              <SkillProgress />
+              <PerformanceIndex selectedClass={selectedClass} selectedStudent={selectedStudentName} />
             </div>
             <div className="mt-4">
-              <StudentsByAnswers data={mockData} />
+              <StudentsByAnswers data={studentsData} />
             </div>
           </>
         )}

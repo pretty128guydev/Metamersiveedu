@@ -2,14 +2,20 @@ import ReactApexChart from "react-apexcharts";
 import { useEffect, useState } from "react";
 import VillageApi from "../../../api-clients/VillageApi";
 import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
+import { escape } from "validator";
+import { useSelector } from "react-redux";
 
-const PerformanceIndex = () => {
+const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
 
 
     const [loading, setLoading] = useState(false);
     const [students, setstudents] = useState([]);
     const [name, setname] = useState([]);
     const [originalSeries, setoriginalSeries] = useState([]);
+    const [finalTotalData, setfinalTotalData] = useState([]);
+    const [finalData, setfinalData] = useState([]);
+    const userInfo = useSelector((store) => store.auth.userInfo);
+  
 
     const aggregateQuestionsByCategoryAndLevel = (data) => {
         const result = {};
@@ -39,11 +45,10 @@ const PerformanceIndex = () => {
         return result;
     };
 
-
-    function analyzeData(data) {
+    const analyzeData = (data) => {
         // Initialize all levels and categories
         const levels = ["level-1", "level-2", "level-3", "level-4"];
-        const categories = ["listening", "reading", "writing"];
+        const categories = ["listening", "reading", "writing", "speaking", "listeningB", "pronunciation"];
 
         // Template for an empty level
         const emptyLevel = {
@@ -107,6 +112,146 @@ const PerformanceIndex = () => {
         setoriginalSeries(tmporiginalSeries)
     }
 
+    const getAnalyticsData = (data) => {
+        const levels = ["level-1", "level-2", "level-3", "level-4"];
+        const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
+
+        // Helper function to calculate percentage
+        function calculatePercentage(correct, total) {
+            return total > 0 ? Math.round((correct / total) * 100) : 0;
+        }
+
+        // Prepare result structure
+        const analytics = {};
+
+        levels.forEach((level) => {
+            const levelData = [];
+
+            // Calculate percentages for each category
+            const speaking = calculatePercentage(data.speaking[level]?.correct || 0, data.speaking[level]?.totalQuestions || 0);
+            const writing = calculatePercentage(data.writing[level]?.correct || 0, data.writing[level]?.totalQuestions || 0);
+            const reading = calculatePercentage(data.reading[level]?.correct || 0, data.reading[level]?.totalQuestions || 0);
+            const listeningA = calculatePercentage(data.listening[level]?.correct || 0, data.listening[level]?.totalQuestions || 0);
+            const listeningB = calculatePercentage(data.listeningB[level]?.correct || 0, data.listeningB[level]?.totalQuestions || 0); // No listening B data in provided input
+            const pronunciation = calculatePercentage(data.pronunciation[level]?.correct || 0, data.pronunciation[level]?.totalQuestions || 0);
+
+            // Push percentages to level data
+            levelData.push(speaking, writing, reading, listeningA, listeningB, pronunciation);
+
+            // Add to analytics object
+            analytics[level] = levelData;
+        });
+
+        return analytics;
+    }
+
+    function getTotalAnalytics(data) {
+        const levels = ["level-1", "level-2", "level-3", "level-4"];
+        const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
+
+        // Helper function to calculate percentage (rounded to nearest whole number)
+        function calculatePercentage(correct, total) {
+            return total > 0 ? Math.round((correct / total) * 100) : 0;
+        }
+
+        // Initialize total data structure
+        const totalData = {};
+        levels.forEach(level => {
+            totalData[level] = {
+                speaking: { correct: 0, totalQuestions: 0 },
+                writing: { correct: 0, totalQuestions: 0 },
+                reading: { correct: 0, totalQuestions: 0 },
+                listeningA: { correct: 0, totalQuestions: 0 },
+                listeningB: { correct: 0, totalQuestions: 0 },
+                pronunciation: { correct: 0, totalQuestions: 0 }
+            };
+        });
+
+        // Aggregate data across all students
+        for (const studentKey in data) {
+            const studentData = data[studentKey];
+            levels.forEach(level => {
+                const writingData = studentData.writing[level] || { correct: 0, totalQuestions: 0 };
+                const readingData = studentData.reading[level] || { correct: 0, totalQuestions: 0 };
+                const listeningData = studentData.listening[level] || { correct: 0, totalQuestions: 0 };
+
+                // Add correct and totalQuestions to totals
+                totalData[level].writing.correct += writingData.correct;
+                totalData[level].writing.totalQuestions += writingData.totalQuestions;
+
+                totalData[level].reading.correct += readingData.correct;
+                totalData[level].reading.totalQuestions += readingData.totalQuestions;
+
+                totalData[level].listeningA.correct += listeningData.correct;
+                totalData[level].listeningA.totalQuestions += listeningData.totalQuestions;
+
+                // No data for speaking, listeningB, or pronunciation in this example
+            });
+        }
+
+        // Compute percentages
+        const result = {};
+        levels.forEach(level => {
+            result[level] = [
+                calculatePercentage(0, 0), // Speaking (No data)
+                calculatePercentage(totalData[level].writing.correct, totalData[level].writing.totalQuestions),
+                calculatePercentage(totalData[level].reading.correct, totalData[level].reading.totalQuestions),
+                calculatePercentage(totalData[level].listeningA.correct, totalData[level].listeningA.totalQuestions),
+                calculatePercentage(0, 0), // Listening B (No data)
+                calculatePercentage(0, 0)  // Pronunciation (No data)
+            ];
+        });
+
+        return result;
+    }
+
+    const getTotalAnalyticsData = (data) => {
+        const levels = ["level-1", "level-2", "level-3", "level-4"];
+        const categories = ["speaking", "writing", "reading", "listening", "listeningB", "pronunciation"];
+
+        // Helper function to calculate percentage
+        const calculatePercentage = (correct, total) => (total > 0 ? Math.round((correct / total) * 100) : 0);
+
+        // Initialize totals for aggregation
+        const totals = {};
+
+        levels.forEach((level) => {
+            totals[level] = {};
+            categories.forEach((category) => {
+                totals[level][category] = { correct: 0, totalQuestions: 0 };
+            });
+        });
+
+        // Iterate through all groups and students
+        Object.values(data).forEach((group) => {
+            Object.values(group).forEach((studentData) => {
+                levels.forEach((level) => {
+                    categories.forEach((category) => {
+                        const categoryData = studentData[category]?.[level];
+                        if (categoryData) {
+                            totals[level][category].correct += categoryData.correct || 0;
+                            totals[level][category].totalQuestions += categoryData.totalQuestions || 0;
+                        }
+                    });
+                });
+            });
+        });
+
+        // Calculate percentages for each level and category
+        const analytics = {};
+
+        levels.forEach((level) => {
+            analytics[level] = categories.map((category) => {
+                const { correct, totalQuestions } = totals[level][category];
+                return calculatePercentage(correct, totalQuestions);
+            });
+        });
+
+        return analytics;
+    };
+
+
+
     useEffect(() => {
         setLoading(true);
 
@@ -114,7 +259,7 @@ const PerformanceIndex = () => {
             try {
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
-                    teacher_id: 'HPa1WaUK68bgXNbTGlFw1h022D42',
+                    teacher_id: userInfo.uid,
                 });
                 const classes = classData.data.ret.map((item) => item.id);
 
@@ -149,13 +294,34 @@ const PerformanceIndex = () => {
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
+                console.log(classData.data.ret)
+                console.log(aggregatedData)
 
 
-                const studentsArray = analyzeData(aggregatedData.wx4tuo);
-                console.log(studentsArray)
-                console.log(aggregatedData.wx4tuo)
-                setstudents(studentsArray)
-                getArrays(studentsArray)
+                let finalData = [];
+                let studentsArray = [];
+                if (selectedClass) {
+                    studentsArray = analyzeData(aggregatedData[selectedClass]);
+                    if (aggregatedData[selectedClass]) {
+                        finalData = getTotalAnalytics(studentsArray)
+                    } else {
+                        finalData = [];
+                    }
+                }
+                if (selectedClass && selectedStudent) {
+                    const tmpstudentsArray = analyzeData(aggregatedData[selectedClass]);
+                    console.log(tmpstudentsArray)
+                    if (tmpstudentsArray[selectedStudent]) {
+                        finalData = getAnalyticsData(tmpstudentsArray[selectedStudent])
+                    } else {
+                        finalData = [];
+                    }
+                }
+                if (!selectedClass && !selectedStudent) {
+                    finalData = getTotalAnalyticsData(aggregatedData)
+                }
+
+                setfinalData(finalData)
 
                 setLoading(false); // Set loading to false after all API calls are finished
 
@@ -168,30 +334,30 @@ const PerformanceIndex = () => {
         fetchAllApis().catch(() => {
             setLoading(false);
         });
-    }, []);
+    }, [selectedClass, selectedStudent]);
 
     // Only render the chart if originalSeries and name have valid data
-    if (loading || originalSeries.length === 0 || name.length === 0) {
-        return <div>Loading...</div>;
-    }
+    // if (loading || originalSeries.length === 0 || name.length === 0) {
+    //     return <div>Loading...</div>;
+    // }
 
     const state = {
         series: [
             {
                 name: "level 1",
-                data: [80, 65, 90, 70, 85, 60]  // Data for level 1
+                data: finalData['level-1']  // Data for level 1
             },
             {
                 name: "level 2",
-                data: [70, 60, 75, 85, 65, 90]  // Data for level 2
+                data: finalData['level-2'] // Data for level 2
             },
             {
                 name: "level 3",
-                data: [60, 55, 80, 60, 75, 80]  // Data for level 3
+                data: finalData['level-3'] // Data for level 3
             },
             {
                 name: "level 4",
-                data: [40, 55, 60, 90, 45, 60]  // Data for level 4
+                data: finalData['level-4'] // Data for level 4
             }
         ],
         options: {
@@ -264,6 +430,11 @@ const PerformanceIndex = () => {
             }
         }
     };
+
+    // Only render the chart if originalSeries and name have valid data
+    if (loading || !state.series[0].data) {
+        return <div></div>;
+    }
 
     return (
         <div>

@@ -37,6 +37,25 @@ const Scores = () => {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
 
+  const extractStudentNames = (data) => {
+    const students = [];
+
+    // Loop through each student ID in the data
+    for (const studentId in data) {
+      const student = data[studentId];
+
+      // Push the student_id and student_name into the array
+      if (student && student.student_name) {
+        students.push({
+          student_id: studentId,
+          name: student.student_name,
+        });
+      }
+    }
+
+    return students;
+  };
+
   const getRandomElement = (array) => {
     const randomIndex = Math.floor(Math.random() * array.length);
     return array[randomIndex];
@@ -94,9 +113,25 @@ const Scores = () => {
     setSelectedClass("");
   };
 
-  const handleSelectClass = (e) => {
-    setSelectedClass(e.target.value);
-    setStudentData(teacherData.find(item => item.id === e.target.value)?.students || []);
+  const handleSelectClass = async (e) => {
+    const classId = e.target.value;
+    console.log(classId);
+
+    if (classId == "Select Class") {
+      setSelectedClass('');
+    } else {
+      setSelectedClass(classId);
+    }
+
+    const studentsData = await AnalyticsAPI.getStudentsData({ classId });
+
+    // Extract the data in the desired format
+    const studentsList = await extractStudentNames(studentsData.data);
+
+    console.log(studentsList);  // This should give you the array of students
+
+    // Set the student data in the state
+    await setStudentData(studentsList);
   };
 
   const handleSelectStudent = async (e) => {
@@ -115,6 +150,7 @@ const Scores = () => {
       setVillageData(villageData);
     }
   };
+
   // State to hold chart data
   const [chartData, setChartData] = useState(initialData);
   const [villageData, setVillageData] = useState(null);
@@ -159,7 +195,7 @@ const Scores = () => {
 
     const fetchClass = async () => {
       const classData = await VillageApi.getClassroomsByTeacherId({
-        teacher_id: 'HPa1WaUK68bgXNbTGlFw1h022D42',
+        teacher_id: userInfo.uid,
       });
       const classes = classData.data.ret.map((item) => ({
         id: item.id,

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import VillageApi from "../../../api-clients/VillageApi";
 import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
+import { useSelector } from "react-redux";
 
 
 const UsageBySkill = ({ originalSeries, name }) => {
@@ -11,8 +12,6 @@ const UsageBySkill = ({ originalSeries, name }) => {
             console.error("Invalid data for chart rendering: originalSeries or name is empty.");
             return;
         }
-        console.log('Valid originalSeries:', originalSeries);
-        console.log('Valid categories (name):', name);
     }, [originalSeries, name]);
 
     return (
@@ -75,11 +74,12 @@ const UsageBySkill = ({ originalSeries, name }) => {
 };
 
 
-const UsageActivity = () => {
+const UsageActivity = ({ selectedClass }) => {
     const [loading, setLoading] = useState(false);
     const [students, setstudents] = useState([]);
     const [name, setname] = useState([]);
     const [originalSeries, setoriginalSeries] = useState([]);
+    const userInfo = useSelector((store) => store.auth.userInfo);
 
     const aggregateQuestionsByCategory = (data) => {
         const result = {};
@@ -105,33 +105,27 @@ const UsageActivity = () => {
         return result;
     }
 
-    const processStudentData = (data) => {
-        // Initialize an array to hold the transformed student data
+    const processStudents = (data) => {
         const students = [];
 
         // Iterate over each student in the data
         Object.entries(data).forEach(([studentId, studentInfo]) => {
-            // Extract student name and total questions
             const studentName = studentInfo.stdent_name;
-            const totalQuestions = studentInfo.total_questions;
+            const studentTotalQuestions = studentInfo.total_questions;
 
-            // Initialize variables for different metrics
-            let totalScore = 0;
-            let correctAnswers = 0;
-            let incorrectAnswers = 0;
+            let studentTotalScore = 0;
+            let studentCorrectAnswers = 0;
             let ReadingQuestions = 0;
             let WritingQuestions = 0;
             let SpeakingQuestions = 0;
             let ListeningAQuestions = 0;
             let ListeningBQuestions = 0;
+            let PronunciationQuestions = 0;
             let mastered = [];
-            let skill;
-            let score;
 
-            // Aggregate scores for each category (listening, reading, writing)
+            // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "stdent_name" && category !== "total_questions") {
-                    // Aggregate total score and questions per category
                     if (stats.totalQuestions) {
                         if (category === "listening") {
                             ListeningAQuestions = stats.totalQuestions;
@@ -148,36 +142,87 @@ const UsageActivity = () => {
                         } else if (category === "speaking") {
                             SpeakingQuestions = stats.totalQuestions;
                             stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                        } else if (category === "pronunciation") {
+                            PronunciationQuestions = stats.totalQuestions;
+                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
                         }
 
-                        // Accumulate total questions and scores
-                        totalScore += stats.totalScore;
-                        correctAnswers += stats.correct;
-                        incorrectAnswers += stats.incorrect; // Calculate other metrics (Skill, Score, mastered, etc.)
-                        skill = (stats.correct / stats.totalQuestions) * 100 || 0; // Assuming skill is based on percentage of correct answers
-                        score = stats.totalScore;
-
+                        // Accumulate student totals
+                        studentTotalScore += stats.totalScore;
+                        studentCorrectAnswers += stats.correct;
                     }
                 }
             });
 
-
-            // Create the student object
+            // Add the student data to the students array
             students.push({
                 name: studentName,
-                totalQuestions: totalQuestions,
-                R: Math.round((ReadingQuestions / totalQuestions) * 100), // Correct answers in reading
-                W: Math.round((WritingQuestions / totalQuestions) * 100), // Correct answers in writing
-                S: Math.round((SpeakingQuestions / totalQuestions) * 100), // Correct answers in speaking
-                LA: Math.round((ListeningAQuestions / totalQuestions) * 100), // Correct answers in listening
-                LB: Math.round((ListeningBQuestions / totalQuestions) * 100), // Correct answers in listening
-                Skill: skill.toFixed(2), // Formatting to 2 decimal points for better readability
-                Score: score,
+                totalQuestions: studentTotalQuestions,
+                R: Math.round((ReadingQuestions / studentTotalQuestions) * 100),
+                W: Math.round((WritingQuestions / studentTotalQuestions) * 100),
+                S: Math.round((SpeakingQuestions / studentTotalQuestions) * 100),
+                LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 100),
+                LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 100),
+                P: Math.round((PronunciationQuestions / studentTotalQuestions) * 100),
+                Skill: ((studentCorrectAnswers / studentTotalQuestions) * 100).toFixed(2),
+                Score: studentTotalScore,
                 mastered: mastered,
             });
         });
 
         return students;
+    };
+
+    const processClass = (data, className) => {
+        const classTotals = {
+            totalQuestions: 0,
+            totalReadingQuestions: 0,
+            totalWritingQuestions: 0,
+            totalSpeakingQuestions: 0,
+            totalListeningAQuestions: 0,
+            totalListeningBQuestions: 0,
+            totalPronunciationQuestions: 0,
+            totalCorrectAnswers: 0,
+            totalScore: 0,
+        };
+
+        Object.entries(data).forEach(([studentId, studentInfo]) => {
+            const studentTotalQuestions = studentInfo.total_questions;
+
+            // Process each category
+            Object.entries(studentInfo).forEach(([category, stats]) => {
+                if (category !== "stdent_name" && category !== "total_questions") {
+                    if (stats.totalQuestions) {
+                        if (category === "reading") classTotals.totalReadingQuestions += stats.totalQuestions;
+                        if (category === "writing") classTotals.totalWritingQuestions += stats.totalQuestions;
+                        if (category === "speaking") classTotals.totalSpeakingQuestions += stats.totalQuestions;
+                        if (category === "listening") classTotals.totalListeningAQuestions += stats.totalQuestions;
+                        if (category === "listening B") classTotals.totalListeningBQuestions += stats.totalQuestions;
+                        if (category === "pronunciation") classTotals.totalPronunciationQuestions += stats.totalQuestions;
+
+                        // Accumulate overall totals
+                        classTotals.totalScore += stats.totalScore;
+                        classTotals.totalCorrectAnswers += stats.correct;
+                    }
+                }
+            });
+
+            classTotals.totalQuestions += studentTotalQuestions;
+        });
+
+        // Calculate class-wide metrics
+        return {
+            name: className,
+            totalQuestions: classTotals.totalQuestions,
+            R: Math.round((classTotals.totalReadingQuestions / classTotals.totalQuestions) * 100),
+            W: Math.round((classTotals.totalWritingQuestions / classTotals.totalQuestions) * 100),
+            S: Math.round((classTotals.totalSpeakingQuestions / classTotals.totalQuestions) * 100),
+            LA: Math.round((classTotals.totalListeningAQuestions / classTotals.totalQuestions) * 100),
+            LB: Math.round((classTotals.totalListeningBQuestions / classTotals.totalQuestions) * 100),
+            P: Math.round((classTotals.totalPronunciationQuestions / classTotals.totalQuestions) * 100),
+            TotalScore: classTotals.totalScore,
+            AverageSkill: ((classTotals.totalCorrectAnswers / classTotals.totalQuestions) * 100).toFixed(2),
+        };
     };
 
     const getArrays = (data) => {
@@ -188,6 +233,7 @@ const UsageActivity = () => {
         const S = [];
         const LA = [];
         const LB = [];
+        const P = [];
 
         // Iterate over the data array and extract values for each field
         data.forEach(item => {
@@ -197,15 +243,16 @@ const UsageActivity = () => {
             S.push(item.S);
             LA.push(item.LA);
             LB.push(item.LB);
+            P.push(item.P);
         });
         setname(name)
         const tmporiginalSeries = [
-            { name: 'Reading', data: R.length ? R : [0, 0, 0] },
-            { name: 'Writing', data: W.length ? W : [0, 0, 0] },
-            { name: 'Speaking', data: S.length ? S : [0, 0, 0] },
-            { name: 'Listening A', data: LA.length ? LA : [0, 0, 0] },
-            { name: 'Listening B', data: LB.length ? LB : [0, 0, 0] },
-            { name: 'Pronunciation', data: [0, 0, 0] },
+            { name: 'Reading', data: R },
+            { name: 'Writing', data: W },
+            { name: 'Speaking', data: S },
+            { name: 'Listening A', data: LA },
+            { name: 'Listening B', data: LB },
+            { name: 'Pronunciation', data: P },
         ];
 
         setoriginalSeries(tmporiginalSeries)
@@ -218,10 +265,9 @@ const UsageActivity = () => {
             try {
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
-                    teacher_id: 'HPa1WaUK68bgXNbTGlFw1h022D42',
+                    teacher_id: userInfo.uid,
                 });
                 const classes = classData.data.ret.map((item) => item.id);
-
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
 
@@ -230,7 +276,6 @@ const UsageActivity = () => {
                         const studentsData = await AnalyticsAPI.getStudentsData({
                             classId,
                         });
-
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
 
@@ -253,11 +298,29 @@ const UsageActivity = () => {
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
+            
 
-                const studentsArray = processStudentData(aggregatedData.wx4tuo);
-                console.log(studentsArray)
-                setstudents(studentsArray)
-                getArrays(studentsArray)
+                let allStudentsArray = [];
+                let allClassesArray = [];
+
+                for (let key in aggregatedData) {
+                    if (aggregatedData.hasOwnProperty(key)) {
+                        if (selectedClass) {
+                            if (aggregatedData[selectedClass]) {
+                                allStudentsArray = allStudentsArray.concat(processStudents(aggregatedData[selectedClass]));
+                            } else {
+                                allStudentsArray = [];
+                            }
+                        } else {
+                            allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key));
+                        }
+                    }
+                }
+                if (selectedClass) {
+                    getArrays(allStudentsArray)
+                } else {
+                    getArrays(allClassesArray)
+                }
 
                 setLoading(false); // Set loading to false after all API calls are finished
 
@@ -270,11 +333,11 @@ const UsageActivity = () => {
         fetchAllApis().catch(() => {
             setLoading(false);
         });
-    }, []);
+    }, [selectedClass]);
 
     // Only render the chart if originalSeries and name have valid data
     if (loading || originalSeries.length === 0 || name.length === 0) {
-        return <div>Loading...</div>;
+        return <div></div>;
     }
 
     return (
