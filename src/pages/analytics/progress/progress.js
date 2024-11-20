@@ -7,6 +7,7 @@ import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 import VillageApi from "../../../api-clients/VillageApi";
 import Progress_Report from "../trouble/progree-report";
 import { useSelector } from "react-redux";
+import TroubleZone from "../trouble/trouble-zone";
 
 const Progress = () => {
   const [loading, setLoading] = useState(false);
@@ -17,9 +18,10 @@ const Progress = () => {
   const [classData, setClassData] = useState([]);
   const [classesData, setClassesData] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [teacherData, setTeacherData] = useState([]);
   const userInfo = useSelector((store) => store.auth.userInfo);
-  
+
   const extractStudentNames = (data) => {
     const students = [];
 
@@ -100,6 +102,18 @@ const Progress = () => {
     });
   }, []);
 
+  const categoryData = [
+    'reading', 'pronunciation', 'writing', 'listeningA', 'listeningB', 'speaking'
+  ]
+
+  const handleSelectCategory = (e) => {
+    if (e.target.value == "Select Category") {
+      setSelectedCategory('')
+    } else {
+      setSelectedCategory(e.target.value);
+    }
+  }
+
   return (
     <div>
       <div className="h5">PROGRESS & GROWTH</div>
@@ -150,9 +164,33 @@ const Progress = () => {
             </select>
           </div>
         </div>
+        <div className="col">
+          <div className="input-group">
+            <label
+              className="input-group-text"
+              htmlFor="inputGroupSelect03"
+            >
+              Category
+            </label>
+            <select
+              className="form-select"
+              id="inputGroupSelect03"
+              value={selectedCategory}
+              onChange={handleSelectCategory}
+            >
+              <option defaultValue={""}>Select Category</option>
+              {categoryData.map((item, index) => (
+                <option value={item} key={index}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
-      <YTD_Growth selectedClass={selectedClass} />
-      <Progress_Report selectedClass={selectedClass} />
+      <YTD_Growth selectedClass={selectedClass} selectedCategory={selectedCategory}/>
+      <Progress_Report selectedClass={selectedClass} selectedCategory={selectedCategory}/>
+      <TroubleZone />
       {/* <div className="row gap-2 mt-4">
         <Card className="col">
           <CardBody>

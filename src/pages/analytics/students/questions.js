@@ -34,7 +34,7 @@ const UsageBySkill = ({ originalSeries, name }) => {
                             colors: ['#fff'],
                         },
                         title: {
-                            text: 'Village Usage By Skill',
+                            text: 'Performance Index By Skill',
                         },
                         xaxis: {
                             categories: name, // Categories for the X-axis
@@ -74,12 +74,186 @@ const UsageBySkill = ({ originalSeries, name }) => {
 };
 
 
-const UsageActivity = ({ selectedClass, selectedStudent }) => {
+const QuestionsChart = ({ selectedClass, selectedStudent }) => {
     const [loading, setLoading] = useState(false);
-    const [students, setstudents] = useState([]);
-    const [name, setname] = useState([]);
+    const name = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
     const [originalSeries, setoriginalSeries] = useState([]);
     const userInfo = useSelector((store) => store.auth.userInfo);
+
+    function analyzeClassData(classData) {
+        const skills = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
+
+        let totalCorrect = Array(skills.length).fill(0);
+        let totalIncorrect = Array(skills.length).fill(0);
+        let totalUnanswered = Array(skills.length).fill(0);
+        let totalQuestions = Array(skills.length).fill(0);  // Track the total number of questions for each skill
+
+        // Loop through each student in the class
+        for (let studentId in classData) {
+            const studentData = classData[studentId];
+
+            // Loop through each skill for the student
+            skills.forEach((skill, idx) => {
+                const skillKey = skill.toLowerCase();  // Convert to lowercase to match keys
+
+                if (studentData[skillKey]) {
+                    const skillInfo = studentData[skillKey];
+                    const total = skillInfo.totalQuestions;
+
+                    // Accumulate total questions for each skill
+                    totalQuestions[idx] += total;
+
+                    // Accumulate the total correct, incorrect, and unanswered counts for each skill
+                    totalCorrect[idx] += skillInfo.correct || 0;
+                    totalIncorrect[idx] += skillInfo.incorrect || 0;
+                    totalUnanswered[idx] += (total - skillInfo.correct - skillInfo.incorrect) || 0;
+                }
+            });
+        }
+
+        // Calculate the percentages
+        let CR = [];
+        let E = [];
+        let UQ = [];
+
+        skills.forEach((skill, idx) => {
+            const total = totalQuestions[idx];
+
+            if (total > 0) {
+                // Calculate percentages if there are total questions
+                CR.push(Math.round((totalCorrect[idx] / total) * 100));
+                E.push(Math.round((totalIncorrect[idx] / total) * 100));
+                UQ.push(Math.round((totalUnanswered[idx] / total) * 100));
+            } else {
+                // If no questions for a skill, set all to 0%
+                CR.push(0);
+                E.push(0);
+                UQ.push(0);
+            }
+        });
+
+        // Ensure that the sum of CR, E, and UQ for each skill is exactly 100%
+        CR.forEach((val, idx) => {
+            const sum = CR[idx] + E[idx] + UQ[idx];
+
+            if (sum > 0 && sum !== 100) {
+                // Only correct the values if the sum is greater than 0
+                const correction = 100 - sum;
+                CR[idx] += correction; // Adjust the correct value to make sure it sums to 100%
+            }
+        });
+
+        return {
+            CR: CR,
+            E: E,
+            UQ: UQ
+        };
+    }
+
+    function analyzeStudentData(studentData) {
+        const skills = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
+
+        let correct = Array(skills.length).fill(0);
+        let incorrect = Array(skills.length).fill(0);
+        let unanswered = Array(skills.length).fill(0);
+
+        // Loop through each skill and calculate the results for the student
+        skills.forEach((skill, idx) => {
+            const skillKey = skill.toLowerCase();  // Convert to lowercase to match keys
+
+            if (studentData[skillKey]) {
+                const skillInfo = studentData[skillKey];
+                const totalQuestions = skillInfo.totalQuestions;
+
+                // If there are no total questions for the skill, set everything to 0%
+                if (totalQuestions > 0) {
+                    correct[idx] = Math.round((skillInfo.correct / totalQuestions) * 100) || 0;
+                    incorrect[idx] = Math.round((skillInfo.incorrect / totalQuestions) * 100) || 0;
+                    unanswered[idx] = Math.round(((totalQuestions - skillInfo.correct - skillInfo.incorrect) / totalQuestions) * 100);
+                }
+            }
+        });
+
+        return {
+            CR: correct,
+            E: incorrect,
+            UQ: unanswered
+        };
+    }
+    function analyzeClassesData(classesData) {
+        const skills = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
+
+        let totalCorrect = Array(skills.length).fill(0);
+        let totalIncorrect = Array(skills.length).fill(0);
+        let totalUnanswered = Array(skills.length).fill(0);
+        let totalQuestions = Array(skills.length).fill(0);
+
+        // Loop through each class
+        for (let classKey in classesData) {
+            const classData = classesData[classKey];
+
+            // Loop through each student in the class
+            for (let studentId in classData) {
+                const studentData = classData[studentId];
+
+                // Loop through each skill for the student
+                skills.forEach((skill, idx) => {
+                    const skillKey = skill.toLowerCase();  // Convert to lowercase to match keys
+
+                    if (studentData[skillKey]) {
+                        const skillInfo = studentData[skillKey];
+
+                        // Accumulate the total questions for each skill
+                        totalQuestions[idx] += skillInfo.totalQuestions;
+
+                        // Accumulate the total correct, incorrect, and unanswered counts for each skill
+                        totalCorrect[idx] += skillInfo.correct || 0;
+                        totalIncorrect[idx] += skillInfo.incorrect || 0;
+                        totalUnanswered[idx] += (skillInfo.totalQuestions - skillInfo.correct - skillInfo.incorrect) || 0;
+                    }
+                });
+            }
+        }
+
+        // Calculate the percentages
+        let CR = [];
+        let E = [];
+        let UQ = [];
+
+        skills.forEach((skill, idx) => {
+            const total = totalQuestions[idx];
+
+            if (total > 0) {
+                CR.push(Math.round((totalCorrect[idx] / total) * 100));
+                E.push(Math.round((totalIncorrect[idx] / total) * 100));
+                UQ.push(Math.round((totalUnanswered[idx] / total) * 100));
+            } else {
+                // If there is no data for this skill, set all values to 0%
+                CR.push(0);
+                E.push(0);
+                UQ.push(0);
+            }
+        });
+
+        // Ensure that the sum of CR, E, and UQ for each skill is exactly 100%
+        CR.forEach((val, idx) => {
+            const sum = CR[idx] + E[idx] + UQ[idx];
+
+            if (sum > 0 && sum !== 100) {
+                // Only correct the values if the sum is greater than 0
+                const correction = 100 - sum;
+                CR[idx] += correction; // Adjust the correct value to make sure it sums to 100%
+            }
+        });
+
+        return {
+            CR: CR,
+            E: E,
+            UQ: UQ
+        };
+    }
+
+
 
     const aggregateQuestionsByCategory = (data) => {
         const result = {};
@@ -127,7 +301,7 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "stdent_name" && category !== "total_questions") {
                     if (stats.totalQuestions) {
-                        if (category === "listening A") {
+                        if (category === "listening") {
                             ListeningAQuestions = stats.totalQuestions;
                             stats.correct > stats.totalQuestions / 2 && mastered.push(category);
                         } else if (category === "listening B") {
@@ -196,7 +370,7 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
                         if (category === "reading") classTotals.totalReadingQuestions += stats.totalQuestions;
                         if (category === "writing") classTotals.totalWritingQuestions += stats.totalQuestions;
                         if (category === "speaking") classTotals.totalSpeakingQuestions += stats.totalQuestions;
-                        if (category === "listening A") classTotals.totalListeningAQuestions += stats.totalQuestions;
+                        if (category === "listening") classTotals.totalListeningAQuestions += stats.totalQuestions;
                         if (category === "listening B") classTotals.totalListeningBQuestions += stats.totalQuestions;
                         if (category === "pronunciation") classTotals.totalPronunciationQuestions += stats.totalQuestions;
 
@@ -226,35 +400,13 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
     };
 
     const getArrays = (data) => {
-        // Initialize arrays to hold the values
-        const name = [];
-        const R = [];
-        const W = [];
-        const S = [];
-        const LA = [];
-        const LB = [];
-        const P = [];
-
+        console.log(data)
         // Iterate over the data array and extract values for each field
-        data.forEach(item => {
-            name.push(item.name);
-            R.push(item.R);
-            W.push(item.W);
-            S.push(item.S);
-            LA.push(item.LA);
-            LB.push(item.LB);
-            P.push(item.P);
-        });
-        setname(name)
         const tmporiginalSeries = [
-            { name: 'Reading', data: R },
-            { name: 'Writing', data: W },
-            { name: 'Speaking', data: S },
-            { name: 'Listening A', data: LA },
-            { name: 'Listening B', data: LB },
-            { name: 'Pronunciation', data: P },
+            { name: 'Correct Responses', data: data.CR },
+            { name: 'Errors', data: data.E },
+            { name: 'Unresolved Questions', data: data.UQ }
         ];
-        console.log(tmporiginalSeries)
         setoriginalSeries(tmporiginalSeries)
     }
 
@@ -298,8 +450,8 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-            
 
+                console.log(aggregatedData)
                 let allStudentsArray = [];
                 let allClassesArray = [];
 
@@ -307,20 +459,26 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
                     if (aggregatedData.hasOwnProperty(key)) {
                         if (selectedClass) {
                             if (aggregatedData[selectedClass]) {
-                                allStudentsArray = allStudentsArray.concat(processStudents(aggregatedData[selectedClass]));
+                                allStudentsArray = analyzeClassData(aggregatedData[selectedClass]);
+                                if (selectedStudent) {
+                                    allStudentsArray = analyzeStudentData(aggregatedData[selectedClass][selectedStudent]);
+                                }
                             } else {
                                 allStudentsArray = [];
                             }
                         } else {
-                            allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key));
-                            console.log(allClassesArray)
+                            allStudentsArray = analyzeClassesData(aggregatedData);
                         }
                     }
                 }
+                console.log(allStudentsArray)
                 if (selectedClass) {
                     getArrays(allStudentsArray)
+                    if (selectedStudent) {
+                        getArrays(allStudentsArray)
+                    }
                 } else {
-                    getArrays(allClassesArray)
+                    getArrays(allStudentsArray)
                 }
 
                 setLoading(false); // Set loading to false after all API calls are finished
@@ -334,12 +492,14 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
         fetchAllApis().catch(() => {
             setLoading(false);
         });
-    }, [selectedClass]);
+    }, [selectedClass, selectedStudent]);
 
     // Only render the chart if originalSeries and name have valid data
     if (loading || originalSeries.length === 0 || name.length === 0) {
         return <div></div>;
     }
+
+    console.log(originalSeries, name)
 
     return (
         <div>
@@ -350,4 +510,4 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
 }
 
 
-export default UsageActivity;
+export default QuestionsChart;

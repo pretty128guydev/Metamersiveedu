@@ -2,17 +2,13 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import Chart from "react-apexcharts";
 
-import { Card, CardBody, CardHeader } from "../../components/card/card";
-import StudentsByAnswers from "./students/students-answers";
-import BarsScale from "../../components/loading/BarsScale";
+import { Card, CardBody, CardHeader } from "../../../components/card/card";
+import BarsScale from "../../../components/loading/BarsScale";
 
-import { AnalyticsAPI } from "../../api-clients/AnalyticsAPI";
-import { formatTimeFromMinutes } from "./utils";
-import VillageApi from "../../api-clients/VillageApi";
-import SkillProgress from "./students/skill-progress";
-import UsageActivity from "./students/usage-activity";
-import PerformanceIndex from "./students/performanceindex";
-import QuestionsChart from "./students/questions";
+import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
+import { formatTimeFromMinutes } from "../utils";
+import VillageApi from "../../../api-clients/VillageApi";
+import SkillProgress from "../students/skill-progress";
 
 const ChartApex = ({ data }) => {
   const themeFont = getComputedStyle(document.body)
@@ -172,7 +168,7 @@ const ChartBar = ({ data }) => {
 };
 
 
-const Students = () => {
+const Activity = () => {
   const [loading, setLoading] = useState(false);
   const [totalTimeByGame, setTotalTimeByGame] = useState(null);
   const [totalTimeByLocation, setTotalTimeByLocation] = useState(null);
@@ -473,18 +469,6 @@ const Students = () => {
             <div className="mt-4">
               <SkillProgress selectedClass={selectedClass} selectedStudent={selectedStudentName} />
             </div>
-            <div className="mt-4">
-              <UsageActivity selectedClass={selectedClass} selectedStudent={selectedStudent} />
-            </div>
-            <div className="mt-4">
-              <PerformanceIndex selectedClass={selectedClass} selectedStudent={selectedStudentName} />
-            </div>
-            <div className="mt-4">
-              <QuestionsChart selectedClass={selectedClass} selectedStudent={selectedStudent} />
-            </div>
-            <div className="mt-4">
-              <StudentsByAnswers data={studentsData} selectedStudent={selectedStudentName} />
-            </div>
           </>
         )}
       </>
@@ -492,4 +476,4 @@ const Students = () => {
   );
 };
 
-export default Students;
+export default Activity;

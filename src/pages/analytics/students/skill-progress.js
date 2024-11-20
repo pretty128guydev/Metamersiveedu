@@ -3,12 +3,11 @@ import { useSelector } from "react-redux";
 import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 import VillageApi from "../../../api-clients/VillageApi";
 
-const SkillProgress = ({ selectedClass }) => {
+const SkillProgress = ({ selectedClass, selectedStudent }) => {
     const [loading, setLoading] = useState(false);
     const [students, setstudents] = useState([]);
-    const [classes, setclasses] = useState([]);
     const userInfo = useSelector((store) => store.auth.userInfo);
-  
+
 
     useEffect(() => {
         setLoading(true);
@@ -130,30 +129,24 @@ const SkillProgress = ({ selectedClass }) => {
             let ListeningAQuestions = 0;
             let ListeningBQuestions = 0;
             let PronunciationQuestions = 0;
-            let mastered = [];
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "stdent_name" && category !== "total_questions") {
                     if (stats.totalQuestions) {
-                        if (category === "listening") {
+                        if (category === "listening A") {
                             ListeningAQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category + " ");
                         } else if (category === "listening B") {
                             ListeningBQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category + " ");
                         } else if (category === "reading") {
+                            console.log(stats.correct, stats.totalQuestions)
                             ReadingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category + " ");
                         } else if (category === "writing") {
                             WritingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category + " ");
                         } else if (category === "speaking") {
                             SpeakingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category + " ");
                         } else if (category === "pronunciation") {
                             PronunciationQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category + " ");
                         }
 
                         // Accumulate student totals
@@ -163,18 +156,38 @@ const SkillProgress = ({ selectedClass }) => {
                 }
             });
 
-            // Add the student data to the students array
-            students.push({
-                name: studentName,
-                totalQuestions: studentTotalQuestions,
+            // Calculate percentages for each category
+            const categories = {
                 R: Math.round((ReadingQuestions / studentTotalQuestions) * 100),
                 W: Math.round((WritingQuestions / studentTotalQuestions) * 100),
                 S: Math.round((SpeakingQuestions / studentTotalQuestions) * 100),
                 LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 100),
                 LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 100),
                 P: Math.round((PronunciationQuestions / studentTotalQuestions) * 100),
-                Skill: ((studentCorrectAnswers / studentTotalQuestions) * 100).toFixed(2),
-                Score: studentTotalScore,
+            };
+
+            const mastered = Object.entries(categories)
+                .filter(([key, value]) => value > 50) // Filter categories with percentage > 50
+                .map(([key]) => key);
+
+            // Find the category with the highest percentage
+            const [highestCategory, highestPercentage] = Object.entries(categories).reduce(
+                (max, curr) => (curr[1] > max[1] ? curr : max),
+                ["", 0]
+            );
+
+            // Add the student data to the students array
+            students.push({
+                name: studentName,
+                totalQuestions: studentTotalQuestions,
+                R: categories.R,
+                W: categories.W,
+                S: categories.S,
+                LA: categories.LA,
+                LB: categories.LB,
+                P: categories.P,
+                Skill: highestCategory, // Skill is the category with the highest percentage
+                Score: highestPercentage, // Score is the highest percentage
                 mastered: mastered,
             });
         });
@@ -193,9 +206,9 @@ const SkillProgress = ({ selectedClass }) => {
             totalPronunciationQuestions: 0,
             totalCorrectAnswers: 0,
             totalScore: 0,
-            mastered: []
         };
 
+        // Process data for each student
         Object.entries(data).forEach(([studentId, studentInfo]) => {
             const studentTotalQuestions = studentInfo.total_questions;
 
@@ -203,17 +216,28 @@ const SkillProgress = ({ selectedClass }) => {
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "stdent_name" && category !== "total_questions") {
                     if (stats.totalQuestions) {
-                        if (category === "reading") { classTotals.totalReadingQuestions += stats.totalQuestions };
-                        if (category === "writing") { classTotals.totalWritingQuestions += stats.totalQuestions };
-                        if (category === "speaking") { classTotals.totalSpeakingQuestions += stats.totalQuestions };
-                        if (category === "listening") { classTotals.totalListeningAQuestions += stats.totalQuestions };
-                        if (category === "listening B") { classTotals.totalListeningBQuestions += stats.totalQuestions };
-                        if (category === "pronunciation") { classTotals.totalPronunciationQuestions += stats.totalQuestions };
+                        if (category === "reading") {
+                            classTotals.totalReadingQuestions += stats.totalQuestions;
+                        }
+                        if (category === "writing") {
+                            classTotals.totalWritingQuestions += stats.totalQuestions;
+                        }
+                        if (category === "speaking") {
+                            classTotals.totalSpeakingQuestions += stats.totalQuestions;
+                        }
+                        if (category === "listening A") {
+                            classTotals.totalListeningAQuestions += stats.totalQuestions;
+                        }
+                        if (category === "listening B") {
+                            classTotals.totalListeningBQuestions += stats.totalQuestions;
+                        }
+                        if (category === "pronunciation") {
+                            classTotals.totalPronunciationQuestions += stats.totalQuestions;
+                        }
 
                         // Accumulate overall totals
                         classTotals.totalScore += stats.totalScore;
                         classTotals.totalCorrectAnswers += stats.correct;
-
                     }
                 }
             });
@@ -221,16 +245,34 @@ const SkillProgress = ({ selectedClass }) => {
             classTotals.totalQuestions += studentTotalQuestions;
         });
 
-        // Calculate class-wide metrics
-        return {
-            name: className,
-            totalQuestions: classTotals.totalQuestions,
+        // Calculate percentages for each category
+        const categories = {
             R: Math.round((classTotals.totalReadingQuestions / classTotals.totalQuestions) * 100),
             W: Math.round((classTotals.totalWritingQuestions / classTotals.totalQuestions) * 100),
             S: Math.round((classTotals.totalSpeakingQuestions / classTotals.totalQuestions) * 100),
             LA: Math.round((classTotals.totalListeningAQuestions / classTotals.totalQuestions) * 100),
             LB: Math.round((classTotals.totalListeningBQuestions / classTotals.totalQuestions) * 100),
             P: Math.round((classTotals.totalPronunciationQuestions / classTotals.totalQuestions) * 100),
+        };
+
+        // Find the category with the highest percentage
+        const [highestCategory, highestPercentage] = Object.entries(categories).reduce(
+            (max, curr) => (curr[1] > max[1] ? curr : max),
+            ["", 0]
+        );
+
+        // Return class-wide metrics
+        return {
+            name: className,
+            totalQuestions: classTotals.totalQuestions,
+            R: categories.R,
+            W: categories.W,
+            S: categories.S,
+            LA: categories.LA,
+            LB: categories.LB,
+            P: categories.P,
+            Skill: highestCategory, // Skill is the category with the highest percentage
+            Score: highestPercentage, // Score is the percentage of the highest category
             TotalScore: classTotals.totalScore,
             AverageSkill: ((classTotals.totalCorrectAnswers / classTotals.totalQuestions) * 100).toFixed(2),
             mastered: (() => {
@@ -254,7 +296,7 @@ const SkillProgress = ({ selectedClass }) => {
                     masteredCategories.push("Pronunciation");
                 }
                 return masteredCategories.join(", ");
-            })()
+            })(),
         };
     };
 
@@ -287,21 +329,23 @@ const SkillProgress = ({ selectedClass }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {students.map((student, index) => (
-                        <tr key={index}>
-                            <td className="bg-dark text-success fw-bold">{student.name}</td>
-                            <td >{student.totalQuestions}</td>
-                            <td>{student.R}%</td>
-                            <td>{student.W}%</td>
-                            <td>{student.S}%</td>
-                            <td>{student.LA}%</td>
-                            <td>{student.LB}%</td>
-                            <td>{student.P}%</td>
-                            <td>{student.Skill}</td>
-                            <td>{student.Score}</td>
-                            <td>{student.mastered}</td>
-                        </tr>
-                    ))}
+                    {students
+                        .filter(student => !selectedStudent || student.name === selectedStudent)
+                        .map((student, index) => (
+                            <tr key={index}>
+                                <td className="bg-dark text-success fw-bold">{student.name}</td>
+                                <td>{student.totalQuestions}</td>
+                                <td>{student.R}%</td>
+                                <td>{student.W}%</td>
+                                <td>{student.S}%</td>
+                                <td>{student.LA}%</td>
+                                <td>{student.LB}%</td>
+                                <td>{student.P}%</td>
+                                <td>{student.Skill}</td>
+                                <td>{student.Score}%</td>
+                                <td>{student.mastered}</td>
+                            </tr>
+                        ))}
                 </tbody>
             </table>
         </div>

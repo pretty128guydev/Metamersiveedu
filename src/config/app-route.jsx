@@ -110,6 +110,7 @@ import TagGameForAdmin from "../pages/class/taggame/TagGameForAdmin.jsx";
 import WordDashForAdmin from "../pages/class/worddash/WordDashForAdmin.jsx";
 import SchoolManagement from "../pages/school/SchoolManagement.jsx";
 import TeacherManagementForAdmin from "../pages/teacher/TeacherManagementForAdmin.jsx";
+import Activity from "../pages/analytics/activity/activity.js";
 
 const AppRoute = [
   {
@@ -288,7 +289,7 @@ const AppRoute = [
             children: [
               {
                 path: "",
-                element: <TroubleZone />,
+                element: <Activity />,
               },
             ],
           },

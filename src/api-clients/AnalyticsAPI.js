@@ -10,6 +10,9 @@ import {
   wrong_questions_by_category,
   wrong_questions_by_level,
   data_by_teacher_for_year,
+  time_by_game_student,
+  result_time_by_location_student,
+  result_data_by_teacher_student,
 } from "../config/app-apis";
 import { instance } from "./index";
 
@@ -17,14 +20,23 @@ export const AnalyticsAPI = {
   getTotalSpentTimeByGame: (query) => {
     return instance.get(result_time_by_game, { params: query });
   },
+  getTotalSpentTimeByGameStudent: (query) => {
+    return instance.get(time_by_game_student, { params: query });
+  },
   getClassroomsByTeacherId: (query) => {
     return instance.get('analytics/classroom', { params: query });
   },
   getTotalSpentTimeByLocation: (query) => {
     return instance.get(result_time_by_location, { params: query });
   },
+  getTotalSpentTimeByLocationStudent: (query) => {
+    return instance.get(result_time_by_location_student, { params: query });
+  },
   getStudentsData: (query) => {
     return instance.get(result_data_by_teacher, { params: query });
+  },
+  getStudentsDataStudent: (query) => {
+    return instance.get(result_data_by_teacher_student, { params: query });
   },
   getStudentsDataOfYear: (query) => {
     return instance.get(data_by_teacher_for_year, { params: query });

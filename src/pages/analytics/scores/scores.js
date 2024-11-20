@@ -182,6 +182,7 @@ const Scores = () => {
         class_id,
         student_id,
       });
+      console.log(data.data)
       return data.data;
     } catch (error) {
       console.log(error);
@@ -325,25 +326,25 @@ const Scores = () => {
                             className="text-center border border-secondary border-top-0 border-bottom-0"
                             style={{ width: "150px" }}
                           >
-                            smartscore
+                            PERFORMANCE
                           </div>
                           <div
                             className="text-center"
                             style={{ width: "150px" }}
                           >
-                            questions answered
+                            COMPLETED QUESTIONS
                           </div>
                           <div
                             className="text-center"
                             style={{ width: "150px" }}
                           >
-                            time spent
+                            TIME SPENT
                           </div>
                           <div
                             className="text-center"
                             style={{ width: "150px" }}
                           >
-                            last practiced
+                            LAST PRACTICED
                           </div>
                         </div>
                       </div>
@@ -353,6 +354,7 @@ const Scores = () => {
                       >
                         {Object.keys(villageData).map((key, index) => {
                           const item = villageData[key];
+                          console.log(item)
                           return (
                             <>
                               <div
@@ -382,7 +384,7 @@ const Scores = () => {
                                         className="text-center border border-secondary border-top-0 d-flex align-items-center justify-content-center align-self-stretch"
                                         style={{ width: "150px" }}
                                       >
-                                        {childItem.totalScore || ""}
+                                        {Math.round(childItem.totalcorrect / childItem.totalQuestions * 100) || ""} {childItem.totalcorrect / childItem.totalQuestions * 100 > 0 && "%"}
                                       </div>
                                       <div
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"

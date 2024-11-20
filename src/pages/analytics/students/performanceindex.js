@@ -48,7 +48,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
     const analyzeData = (data) => {
         // Initialize all levels and categories
         const levels = ["level-1", "level-2", "level-3", "level-4"];
-        const categories = ["listening", "reading", "writing", "speaking", "listeningB", "pronunciation"];
+        const categories = ["listening A", "reading", "writing", "speaking", "listeningB", "pronunciation"];
 
         // Template for an empty level
         const emptyLevel = {
@@ -131,7 +131,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
             const speaking = calculatePercentage(data.speaking[level]?.correct || 0, data.speaking[level]?.totalQuestions || 0);
             const writing = calculatePercentage(data.writing[level]?.correct || 0, data.writing[level]?.totalQuestions || 0);
             const reading = calculatePercentage(data.reading[level]?.correct || 0, data.reading[level]?.totalQuestions || 0);
-            const listeningA = calculatePercentage(data.listening[level]?.correct || 0, data.listening[level]?.totalQuestions || 0);
+            const listeningA = calculatePercentage(data.listeningA[level]?.correct || 0, data.listeningA[level]?.totalQuestions || 0);
             const listeningB = calculatePercentage(data.listeningB[level]?.correct || 0, data.listeningB[level]?.totalQuestions || 0); // No listening B data in provided input
             const pronunciation = calculatePercentage(data.pronunciation[level]?.correct || 0, data.pronunciation[level]?.totalQuestions || 0);
 
@@ -173,7 +173,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
             levels.forEach(level => {
                 const writingData = studentData.writing[level] || { correct: 0, totalQuestions: 0 };
                 const readingData = studentData.reading[level] || { correct: 0, totalQuestions: 0 };
-                const listeningData = studentData.listening[level] || { correct: 0, totalQuestions: 0 };
+                const listeningAData = studentData.listeningA[level] || { correct: 0, totalQuestions: 0 };
 
                 // Add correct and totalQuestions to totals
                 totalData[level].writing.correct += writingData.correct;
@@ -182,8 +182,8 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
                 totalData[level].reading.correct += readingData.correct;
                 totalData[level].reading.totalQuestions += readingData.totalQuestions;
 
-                totalData[level].listeningA.correct += listeningData.correct;
-                totalData[level].listeningA.totalQuestions += listeningData.totalQuestions;
+                totalData[level].listeningA.correct += listeningAData.correct;
+                totalData[level].listeningA.totalQuestions += listeningAData.totalQuestions;
 
                 // No data for speaking, listeningB, or pronunciation in this example
             });
@@ -207,7 +207,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
 
     const getTotalAnalyticsData = (data) => {
         const levels = ["level-1", "level-2", "level-3", "level-4"];
-        const categories = ["speaking", "writing", "reading", "listening", "listeningB", "pronunciation"];
+        const categories = ["speaking", "writing", "reading", "listeningA", "listeningB", "pronunciation"];
 
         // Helper function to calculate percentage
         const calculatePercentage = (correct, total) => (total > 0 ? Math.round((correct / total) * 100) : 0);

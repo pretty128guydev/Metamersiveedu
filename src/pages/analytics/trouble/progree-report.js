@@ -282,6 +282,95 @@ const Progress_Report = ({ selectedClass }) => {
         return result; // Returns an object where the key is the class name
     }
 
+    function analyzeData(data, selectedCategory = null, months) {
+        // Initialize the result array for each level
+        const levels = ['level-1', 'level-2', 'level-3', 'level-4'];
+        const monthlyData = levels.reduce((acc, level) => {
+            acc[level] = Array(months.length).fill(0);
+            return acc;
+        }, {});
+
+        // Helper function to get the index of the month in the months list
+        function getMonthIndex(month) {
+            return months.indexOf(month);
+        }
+
+        // Iterate over the main data
+        for (const key in data) {
+            const value = data[key];
+
+            // Iterate over the sub-sessions (e.g., s1, s4, S5)
+            for (const sessionKey in value) {
+                const sessionData = value[sessionKey];
+
+                // Iterate over the months in the session
+                for (const month in sessionData) {
+                    if (!months.includes(month)) continue;
+
+                    // If a category is selected, only process the matching category
+                    if (selectedCategory && !sessionData[month][selectedCategory]) continue;
+
+                    // Iterate over levels
+                    levels.forEach(level => {
+                        if (sessionData[month][level]) {
+                            const levelData = sessionData[month][level];
+                            const totalQuestions = levelData.questions || 0;
+                            const correct = levelData.correct || 0;
+
+                            // Calculate correct rate if there are questions
+                            const correctRate = totalQuestions > 0 ? (correct / totalQuestions) * 100 : 0;
+                            const monthIndex = getMonthIndex(month);
+
+                            // Add the correct rate to the corresponding level and month
+                            monthlyData[level][monthIndex] += correctRate;
+                        }
+                    });
+                }
+            }
+        }
+
+        // Convert the result to the required format
+        const result = levels.map(level => ({
+            [level]: monthlyData[level]
+        }));
+
+        return result;
+    }
+
+    function getAnalyzedData(months, category, data) {
+        // Initialize the result object with levels and arrays for months
+        const result = {
+            "level-1": Array(months.length).fill(0),
+            "level-2": Array(months.length).fill(0),
+            "level-3": Array(months.length).fill(0),
+            "level-4": Array(months.length).fill(0),
+        };
+
+        // Iterate through each student in the data
+        for (const studentId in data) {
+            const student = data[studentId];
+            if (student.data && Array.isArray(student.data)) {
+                student.data.forEach(entry => {
+                    const entryMonth = entry.createdAt.slice(0, 7); // Extract the month (e.g., "2024-08")
+                    const monthIndex = months.indexOf(entryMonth);
+
+                    if (monthIndex !== -1 && entry.category === category) {
+                        const level = entry.level;
+                        const score = parseInt(entry.questions?.score || "0", 10);
+
+                        // Add the score to the appropriate level and month index
+                        if (result[level]) {
+                            result[level][monthIndex] += score;
+                        }
+                    }
+                });
+            }
+        }
+
+        // Convert result object to an array of objects
+        return Object.entries(result).map(([level, scores]) => ({ [level]: scores }));
+    }
+
     useEffect(() => {
         setLoading(true);
 
@@ -318,8 +407,9 @@ const Progress_Report = ({ selectedClass }) => {
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-
                 console.log(aggregatedData)
+                const dadadadada = getAnalyzedData(months, 'speaking', aggregatedData)
+                console.log(dadadadada)
 
                 // Set the aggregated data to the state after all promises have completed
                 setLoading(false); // Set loading to false after all API calls are finished
@@ -335,6 +425,7 @@ const Progress_Report = ({ selectedClass }) => {
                                 // Process data for selectedClass
                                 const allStudentsArray = formatData(aggregatedData[selectedClass]);
                                 const finalData = analyzeDataByLevels(allStudentsArray, months)
+                                console.log(finalData)
                                 newSeries = finalData.map((data) => {
                                     const studentName = Object.keys(data)[0]; // Extract student name
                                     const percentages = data[studentName]; // Get percentages for the months
@@ -347,7 +438,6 @@ const Progress_Report = ({ selectedClass }) => {
                             }
                         } else {
                             const allClassesArray = analyzeDataByClass(aggregatedData, months);
-                            console.log(allClassesArray)
                             newSeries = Object.keys(allClassesArray).map((className) => {
                                 const percentages = allClassesArray[className];
                                 return {

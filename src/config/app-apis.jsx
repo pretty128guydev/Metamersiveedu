@@ -84,8 +84,11 @@ export const tag_get_question = "tag/hp-question";
 
 // Analytics
 export const result_time_by_game = "analytics/game_result/time_by_game";
+export const time_by_game_student = "analytics/game_result/time_by_game_student"
 export const result_time_by_location = "analytics/game_result/time_by_location";
+export const result_time_by_location_student = "analytics/game_result/time_by_location_student";
 export const result_data_by_teacher = "analytics/game_result/data_by_teacher";
+export const result_data_by_teacher_student = "analytics/game_result/data_by_teacher_student";
 export const data_by_teacher_for_year = "analytics/game_result/data_by_teacher_for_year";
 export const result_scores_by_student =
   "analytics/game_result/scores_by_student";

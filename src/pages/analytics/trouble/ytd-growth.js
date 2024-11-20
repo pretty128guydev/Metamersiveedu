@@ -4,7 +4,7 @@ import { AnalyticsAPI } from '../../../api-clients/AnalyticsAPI';
 import VillageApi from '../../../api-clients/VillageApi';
 import { useSelector } from 'react-redux';
 
-const YTD_Growth = ({ selectedClass }) => {
+const YTD_Growth = ({ selectedClass, selectedCategory }) => {
   const [loading, setLoading] = useState(false);
   const [months, setmonths] = useState([]);
   const [chartdata, setchartdata] = useState([]);
@@ -87,72 +87,91 @@ const YTD_Growth = ({ selectedClass }) => {
     const month = String(now.getMonth() + 1).padStart(2, "0"); // Get the month (1-based) and pad with "0"
     return `${year}-${month}`; // Combine year and month
   }
+
   // Function to analyze data
-  function analyzeData(data, months) {
-    const result = [];  // Result should be an array of objects
+  function analyzeData(data, months, category = null) {
+    const result = {};
 
-    // Loop through each user's data
-    for (const [key, userData] of Object.entries(data)) {
-      // Calculate percentages for each month for this user
-      const percentages = months.map((month) => {
-        if (userData[month]) {
-          const { totalCorrect, totalQuestions } = userData[month];
-          // Calculate percentage and round it to the nearest integer
-          return totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
-        } else {
-          return 0; // If no data for the month, return 0
+    // Loop through each session (s1, s4, s5, etc.)
+    for (const sessionKey in data) {
+      const sessionData = data[sessionKey];
+      const sessionResult = [];
+
+      // Loop through each month in the provided months array
+      for (const month of months) {
+        let correct = 0;
+        let totalQuestions = 0;
+
+        // Check if the month exists in the session data
+        if (sessionData[month]) {
+          // If a category is specified, calculate only for that category
+          if (category) {
+            if (sessionData[month].categories[category]) {
+              const categoryData = sessionData[month].categories[category];
+              correct += categoryData.correct;
+              totalQuestions += categoryData.questions;
+            }
+          } else {
+            // If no category specified, aggregate across all categories
+            for (const cat in sessionData[month].categories) {
+              const categoryData = sessionData[month].categories[cat];
+              correct += categoryData.correct;
+              totalQuestions += categoryData.questions;
+            }
+          }
         }
-      });
 
-      // Push the result as an object with the user key and their percentages
-      result.push({ [key]: percentages });
+        // Calculate the correct percentage for the month and round to the nearest integer
+        const correctPercentage = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+        sessionResult.push(correctPercentage);
+      }
+
+      result[sessionKey] = sessionResult;
     }
 
     return result;
   }
 
-  function analyzeDataByClass(data, months) {
-    const result = {}; // This will store the result for each class
+  function analyzeDataByClass(data, category = null, months = []) {
+    const result = {};
 
-    // Iterate through each student in the data
-    for (const studentId in data) {
-      const studentData = data[studentId];
+    // Initialize result structure
+    for (const user in data) {
+      result[user] = Array(months.length).fill(0);
+    }
 
-      // Iterate through each class data (s1, s4, S5, etc.) for each student
-      for (const className in studentData) {
-        const classData = studentData[className];
+    // Process each user
+    for (const user in data) {
+      const userData = data[user];
+      if (!userData || Object.keys(userData).length === 0) continue;
 
-        // Initialize the result array for this class if it doesn't exist
-        if (!result[className]) {
-          result[className] = Array(months.length).fill(0); // 12 months, all initialized to 0
-        }
+      // Process monthly data
+      for (const section in userData) {
+        const sectionData = userData[section];
+        for (const month in sectionData) {
+          const monthIndex = months.indexOf(month);
+          if (monthIndex === -1) continue;
 
-        // If classData is empty, just skip this student for that class and continue to the next class
-        if (Object.keys(classData).length === 0) {
-          continue;
-        }
+          const monthDetails = sectionData[month];
 
-        // Iterate through each month and calculate the percentage
-        months.forEach((month, index) => {
-          const monthData = classData[month];
-          if (monthData && monthData.totalQuestions > 0) {
-            // Calculate the percentage of correct answers
-            const percentage = (monthData.totalCorrect / monthData.totalQuestions) * 100;
-            // Add to the class's result (rounding to avoid decimals)
-            result[className][index] += Math.round(percentage);
+          // Calculate data for the specified category or total
+          let correct = 0, questions = 0;
+          if (category && monthDetails.categories[category]) {
+            const catData = monthDetails.categories[category];
+            correct += catData.correct;
+            questions += catData.questions;
+          } else if (!category) {
+            correct += monthDetails.totalCorrect;
+            questions += monthDetails.totalQuestions;
           }
-        });
+
+          // Calculate percentage and update the result
+          result[user][monthIndex] += questions > 0 ? Math.round((correct / questions) * 100) : 0;
+        }
       }
     }
 
-    // Ensure that all classes with no data for any student have an array of zeroes
-    for (const className in result) {
-      if (result[className].length === 0) {
-        result[className] = Array(months.length).fill(0); // Add zeroes if no data was added for that class
-      }
-    }
-
-    return result; // Returns an object where the key is the class name
+    return result;
   }
 
   useEffect(() => {
@@ -174,7 +193,6 @@ const YTD_Growth = ({ selectedClass }) => {
             const studentsData = await AnalyticsAPI.getStudentsData({
               classId,
             });
-            console.log(studentsData.data)
             // Iterate over each student in the response
             const result = analyzeDataByMonth(studentsData.data);
 
@@ -192,37 +210,30 @@ const YTD_Growth = ({ selectedClass }) => {
         // Wait for all API calls to complete
         await Promise.all(promises);
 
-        console.log(aggregatedData)
-
         // Set the aggregated data to the state after all promises have completed
         setLoading(false); // Set loading to false after all API calls are finished
         let newSeries = [];
         const currentMonth = getCurrentMonth(); // Change this to the current month dynamically if needed
         const months = getLast12Months(currentMonth);
         setmonths(months)
-        const data = analyzeDataByClass(aggregatedData, months)
-        console.log(data)
-
+        const data = analyzeDataByClass(aggregatedData, null, months)
+        
         for (let key in aggregatedData) {
           if (aggregatedData.hasOwnProperty(key)) {
             if (selectedClass) {
               if (aggregatedData[selectedClass]) {
                 // Process data for selectedClass
-                const allStudentsArray = analyzeData(aggregatedData[selectedClass], months);
-                console.log(allStudentsArray)
-                newSeries = allStudentsArray.map((data) => {
-                  const studentName = Object.keys(data)[0]; // Extract student name
-                  const percentages = data[studentName]; // Get percentages for the months
-
+                const allStudentsArray = analyzeData(aggregatedData[selectedClass], months, selectedCategory ? selectedCategory : null);
+                newSeries = Object.keys(allStudentsArray).map((className) => {
+                  const percentages = allStudentsArray[className];
                   return {
-                    name: studentName,
-                    data: percentages,
+                    name: className,
+                    data: percentages,  // Ensure this is an array of percentages per month
                   };
                 });
               }
             } else {
-              const allClassesArray = analyzeDataByClass(aggregatedData, months);
-              console.log(allClassesArray)
+              const allClassesArray = analyzeDataByClass(aggregatedData, selectedCategory ? selectedCategory : null, months);
               newSeries = Object.keys(allClassesArray).map((className) => {
                 const percentages = allClassesArray[className];
                 return {
@@ -249,7 +260,7 @@ const YTD_Growth = ({ selectedClass }) => {
     fetchAllApis().catch(() => {
       setLoading(false);
     });
-  }, [selectedClass]);  // Empty dependency array means this effect runs only once when the component mounts
+  }, [selectedClass, selectedCategory]);  // Empty dependency array means this effect runs only once when the component mounts
 
   const options = {
     chart: {
