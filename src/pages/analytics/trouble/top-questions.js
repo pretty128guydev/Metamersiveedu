@@ -6,7 +6,6 @@ import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 
 const TopQuestions = () => {
   const { schoolId } = useSelector((state) => state.auth.userInfo);
-  console.log(schoolId)
 
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,7 +30,6 @@ const TopQuestions = () => {
     const fetchData = async () => {
       try {
         const res = await AnalyticsAPI.getTop10WrongQuestions(schoolId);
-        console.log(res.data)
         if (res.status === 200) {
           setQuestions(res.data);
           setLoading(false);

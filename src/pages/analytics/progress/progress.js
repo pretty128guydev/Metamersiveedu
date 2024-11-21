@@ -8,18 +8,18 @@ import VillageApi from "../../../api-clients/VillageApi";
 import Progress_Report from "../trouble/progree-report";
 import { useSelector } from "react-redux";
 import TroubleZone from "../trouble/trouble-zone";
+import TagApi from "../../../api-clients/TagApi";
+import WordApi from "../../../api-clients/WordApi";
+import BarsScale from "../../../components/loading/BarsScale";
 
 const Progress = () => {
   const [loading, setLoading] = useState(false);
-  const [studentsData, setStudentsData] = useState([]);
   const [selectedStudentName, setSelectedStudentName] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
   const [studentData, setStudentData] = useState([]);
-  const [classData, setClassData] = useState([]);
   const [classesData, setClassesData] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [teacherData, setTeacherData] = useState([]);
   const userInfo = useSelector((store) => store.auth.userInfo);
 
   const extractStudentNames = (data) => {
@@ -45,7 +45,7 @@ const Progress = () => {
     const classId = e.target.value;
     console.log(classId);
 
-    if (classId == "Select Class") {
+    if (classId == "Select All") {
       setSelectedClass('');
     } else {
       setSelectedClass(classId);
@@ -56,15 +56,13 @@ const Progress = () => {
     // Extract the data in the desired format
     const studentsList = await extractStudentNames(studentsData.data);
 
-    console.log(studentsList);  // This should give you the array of students
-
     // Set the student data in the state
     await setStudentData(studentsList);
   };
 
   const handleSelectStudent = async (e) => {
     const selectedId = e.target.value;
-    if (e.target.value == "Select Student") {
+    if (e.target.value == "Select All") {
       setSelectedStudent('')
     } else {
       setSelectedStudent(e.target.value);
@@ -83,15 +81,28 @@ const Progress = () => {
       const classData = await VillageApi.getClassroomsByTeacherId({
         teacher_id: userInfo.uid,
       });
-      const classes = classData.data.ret.map((item) => item.id);
+      const WordDashData = await WordApi.getClassroomsByTeacherId({
+        teacher_id: userInfo.uid,
+      });
+      const TagData = await TagApi.getClassroomsByTeacherId({
+        teacher_id: userInfo.uid,
+      });
 
-      const classeswithname = classData.data.ret.map((item) => ({
-        id: item.id,
-        name: item.name,
-      }));
-      setClassData(classes);
-      setClassesData(classeswithname)
-      setTeacherData(classData.data.ret)
+      // Merging data from all three sources
+      const allClasses = [
+        ...classData.data.ret, // village classes
+        ...WordDashData.data.ret, // WordDash classes
+        ...TagData.data.ret, // Tag classes
+      ];
+
+      // Remove duplicates by class ID
+      const uniqueClasses = Array.from(
+        new Map(allClasses.map((item) => [item.id, item])).values()
+      );
+
+      // Setting the state
+      setClassesData(uniqueClasses.map((item) => ({ id: item.id, name: item.name }))); // Set class names with IDs
+
       // All API calls completed successfully
       setLoading(false);
     };
@@ -107,7 +118,7 @@ const Progress = () => {
   ]
 
   const handleSelectCategory = (e) => {
-    if (e.target.value == "Select Category") {
+    if (e.target.value == "Select All") {
       setSelectedCategory('')
     } else {
       setSelectedCategory(e.target.value);
@@ -117,80 +128,88 @@ const Progress = () => {
   return (
     <div>
       <div className="h5">PROGRESS & GROWTH</div>
-      <div className="mt-2 row mb-2">
-        <div className="col">
-          <div className="input-group">
-            <label
-              className="input-group-text"
-              htmlFor="inputGroupSelect02"
-            >
-              Class
-            </label>
-            <select
-              className="form-select"
-              id="inputGroupSelect02"
-              value={selectedClass}
-              onChange={handleSelectClass}
-            >
-              <option defaultValue={""}>Select Class</option>
-              {classesData.map((item, index) => (
-                <option value={item.id} key={index}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </div>
+      {loading ? (
+        <div className="d-flex align-items-center justify-content-center vh-100">
+          <BarsScale />
         </div>
-        <div className="col">
-          <div className="input-group">
-            <label
-              className="input-group-text"
-              htmlFor="inputGroupSelect03"
-            >
-              Student
-            </label>
-            <select
-              className="form-select"
-              id="inputGroupSelect03"
-              value={selectedStudent}
-              onChange={handleSelectStudent}
-            >
-              <option defaultValue={""}>Select Student</option>
-              {studentData?.map((item, index) => (
-                <option value={item?.student_id} key={index}>
-                  {item?.name}
-                </option>
-              ))}
-            </select>
+      ) : (
+        <>
+          <div className="mt-2 row mb-2">
+            <div className="col">
+              <div className="input-group">
+                <label
+                  className="input-group-text"
+                  htmlFor="inputGroupSelect02"
+                >
+                  Class
+                </label>
+                <select
+                  className="form-select"
+                  id="inputGroupSelect02"
+                  value={selectedClass}
+                  onChange={handleSelectClass}
+                >
+                  <option defaultValue={""}>Select All</option>
+                  {classesData.map((item, index) => (
+                    <option value={item.id} key={index}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="col">
+              <div className="input-group">
+                <label
+                  className="input-group-text"
+                  htmlFor="inputGroupSelect03"
+                >
+                  Student
+                </label>
+                <select
+                  className="form-select"
+                  id="inputGroupSelect03"
+                  value={selectedStudent}
+                  onChange={handleSelectStudent}
+                >
+                  <option defaultValue={""}>Select All</option>
+                  {studentData?.map((item, index) => (
+                    <option value={item?.student_id} key={index}>
+                      {item?.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="col">
+              <div className="input-group">
+                <label
+                  className="input-group-text"
+                  htmlFor="inputGroupSelect03"
+                >
+                  Category
+                </label>
+                <select
+                  className="form-select"
+                  id="inputGroupSelect03"
+                  value={selectedCategory}
+                  onChange={handleSelectCategory}
+                >
+                  <option defaultValue={""}>Select All</option>
+                  {categoryData.map((item, index) => (
+                    <option value={item} key={index}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="col">
-          <div className="input-group">
-            <label
-              className="input-group-text"
-              htmlFor="inputGroupSelect03"
-            >
-              Category
-            </label>
-            <select
-              className="form-select"
-              id="inputGroupSelect03"
-              value={selectedCategory}
-              onChange={handleSelectCategory}
-            >
-              <option defaultValue={""}>Select Category</option>
-              {categoryData.map((item, index) => (
-                <option value={item} key={index}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-      <YTD_Growth selectedClass={selectedClass} selectedCategory={selectedCategory}/>
-      <Progress_Report selectedClass={selectedClass} selectedCategory={selectedCategory}/>
-      <TroubleZone />
+          <YTD_Growth selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          <Progress_Report selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          <TroubleZone />
+        </>
+      )}
       {/* <div className="row gap-2 mt-4">
         <Card className="col">
           <CardBody>

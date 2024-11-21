@@ -35,6 +35,9 @@ export const AnalyticsAPI = {
   getStudentsData: (query) => {
     return instance.get(result_data_by_teacher, { params: query });
   },
+  getActiveStudentsCount: (query) => {
+    return instance.get('analytics/get_count_active_student', { params: query });
+  },
   getStudentsDataStudent: (query) => {
     return instance.get(result_data_by_teacher_student, { params: query });
   },

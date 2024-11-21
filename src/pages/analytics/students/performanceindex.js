@@ -4,18 +4,14 @@ import VillageApi from "../../../api-clients/VillageApi";
 import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 import { escape } from "validator";
 import { useSelector } from "react-redux";
+import WordApi from "../../../api-clients/WordApi";
+import TagApi from "../../../api-clients/TagApi";
 
-const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
+const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
 
 
     const [loading, setLoading] = useState(false);
-    const [students, setstudents] = useState([]);
-    const [name, setname] = useState([]);
-    const [originalSeries, setoriginalSeries] = useState([]);
-    const [finalTotalData, setfinalTotalData] = useState([]);
     const [finalData, setfinalData] = useState([]);
-    const userInfo = useSelector((store) => store.auth.userInfo);
-  
 
     const aggregateQuestionsByCategoryAndLevel = (data) => {
         const result = {};
@@ -81,126 +77,58 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
         return results;
     }
 
-    const getArrays = (data) => {
-        // Initialize arrays to hold the values
-        const name = [];
-        const R = [];
-        const W = [];
-        const S = [];
-        const LA = [];
-        const LB = [];
-
-        // Iterate over the data array and extract values for each field
-        data.forEach(item => {
-            name.push(item.name);
-            R.push(item.R);
-            W.push(item.W);
-            S.push(item.S);
-            LA.push(item.LA);
-            LB.push(item.LB);
-        });
-        setname(name)
-        const tmporiginalSeries = [
-            { name: 'Reading', data: R.length ? R : [0, 0, 0] },
-            { name: 'Writing', data: W.length ? W : [0, 0, 0] },
-            { name: 'Speaking', data: S.length ? S : [0, 0, 0] },
-            { name: 'Listening A', data: LA.length ? LA : [0, 0, 0] },
-            { name: 'Listening B', data: LB.length ? LB : [0, 0, 0] },
-            { name: 'Pronunciation', data: [0, 0, 0] },
-        ];
-
-        setoriginalSeries(tmporiginalSeries)
-    }
-
-    const getAnalyticsData = (data) => {
-        const levels = ["level-1", "level-2", "level-3", "level-4"];
-        const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
-
-        // Helper function to calculate percentage
-        function calculatePercentage(correct, total) {
-            return total > 0 ? Math.round((correct / total) * 100) : 0;
-        }
-
-        // Prepare result structure
-        const analytics = {};
-
-        levels.forEach((level) => {
-            const levelData = [];
-
-            // Calculate percentages for each category
-            const speaking = calculatePercentage(data.speaking[level]?.correct || 0, data.speaking[level]?.totalQuestions || 0);
-            const writing = calculatePercentage(data.writing[level]?.correct || 0, data.writing[level]?.totalQuestions || 0);
-            const reading = calculatePercentage(data.reading[level]?.correct || 0, data.reading[level]?.totalQuestions || 0);
-            const listeningA = calculatePercentage(data.listeningA[level]?.correct || 0, data.listeningA[level]?.totalQuestions || 0);
-            const listeningB = calculatePercentage(data.listeningB[level]?.correct || 0, data.listeningB[level]?.totalQuestions || 0); // No listening B data in provided input
-            const pronunciation = calculatePercentage(data.pronunciation[level]?.correct || 0, data.pronunciation[level]?.totalQuestions || 0);
-
-            // Push percentages to level data
-            levelData.push(speaking, writing, reading, listeningA, listeningB, pronunciation);
-
-            // Add to analytics object
-            analytics[level] = levelData;
-        });
-
-        return analytics;
-    }
-
     function getTotalAnalytics(data) {
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
 
-        // Helper function to calculate percentage (rounded to nearest whole number)
-        function calculatePercentage(correct, total) {
-            return total > 0 ? Math.round((correct / total) * 100) : 0;
-        }
-
-        // Initialize total data structure
-        const totalData = {};
-        levels.forEach(level => {
-            totalData[level] = {
-                speaking: { correct: 0, totalQuestions: 0 },
-                writing: { correct: 0, totalQuestions: 0 },
-                reading: { correct: 0, totalQuestions: 0 },
-                listeningA: { correct: 0, totalQuestions: 0 },
-                listeningB: { correct: 0, totalQuestions: 0 },
-                pronunciation: { correct: 0, totalQuestions: 0 }
-            };
-        });
+        // Initialize the result structure with correct and totalQuestions for percentage calculation
+        const result = {
+            "level-1": [0, 0, 0, 0, 0, 0],
+            "level-2": [0, 0, 0, 0, 0, 0],
+            "level-3": [0, 0, 0, 0, 0, 0],
+            "level-4": [0, 0, 0, 0, 0, 0],
+            totalQuestions: {
+                "level-1": [0, 0, 0, 0, 0, 0],
+                "level-2": [0, 0, 0, 0, 0, 0],
+                "level-3": [0, 0, 0, 0, 0, 0],
+                "level-4": [0, 0, 0, 0, 0, 0]
+            }
+        };
 
         // Aggregate data across all students
         for (const studentKey in data) {
             const studentData = data[studentKey];
-            levels.forEach(level => {
-                const writingData = studentData.writing[level] || { correct: 0, totalQuestions: 0 };
-                const readingData = studentData.reading[level] || { correct: 0, totalQuestions: 0 };
-                const listeningAData = studentData.listeningA[level] || { correct: 0, totalQuestions: 0 };
+            for (const level of levels) {
+                for (let i = 0; i < categories.length; i++) {
+                    const category = categories[i];
+                    if (studentData[category] && studentData[category][level]) {
+                        const stats = studentData[category][level];
+                        const correct = stats.correct || 0;
+                        const totalQuestions = stats.totalQuestions || 0;
 
-                // Add correct and totalQuestions to totals
-                totalData[level].writing.correct += writingData.correct;
-                totalData[level].writing.totalQuestions += writingData.totalQuestions;
+                        // Add to the correct total
+                        result[level][i] += correct;
 
-                totalData[level].reading.correct += readingData.correct;
-                totalData[level].reading.totalQuestions += readingData.totalQuestions;
-
-                totalData[level].listeningA.correct += listeningAData.correct;
-                totalData[level].listeningA.totalQuestions += listeningAData.totalQuestions;
-
-                // No data for speaking, listeningB, or pronunciation in this example
-            });
+                        // Add to the total questions for each category and level
+                        result.totalQuestions[level][i] += totalQuestions;
+                    }
+                }
+            }
         }
 
-        // Compute percentages
-        const result = {};
-        levels.forEach(level => {
-            result[level] = [
-                calculatePercentage(0, 0), // Speaking (No data)
-                calculatePercentage(totalData[level].writing.correct, totalData[level].writing.totalQuestions),
-                calculatePercentage(totalData[level].reading.correct, totalData[level].reading.totalQuestions),
-                calculatePercentage(totalData[level].listeningA.correct, totalData[level].listeningA.totalQuestions),
-                calculatePercentage(0, 0), // Listening B (No data)
-                calculatePercentage(0, 0)  // Pronunciation (No data)
-            ];
-        });
+        // Now calculate the percentage for each category at each level
+        for (const level of levels) {
+            for (let i = 0; i < categories.length; i++) {
+                const totalQuestions = result.totalQuestions[level][i];
+                const correct = result[level][i];
+
+                if (totalQuestions > 0) {
+                    result[level][i] = Math.round((correct / totalQuestions) * 100); // Calculate percentage
+                } else {
+                    result[level][i] = 0; // No questions, so 0%
+                }
+            }
+        }
 
         return result;
     }
@@ -250,7 +178,36 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
         return analytics;
     };
 
+    function analyzeSingleStudentData(studentData) {
+        const categories = ["speaking", "writing", "reading", "listening A", "listeningB", "pronunciation"];
+        const levels = ["level-1", "level-2", "level-3", "level-4"];
+        const result = {};
 
+        // Initialize the result object with level keys
+        levels.forEach(level => {
+            result[level] = [0, 0, 0, 0, 0, 0]; // Initialize all categories for each level with zeros
+        });
+
+        // Loop through each category and calculate percentage for each level
+        categories.forEach((category, categoryIndex) => {
+            levels.forEach(level => {
+                if (studentData[category] && studentData[category][level]) {
+                    const data = studentData[category][level];
+                    const { correct, totalQuestions } = data;
+
+                    // Calculate percentage score, only if totalQuestions > 0 to avoid division by zero
+                    if (totalQuestions > 0) {
+                        const percentage = (correct / totalQuestions) * 100;
+                        result[level][categoryIndex] = Math.round(percentage); // Round to nearest integer
+                    } else {
+                        result[level][categoryIndex] = 0; // If no questions, score is 0
+                    }
+                }
+            });
+        });
+
+        return result;
+    }
 
     useEffect(() => {
         setLoading(true);
@@ -259,17 +216,33 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
             try {
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
-                    teacher_id: userInfo.uid,
+                    teacher_id: teacher_id,
                 });
-                const classes = classData.data.ret.map((item) => item.id);
+                const WordDashData = await WordApi.getClassroomsByTeacherId({
+                    teacher_id: teacher_id,
+                });
+                const TagData = await TagApi.getClassroomsByTeacherId({
+                    teacher_id: teacher_id,
+                });
 
+                // Merging data from all three sources
+                const allClasses = [
+                    ...classData.data.ret, // village classes
+                    ...WordDashData.data.ret, // WordDash classes
+                    ...TagData.data.ret, // Tag classes
+                ];
+
+                // Remove duplicates by class ID
+                const uniqueClasses = Array.from(
+                    new Map(allClasses.map((item) => [item.id, item])).values()
+                );
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
 
-                const promises = classes.map(async (classId) => {
+                const promises = uniqueClasses.map(async (classId) => {
                     try {
                         const studentsData = await AnalyticsAPI.getStudentsData({
-                            classId,
+                            classId: classId.id,
                         });
 
                         // Iterate over each student in the response
@@ -279,29 +252,26 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
                             const result = aggregateQuestionsByCategoryAndLevel(studentInfo.data);
 
                             // Temporarily store the aggregated result in the variable
-                            if (!aggregatedData[classId]) {
-                                aggregatedData[classId] = {};
+                            if (!aggregatedData[classId.id]) {
+                                aggregatedData[classId.id] = {};
                             }
-                            aggregatedData[classId][studentId] = result;
-                            aggregatedData[classId][studentId].stdent_name = studentInfo.student_name;
-                            aggregatedData[classId][studentId].total_questions = studentInfo.total_questions;
+                            aggregatedData[classId.id][studentId] = result;
+                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
-                        console.error(`Error fetching data for class ${classId}:`, error);
+                        console.error(`Error fetching data for class ${classId.id}:`, error);
                         setLoading(false);
                     }
                 });
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-                console.log(classData.data.ret)
-                console.log(aggregatedData)
 
 
                 let finalData = [];
-                let studentsArray = [];
                 if (selectedClass) {
-                    studentsArray = analyzeData(aggregatedData[selectedClass]);
+                    const studentsArray = analyzeData(aggregatedData[selectedClass]);
                     if (aggregatedData[selectedClass]) {
                         finalData = getTotalAnalytics(studentsArray)
                     } else {
@@ -310,9 +280,8 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
                 }
                 if (selectedClass && selectedStudent) {
                     const tmpstudentsArray = analyzeData(aggregatedData[selectedClass]);
-                    console.log(tmpstudentsArray)
                     if (tmpstudentsArray[selectedStudent]) {
-                        finalData = getAnalyticsData(tmpstudentsArray[selectedStudent])
+                        finalData = analyzeSingleStudentData(tmpstudentsArray[selectedStudent])
                     } else {
                         finalData = [];
                     }
@@ -383,7 +352,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent }) => {
                 curve: 'straight'  // No soft curves
             },
             title: {
-                text: 'Language Skills Progress',
+                text: 'Performance Index By Level',
                 align: 'left'
             },
             markers: {

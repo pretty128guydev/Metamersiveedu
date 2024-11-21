@@ -1,7 +1,5 @@
 import React from "react";
 
-import { studentsBySkillData } from "../dummy-data";
-
 const StudentsSkills = ({ data }) => {
   return (
     <div>

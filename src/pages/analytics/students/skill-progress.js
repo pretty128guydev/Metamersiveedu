@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 import VillageApi from "../../../api-clients/VillageApi";
+import WordApi from "../../../api-clients/WordApi";
+import TagApi from "../../../api-clients/TagApi";
 
-const SkillProgress = ({ selectedClass, selectedStudent }) => {
+const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
     const [loading, setLoading] = useState(false);
     const [students, setstudents] = useState([]);
-    const userInfo = useSelector((store) => store.auth.userInfo);
 
 
     useEffect(() => {
@@ -16,17 +17,34 @@ const SkillProgress = ({ selectedClass, selectedStudent }) => {
             try {
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
-                    teacher_id: userInfo.uid,
+                    teacher_id: teacher_id,
                 });
-                const classes = classData.data.ret.map((item) => item.id);
+                const WordDashData = await WordApi.getClassroomsByTeacherId({
+                  teacher_id: teacher_id,
+                });
+                const TagData = await TagApi.getClassroomsByTeacherId({
+                  teacher_id: teacher_id,
+                });
+
+                // Merging data from all three sources
+                const allClasses = [
+                  ...classData.data.ret, // village classes
+                  ...WordDashData.data.ret, // WordDash classes
+                  ...TagData.data.ret, // Tag classes
+                ];
+        
+                // Remove duplicates by class ID
+                const uniqueClasses = Array.from(
+                  new Map(allClasses.map((item) => [item.id, item])).values()
+                );
 
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
 
-                const promises = classes.map(async (classId) => {
+                const promises = uniqueClasses.map(async (classId) => {
                     try {
                         const studentsData = await AnalyticsAPI.getStudentsData({
-                            classId,
+                            classId: classId.id,
                         });
 
                         // Iterate over each student in the response
@@ -36,15 +54,15 @@ const SkillProgress = ({ selectedClass, selectedStudent }) => {
                             const result = aggregateQuestionsByCategory(studentInfo.data);
 
                             // Temporarily store the aggregated result in the variable
-                            if (!aggregatedData[classId]) {
-                                aggregatedData[classId] = {};
+                            if (!aggregatedData[classId.id]) {
+                                aggregatedData[classId.id] = {};
                             }
-                            aggregatedData[classId][studentId] = result;
-                            aggregatedData[classId][studentId].stdent_name = studentInfo.student_name;
-                            aggregatedData[classId][studentId].total_questions = studentInfo.total_questions;
+                            aggregatedData[classId.id][studentId] = result;
+                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
-                        console.error(`Error fetching data for class ${classId}:`, error);
+                        console.error(`Error fetching data for class ${classId.id}:`, error);
                     }
                 });
 
@@ -56,7 +74,6 @@ const SkillProgress = ({ selectedClass, selectedStudent }) => {
 
                 let allStudentsArray = [];
                 let allClassesArray = [];
-
                 for (let key in aggregatedData) {
                     if (aggregatedData.hasOwnProperty(key)) {
                         if (selectedClass) {

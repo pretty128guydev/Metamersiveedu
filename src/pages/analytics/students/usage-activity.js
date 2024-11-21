@@ -3,6 +3,8 @@ import ReactApexChart from "react-apexcharts";
 import VillageApi from "../../../api-clients/VillageApi";
 import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 import { useSelector } from "react-redux";
+import TagApi from "../../../api-clients/TagApi";
+import WordApi from "../../../api-clients/WordApi";
 
 
 const UsageBySkill = ({ originalSeries, name }) => {
@@ -34,7 +36,7 @@ const UsageBySkill = ({ originalSeries, name }) => {
                             colors: ['#fff'],
                         },
                         title: {
-                            text: 'Village Usage By Skill',
+                            text: 'Usage By Skill',
                         },
                         xaxis: {
                             categories: name, // Categories for the X-axis
@@ -74,12 +76,10 @@ const UsageBySkill = ({ originalSeries, name }) => {
 };
 
 
-const UsageActivity = ({ selectedClass, selectedStudent }) => {
+const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
     const [loading, setLoading] = useState(false);
-    const [students, setstudents] = useState([]);
     const [name, setname] = useState([]);
     const [originalSeries, setoriginalSeries] = useState([]);
-    const userInfo = useSelector((store) => store.auth.userInfo);
 
     const aggregateQuestionsByCategory = (data) => {
         const result = {};
@@ -225,6 +225,55 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
         };
     };
 
+    const analyzeStudentData = (studentData) => {
+        const studentName = studentData.stdent_name;
+        const studentTotalQuestions = studentData.total_questions;
+
+        let studentTotalScore = 0;
+        let studentCorrectAnswers = 0;
+        let ReadingQuestions = 0;
+        let WritingQuestions = 0;
+        let ListeningQuestions = 0;
+
+        // Process each category for the student
+        Object.entries(studentData).forEach(([category, stats]) => {
+            if (category !== "stdent_name" && category !== "total_questions") {
+                if (stats.totalQuestions) {
+                    // Handle Reading, Writing, and Listening categories
+                    if (category === "reading") {
+                        ReadingQuestions = stats.totalQuestions;
+                    } else if (category === "writing") {
+                        WritingQuestions = stats.totalQuestions;
+                    } else if (category === "listening") {
+                        ListeningQuestions = stats.totalQuestions;
+                    }
+
+                    // Add the total score and correct answers
+                    studentTotalScore += stats.totalScore;
+                    studentCorrectAnswers += stats.correct;
+                }
+            }
+        });
+
+        // Calculate skill and percentage in each category
+        const skill = ((studentCorrectAnswers / studentTotalQuestions) * 100).toFixed(2);
+        const averageSkill = (studentCorrectAnswers / studentTotalQuestions).toFixed(2);
+
+        return {
+            name: studentName,
+            totalQuestions: studentTotalQuestions,
+            R: Math.round((ReadingQuestions / studentTotalQuestions) * 100),
+            W: Math.round((WritingQuestions / studentTotalQuestions) * 100),
+            S: 0,  // Assuming no Speaking data provided
+            LA: Math.round((ListeningQuestions / studentTotalQuestions) * 100),
+            LB: 0,  // Assuming no Listening B data provided
+            P: 0,   // Assuming no Pronunciation data provided
+            TotalScore: studentTotalScore,
+            AverageSkill: averageSkill
+        };
+    };
+
+
     const getArrays = (data) => {
         // Initialize arrays to hold the values
         const name = [];
@@ -254,7 +303,6 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
             { name: 'Listening B', data: LB },
             { name: 'Pronunciation', data: P },
         ];
-        console.log(tmporiginalSeries)
         setoriginalSeries(tmporiginalSeries)
     }
 
@@ -265,16 +313,33 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
             try {
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
-                    teacher_id: userInfo.uid,
+                    teacher_id: teacher_id,
                 });
-                const classes = classData.data.ret.map((item) => item.id);
+                const WordDashData = await WordApi.getClassroomsByTeacherId({
+                  teacher_id: teacher_id,
+                });
+                const TagData = await TagApi.getClassroomsByTeacherId({
+                  teacher_id: teacher_id,
+                });
+        
+                // Merging data from all three sources
+                const allClasses = [
+                  ...classData.data.ret, // village classes
+                  ...WordDashData.data.ret, // WordDash classes
+                  ...TagData.data.ret, // Tag classes
+                ];
+        
+                // Remove duplicates by class ID
+                const uniqueClasses = Array.from(
+                  new Map(allClasses.map((item) => [item.id, item])).values()
+                );
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
 
-                const promises = classes.map(async (classId) => {
+                const promises = uniqueClasses.map(async (classId) => {
                     try {
                         const studentsData = await AnalyticsAPI.getStudentsData({
-                            classId,
+                            classId: classId.id,
                         });
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
@@ -283,42 +348,54 @@ const UsageActivity = ({ selectedClass, selectedStudent }) => {
                             const result = aggregateQuestionsByCategory(studentInfo.data);
 
                             // Temporarily store the aggregated result in the variable
-                            if (!aggregatedData[classId]) {
-                                aggregatedData[classId] = {};
+                            if (!aggregatedData[classId.id]) {
+                                aggregatedData[classId.id] = {};
                             }
-                            aggregatedData[classId][studentId] = result;
-                            aggregatedData[classId][studentId].stdent_name = studentInfo.student_name;
-                            aggregatedData[classId][studentId].total_questions = studentInfo.total_questions;
+                            aggregatedData[classId.id][studentId] = result;
+                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
-                        console.error(`Error fetching data for class ${classId}:`, error);
+                        console.error(`Error fetching data for class ${classId.id}:`, error);
                         setLoading(false);
                     }
                 });
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-            
+
 
                 let allStudentsArray = [];
+                let StudentsArray = [];
                 let allClassesArray = [];
 
                 for (let key in aggregatedData) {
                     if (aggregatedData.hasOwnProperty(key)) {
                         if (selectedClass) {
-                            if (aggregatedData[selectedClass]) {
-                                allStudentsArray = allStudentsArray.concat(processStudents(aggregatedData[selectedClass]));
+                            if (selectedStudent) {
+                                if (aggregatedData[selectedClass][selectedStudent]) {
+                                    StudentsArray[0] = analyzeStudentData(aggregatedData[selectedClass][selectedStudent])
+                                } else {
+                                    StudentsArray = [];
+                                }
                             } else {
-                                allStudentsArray = [];
+                                if (aggregatedData[selectedClass]) {
+                                    allStudentsArray = allStudentsArray.concat(processStudents(aggregatedData[selectedClass]));
+                                } else {
+                                    allStudentsArray = [];
+                                }
                             }
                         } else {
                             allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key));
-                            console.log(allClassesArray)
                         }
                     }
                 }
                 if (selectedClass) {
-                    getArrays(allStudentsArray)
+                    if (selectedStudent) {
+                        getArrays(StudentsArray)
+                    } else {
+                        getArrays(allStudentsArray)
+                    }
                 } else {
                     getArrays(allClassesArray)
                 }

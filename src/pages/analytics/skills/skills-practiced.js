@@ -51,7 +51,7 @@ const SkillsPracticed = () => {
               value={selectedClass}
               onChange={handleSelectClass}
             >
-              <option defaultValue={""}>Select Class</option>
+              <option defaultValue={""}>Select All</option>
               {classData.map((item, index) => (
                 <option value={item.value} key={index}>
                   {item.title}

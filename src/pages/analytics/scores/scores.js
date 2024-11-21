@@ -7,6 +7,8 @@ import { Card, CardBody, CardHeader } from "../../../components/card/card";
 import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 import VillageApi from "../../../api-clients/VillageApi";
 import { formatDate } from "../utils";
+import WordApi from "../../../api-clients/WordApi";
+import TagApi from "../../../api-clients/TagApi";
 
 const initialData = {
   options: {
@@ -117,7 +119,7 @@ const Scores = () => {
     const classId = e.target.value;
     console.log(classId);
 
-    if (classId == "Select Class") {
+    if (classId == "Select All") {
       setSelectedClass('');
     } else {
       setSelectedClass(classId);
@@ -182,7 +184,6 @@ const Scores = () => {
         class_id,
         student_id,
       });
-      console.log(data.data)
       return data.data;
     } catch (error) {
       console.log(error);
@@ -198,12 +199,47 @@ const Scores = () => {
       const classData = await VillageApi.getClassroomsByTeacherId({
         teacher_id: userInfo.uid,
       });
-      const classes = classData.data.ret.map((item) => ({
-        id: item.id,
-        name: item.name,
-      }));
-      setClassData(classes);
-      setTeacherData(classData.data.ret)
+      const WordDashData = await WordApi.getClassroomsByTeacherId({
+        teacher_id: userInfo.uid,
+      });
+      const TagData = await TagApi.getClassroomsByTeacherId({
+        teacher_id: userInfo.uid,
+      });
+      // Merging data from all three sources
+      const allClasses = [
+        ...classData.data.ret, // village classes
+        ...WordDashData.data.ret, // WordDash classes
+        ...TagData.data.ret, // Tag classes
+      ];
+
+      // Remove duplicates by class ID
+      const uniqueClasses = Array.from(
+        new Map(allClasses.map((item) => [item.id, item])).values()
+      );
+
+      console.log(uniqueClasses)
+
+      // Optional: you can now merge data for each class (wordDashInfo, tagInfo, etc.)
+      const mergedClassData = uniqueClasses.map((classItem) => {
+        // Find WordDashData for this class
+        const wordDashInfo = WordDashData.data.ret.find(
+          (wordDashItem) => wordDashItem.id === classItem.id
+        );
+
+        // Find TagData for this class
+        const tagInfo = TagData.data.ret.find(
+          (tagItem) => tagItem.id === classItem.id
+        );
+
+        return {
+          ...classItem,
+          wordDashInfo: wordDashInfo || null,
+          tagInfo: tagInfo || null,
+        };
+      });
+      
+      setClassData(uniqueClasses); // Set class IDs
+      setTeacherData(mergedClassData); // Set all merged class data
 
       setLoading(false);
     };
@@ -251,7 +287,7 @@ const Scores = () => {
                   value={selectedClass}
                   onChange={handleSelectClass}
                 >
-                  <option defaultValue={""}>Select Class</option>
+                  <option defaultValue={""}>Select All</option>
                   {classData.map((item, index) => (
                     <option value={item.id} key={index}>
                       {item.name}
@@ -274,7 +310,7 @@ const Scores = () => {
                   value={selectedStudent}
                   onChange={handleSelectStudent}
                 >
-                  <option defaultValue={""}>Select Student</option>
+                  <option defaultValue={""}>Select All</option>
                   {studentData?.map((item, index) => (
                     <option value={item?.student_id} key={index}>
                       {item?.name}

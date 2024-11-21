@@ -661,7 +661,7 @@ const TeacherManagement = () => {
                                     <div className="status">
                                       <i className="bi bi-circle-fill"></i>
                                     </div>
-                                    <div className="fw-bold">Teacher</div>
+                                    <div className="fw-bold">{table.type}</div>
                                     <div className="fw-bold display-6">
                                       {table.name.substr(0, 5) +
                                         (table.name.length > 5 ? "..." : "")}

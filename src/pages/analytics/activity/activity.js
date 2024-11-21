@@ -9,6 +9,8 @@ import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 import { formatTimeFromMinutes } from "../utils";
 import VillageApi from "../../../api-clients/VillageApi";
 import SkillProgress from "../students/skill-progress";
+import WordApi from "../../../api-clients/WordApi";
+import TagApi from "../../../api-clients/TagApi";
 
 const ChartApex = ({ data }) => {
   const themeFont = getComputedStyle(document.body)
@@ -179,6 +181,7 @@ const Activity = () => {
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedStudentName, setSelectedStudentName] = useState("");
   const [studentData, setStudentData] = useState([]);
+  const [count, setcount] = useState("");
   const [teacherData, setTeacherData] = useState([]);
 
   const userInfo = useSelector((store) => store.auth.userInfo);
@@ -205,7 +208,7 @@ const Activity = () => {
   const handleSelectClass = async (e) => {
     const classId = e.target.value;
 
-    if (classId == "Select Class") {
+    if (classId == "Select All") {
       setSelectedClass('');
     } else {
       setSelectedClass(classId);
@@ -221,7 +224,7 @@ const Activity = () => {
 
   const handleSelectStudent = async (e) => {
     const selectedId = e.target.value;
-    if (e.target.value == "Select Student") {
+    if (e.target.value == "Select All") {
       setSelectedStudent('')
     } else {
       setSelectedStudent(e.target.value);
@@ -235,39 +238,79 @@ const Activity = () => {
 
   useEffect(() => {
     setLoading(true);
-
+    console.log(userInfo)
     const fetchAllApisForAllClasses = async () => {
       try {
+        // Fetch data from all sources
         const classData = await VillageApi.getClassroomsByTeacherId({
           teacher_id: userInfo.uid,
         });
+        const WordDashData = await WordApi.getClassroomsByTeacherId({
+          teacher_id: userInfo.uid,
+        });
+        const TagData = await TagApi.getClassroomsByTeacherId({
+          teacher_id: userInfo.uid,
+        });
 
-        const classes = classData.data.ret.map((item) => item.id);
-        const classesWithNames = classData.data.ret.map((item) => ({
-          id: item.id,
-          name: item.name,
-        }));
+        // Get active student count
+        const count = await AnalyticsAPI.getActiveStudentsCount({
+          school_id: userInfo.schoolId,
+          class_id: selectedClass,
+        });
+        setcount(count.data.count);
 
-        setClassData(classes);
-        setClassesData(classesWithNames);
-        setTeacherData(classData.data.ret);
+        // Merging data from all three sources
+        const allClasses = [
+          ...classData.data.ret, // village classes
+          ...WordDashData.data.ret, // WordDash classes
+          ...TagData.data.ret, // Tag classes
+        ];
+
+        // Remove duplicates by class ID
+        const uniqueClasses = Array.from(
+          new Map(allClasses.map((item) => [item.id, item])).values()
+        );
+
+        // Optional: you can now merge data for each class (wordDashInfo, tagInfo, etc.)
+        const mergedClassData = uniqueClasses.map((classItem) => {
+          // Find WordDashData for this class
+          const wordDashInfo = WordDashData.data.ret.find(
+            (wordDashItem) => wordDashItem.id === classItem.id
+          );
+
+          // Find TagData for this class
+          const tagInfo = TagData.data.ret.find(
+            (tagItem) => tagItem.id === classItem.id
+          );
+
+          return {
+            ...classItem,
+            wordDashInfo: wordDashInfo || null,
+            tagInfo: tagInfo || null,
+          };
+        });
+
+        // Setting the state
+        setClassData(uniqueClasses.map((item) => item.id)); // Set class IDs
+        setClassesData(uniqueClasses.map((item) => ({ id: item.id, name: item.name }))); // Set class names with IDs
+        setTeacherData(mergedClassData); // Set all merged class data
 
         if (!selectedClass) {
           // Fetch data for all classes concurrently
           const [timeByGameData, timeByLocationData, studentsDataArray] = await Promise.all([
             Promise.all(
-              classes.map((classId) =>
-                AnalyticsAPI.getTotalSpentTimeByGame({ classId })
+              uniqueClasses.map((classId) =>
+                AnalyticsAPI.getTotalSpentTimeByGame({ classId: classId.id })
               )
             ),
             Promise.all(
-              classes.map((classId) =>
-                AnalyticsAPI.getTotalSpentTimeByLocation({ classId })
+              uniqueClasses.map((classId) =>
+                AnalyticsAPI.getTotalSpentTimeByLocation({ classId: classId.id })
               )
             ),
             Promise.all(
-              classes.map((classId) =>
-                AnalyticsAPI.getStudentsData({ classId })
+              uniqueClasses.map((classId) =>
+                AnalyticsAPI.getStudentsData({ classId: classId.id })
               )
             ),
           ]);
@@ -275,7 +318,7 @@ const Activity = () => {
           const aggregatedTimeByGame = timeByGameData.reduce((acc, curr) => {
             const data = curr.data;
             for (let game in data) {
-              acc[game] = (acc[game] || 0) + data[game];
+              acc[game] = Number(acc[game] || 0) + Number(data[game]);
             }
             return acc;
           }, {});
@@ -366,7 +409,7 @@ const Activity = () => {
                       value={selectedClass}
                       onChange={handleSelectClass}
                     >
-                      <option defaultValue={""}>Select Class</option>
+                      <option defaultValue={""}>Select All</option>
                       {classesData.map((item, index) => (
                         <option value={item.id} key={index}>
                           {item.name}
@@ -389,7 +432,7 @@ const Activity = () => {
                       value={selectedStudent}
                       onChange={handleSelectStudent}
                     >
-                      <option defaultValue={""}>Select Student</option>
+                      <option defaultValue={""}>Select All</option>
                       {studentData?.map((item, index) => (
                         <option value={item?.student_id} key={index}>
                           {item?.name}
@@ -449,7 +492,7 @@ const Activity = () => {
                         </div>
                         <div className="flex-grow-1">
                           <div>Active Students</div>
-                          <h3 className="mb-0">0</h3>
+                          <h3 className="mb-0">{count}</h3>
                           {/* <div>SKILLS</div> */}
                         </div>
                       </div>
@@ -467,7 +510,7 @@ const Activity = () => {
               </div>
             </div>
             <div className="mt-4">
-              <SkillProgress selectedClass={selectedClass} selectedStudent={selectedStudentName} />
+              <SkillProgress selectedClass={selectedClass} selectedStudent={selectedStudentName} teacher_id={userInfo.uid}/>
             </div>
           </>
         )}
