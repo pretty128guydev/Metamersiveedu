@@ -38,6 +38,9 @@ const Scores = () => {
   const [selectedGame, setSelectedGame] = useState("Village");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [chartData, setChartData] = useState(initialData);
+  const [villageData, setVillageData] = useState(null);
+
 
   const extractStudentNames = (data) => {
     const students = [];
@@ -58,9 +61,60 @@ const Scores = () => {
     return students;
   };
 
-  const getRandomElement = (array) => {
-    const randomIndex = Math.floor(Math.random() * array.length);
-    return array[randomIndex];
+  const handleSelectStudent = async (e) => {
+    setSelectedStudent(e.target.value);
+    const getData = await getScoreData(
+      "Village",
+      selectedClass,
+      e.target.value
+    );
+    changeChartData(getData);
+    if (selectedGame === "Village") {
+      const villageData = await getVillageScoreData(
+        selectedClass,
+        e.target.value
+      );
+      setVillageData(villageData);
+    }
+  };
+
+  const handleSelectClass = async (e) => {
+    const classId = e.target.value;
+    console.log(classId);
+
+    if (classId == "Select All") {
+      setSelectedClass('');
+    } else {
+      setSelectedClass(classId);
+    }
+
+    const studentsData = await AnalyticsAPI.getStudentsData({ classId });
+
+    // Extract the data in the desired format
+    const studentsList = await extractStudentNames(studentsData.data);
+
+    console.log(studentsList);  // This should give you the array of students
+
+    // Set the student data in the state
+    await setStudentData(studentsList);
+  };
+ 
+  const getScoreData = async (game, class_id, student_id) => {
+    if (game === "" || class_id === "" || student_id === "") return;
+    try {
+      setLoading(true);
+
+      const data = await AnalyticsAPI.getScoresByStudent({
+        game,
+        class_id,
+        student_id,
+      });
+      return data.data;
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const changeChartData = (data) => {
@@ -139,71 +193,6 @@ const Scores = () => {
     }
   };
 
-  const handleSelectGame = (e) => {
-    setSelectedGame(e.target.value);
-    setSelectedClass("");
-  };
-
-  const handleSelectClass = async (e) => {
-    const classId = e.target.value;
-    console.log(classId);
-
-    if (classId == "Select All") {
-      setSelectedClass('');
-    } else {
-      setSelectedClass(classId);
-    }
-
-    const studentsData = await AnalyticsAPI.getStudentsData({ classId });
-
-    // Extract the data in the desired format
-    const studentsList = await extractStudentNames(studentsData.data);
-
-    console.log(studentsList);  // This should give you the array of students
-
-    // Set the student data in the state
-    await setStudentData(studentsList);
-  };
-
-  const handleSelectStudent = async (e) => {
-    setSelectedStudent(e.target.value);
-    const getData = await getScoreData(
-      "Village",
-      selectedClass,
-      e.target.value
-    );
-    changeChartData(getData);
-    if (selectedGame === "Village") {
-      const villageData = await getVillageScoreData(
-        selectedClass,
-        e.target.value
-      );
-      setVillageData(villageData);
-    }
-  };
-
-  // State to hold chart data
-  const [chartData, setChartData] = useState(initialData);
-  const [villageData, setVillageData] = useState(null);
-
-  const getScoreData = async (game, class_id, student_id) => {
-    if (game === "" || class_id === "" || student_id === "") return;
-    try {
-      setLoading(true);
-
-      const data = await AnalyticsAPI.getScoresByStudent({
-        game,
-        class_id,
-        student_id,
-      });
-      return data.data;
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const getVillageScoreData = async (class_id, student_id) => {
     if (class_id === "" || student_id === "") return;
     try {
@@ -220,6 +209,20 @@ const Scores = () => {
       setLoading(false);
     }
   };
+
+  const handleSelectGame = (e) => {
+    setSelectedGame(e.target.value);
+    setSelectedClass("");
+  };
+
+  useEffect(() => {
+
+    const getRandomElement = (array) => {
+      const randomIndex = Math.floor(Math.random() * array.length);
+      return array[randomIndex];
+    };
+    // State to hold chart data
+  }, [selectedGame, selectedStudent, selectedClass])
 
   useEffect(() => {
     setLoading(true);
@@ -283,7 +286,7 @@ const Scores = () => {
       <div className="h5">STUDENT SCORE CHART</div>
       <div className="">
         <div className="flex gap-4">
-          {/* <div className="input-group mt-4">
+          <div className="input-group mt-4">
             <label className="input-group-text" htmlFor="inputGroupSelect01">
               Game
             </label>
@@ -293,12 +296,12 @@ const Scores = () => {
               value={selectedGame}
               onChange={handleSelectGame}
             >
-              <option defaultValue={""}>Choose...</option>
-              <option value="Village">The Village</option>
+              <option defaultValue={""}>Select All</option>
+              <option value="Village">Village</option>
               <option value="Tag">Tag</option>
               <option value="WordDash">Word Dash</option>
             </select>
-          </div> */}
+          </div>
           <div className="mt-2 row">
             <div className="col">
               <div className="input-group">
