@@ -344,6 +344,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
                     right: 0    // No right padding
                 }
             },
+            colors: ['#D2B48C', '#A0522D', '#8B4513', '#5C4033'], 
             dataLabels: {
                 enabled: false  // Disable data labels inside the blocks
             },
@@ -360,7 +361,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
                 hover: {
                     size: 6  // Slightly bigger on hover
                 },
-                colors: ['#FF4560', '#00E396', '#FEB019'],  // Marker colors for different series
+                colors: ['#D2B48C', '#A0522D', '#8B4513', '#5C4033'],// Marker colors for different series
                 strokeColor: '#fff',  // White stroke around the markers
                 strokeWidth: 2
             },

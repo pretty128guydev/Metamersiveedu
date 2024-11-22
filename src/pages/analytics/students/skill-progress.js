@@ -49,7 +49,6 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
-
                             // Aggregate questions by category for this student
                             const result = aggregateQuestionsByCategory(studentInfo.data);
 
@@ -62,7 +61,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
                             aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
-                        console.error(`Error fetching data for class ${classId.id}:`, error);
+                        console.error(`Error fetching data for class ${classId.name}:`, error);
                     }
                 });
 
@@ -71,7 +70,6 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
                 // Set the aggregated data to the state after all promises have completed
                 setLoading(false); // Set loading to false after all API calls are finished
-
                 let allStudentsArray = [];
                 let allClassesArray = [];
                 for (let key in aggregatedData) {
@@ -83,7 +81,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
                                 allStudentsArray = [];
                             }
                         } else {
-                            allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key));
+                            allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key, uniqueClasses));
                         }
                     }
                 }
@@ -212,7 +210,14 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
         return students;
     };
 
-    const processClass = (data, className) => {
+    const getClassNameById = (classes, id) => {
+        // Find the class with the matching id
+        const foundClass = classes.find(classItem => classItem.id === id);
+        // Return the name if found, otherwise return null or a default message
+        return foundClass ? foundClass.name : null;
+    };
+
+    const processClass = (data, className, classes) => {
         const classTotals = {
             totalQuestions: 0,
             totalReadingQuestions: 0,
@@ -224,7 +229,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
             totalCorrectAnswers: 0,
             totalScore: 0,
         };
-
+        const invalidClassName = getClassNameById(classes, className);
         // Process data for each student
         Object.entries(data).forEach(([studentId, studentInfo]) => {
             const studentTotalQuestions = studentInfo.total_questions;
@@ -280,7 +285,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
         // Return class-wide metrics
         return {
-            name: className,
+            name: invalidClassName,
             totalQuestions: classTotals.totalQuestions,
             R: categories.R,
             W: categories.W,

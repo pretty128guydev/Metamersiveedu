@@ -173,7 +173,7 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
         return students;
     };
 
-    const processClass = (data, className) => {
+    const processClass = (data, className, classes) => {
         const classTotals = {
             totalQuestions: 0,
             totalReadingQuestions: 0,
@@ -185,6 +185,7 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
             totalCorrectAnswers: 0,
             totalScore: 0,
         };
+        const invalidClassName = getClassNameById(classes, className);
 
         Object.entries(data).forEach(([studentId, studentInfo]) => {
             const studentTotalQuestions = studentInfo.total_questions;
@@ -212,7 +213,7 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
 
         // Calculate class-wide metrics
         return {
-            name: className,
+            name: invalidClassName,
             totalQuestions: classTotals.totalQuestions,
             R: Math.round((classTotals.totalReadingQuestions / classTotals.totalQuestions) * 100),
             W: Math.round((classTotals.totalWritingQuestions / classTotals.totalQuestions) * 100),
@@ -306,6 +307,13 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
         setoriginalSeries(tmporiginalSeries)
     }
 
+    const getClassNameById = (classes, id) => {
+        // Find the class with the matching id
+        const foundClass = classes.find(classItem => classItem.id === id);
+        // Return the name if found, otherwise return null or a default message
+        return foundClass ? foundClass.name : null;
+    };
+
     useEffect(() => {
         setLoading(true);
 
@@ -386,7 +394,7 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
                                 }
                             }
                         } else {
-                            allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key));
+                            allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key, uniqueClasses));
                         }
                     }
                 }

@@ -88,6 +88,13 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
     return `${year}-${month}`; // Combine year and month
   }
 
+  const getClassNameById = (classes, id) => {
+      // Find the class with the matching id
+      const foundClass = classes.find(classItem => classItem.id === id);
+      // Return the name if found, otherwise return null or a default message
+      return foundClass ? foundClass.name : null;
+  };
+
   // Function to analyze data
   function analyzeData(data, months, category = null) {
     const result = {};
@@ -305,9 +312,10 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
             } else {
               const allClassesArray = analyzeDataByClass(aggregatedData, selectedCategory ? selectedCategory : null, months);
               newSeries = Object.keys(allClassesArray).map((className) => {
+                const invalidClassName = getClassNameById(uniqueClasses, className);
                 const percentages = allClassesArray[className];
                 return {
-                  name: className,
+                  name: invalidClassName,
                   data: percentages,  // Ensure this is an array of percentages per month
                 };
               });

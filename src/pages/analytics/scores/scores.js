@@ -278,8 +278,6 @@ const Scores = () => {
     });
   }, []);
 
-  console.log(studentData)
-
   return (
     <div>
       <div className="h5">STUDENT SCORE CHART</div>

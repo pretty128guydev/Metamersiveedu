@@ -37,7 +37,7 @@ const ChartApex = ({ data }) => {
 
   let pieChartData = [];
   if (data) {
-    pieChartData = [+data.worddash, +data.village, +data.tag];
+    pieChartData = [data.worddash ? +data.worddash : 0, data.village ? +data.village : 0, data.tag ? +data.tag : 0];
   }
 
   return (
@@ -386,7 +386,7 @@ const Activity = () => {
   return (
     <div>
       <>
-        <div className="h5">Performance Overview</div>
+        <div className="h5">Student Activity</div>
         {loading ? (
           <div className="d-flex align-items-center justify-content-center vh-100">
             <BarsScale />
@@ -510,7 +510,7 @@ const Activity = () => {
               </div>
             </div>
             <div className="mt-4">
-              <SkillProgress selectedClass={selectedClass} selectedStudent={selectedStudentName} teacher_id={userInfo.uid}/>
+              <SkillProgress selectedClass={selectedClass} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
             </div>
           </>
         )}

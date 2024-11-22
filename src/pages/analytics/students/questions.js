@@ -38,6 +38,7 @@ const UsageBySkill = ({ originalSeries, name }) => {
                         title: {
                             text: 'Performance Index By Skill',
                         },
+                        colors: ['#1E3A8A', '#B91C1C', '#5C4033'],
                         xaxis: {
                             categories: name, // Categories for the X-axis
                             max: 100, // Max value for X-axis is 100% (so bars take up 100%)

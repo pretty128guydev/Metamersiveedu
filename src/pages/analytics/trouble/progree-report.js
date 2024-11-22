@@ -382,6 +382,7 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
             type: 'bar',
             height: 430
         },
+        colors: ['#D2B48C', '#A0522D', '#8B4513', '#5C4033'], 
         plotOptions: {
             bar: {
                 horizontal: false, // Vertical bars
