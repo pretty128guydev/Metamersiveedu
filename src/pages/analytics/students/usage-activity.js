@@ -244,7 +244,7 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
                         ReadingQuestions = stats.totalQuestions;
                     } else if (category === "writing") {
                         WritingQuestions = stats.totalQuestions;
-                    } else if (category === "listening") {
+                    } else if (category === "listeningA") {
                         ListeningQuestions = stats.totalQuestions;
                     }
 

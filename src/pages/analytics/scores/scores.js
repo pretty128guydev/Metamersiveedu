@@ -64,6 +64,35 @@ const Scores = () => {
   };
 
   const changeChartData = (data) => {
+    const customColors = {
+      Village: {
+        Reading: "#008ffb", // Blue
+        Writing: "#00e396", // Green
+        Listening: "#ff4560", // Red (Change this to desired color)
+        Speaking: "#feb019", // Yellow (Change this to desired color)
+      },
+      Tag: {
+        Images: "#9B59B6",
+        Signs: "#34495E",
+        Vocabulary: "#1ABC9C",
+        Comprehension: "#E67E22",
+      },
+      WordDash: {
+        Ranking: "#D35400",
+        "W/L Ratio": "#16A085",
+        Spelling: "#8E44AD",
+        "Mystery Words": "#27AE60",
+      },
+    };
+
+    const selectedColors = customColors[selectedGame] || {};
+
+    const labels = {
+      Village: ["Reading", "Writing", "Listening", "Speaking"],
+      Tag: ["Images", "Signs", "Vocabulary", "Comprehension"],
+      WordDash: ["Ranking", "W/L Ratio", "Spelling", "Mystery Words"],
+    };
+
     switch (selectedGame) {
       case "Village":
         setChartData({
@@ -73,7 +102,8 @@ const Scores = () => {
             : [],
           options: {
             ...initialData.options,
-            labels: ["Reading", "Writing", "Listening", "Speaking"],
+            labels: labels[selectedGame],
+            colors: labels[selectedGame].map(label => selectedColors[label] || "#CCCCCC"), // Assign colors
           },
         });
         break;
@@ -85,7 +115,8 @@ const Scores = () => {
             : [],
           options: {
             ...initialData.options,
-            labels: ["Images", "Signs", "Vocabulary", "Comprehension"],
+            labels: labels[selectedGame],
+            colors: labels[selectedGame].map(label => selectedColors[label] || "#CCCCCC"), // Assign colors
           },
         });
         break;
@@ -97,13 +128,11 @@ const Scores = () => {
             : [],
           options: {
             ...initialData.options,
-            labels: ["Ranking", "W/L Ratio", "Spelling", "Mystery Words"],
+            labels: labels[selectedGame],
+            colors: labels[selectedGame].map(label => selectedColors[label] || "#CCCCCC"), // Assign colors
           },
         });
         break;
-      // case 'all':
-      //   setChartData(initialData);
-      //   break;
       default:
         setChartData(initialData);
         break;
@@ -237,7 +266,7 @@ const Scores = () => {
           tagInfo: tagInfo || null,
         };
       });
-      
+
       setClassData(uniqueClasses); // Set class IDs
       setTeacherData(mergedClassData); // Set all merged class data
 
@@ -390,7 +419,6 @@ const Scores = () => {
                       >
                         {Object.keys(villageData).map((key, index) => {
                           const item = villageData[key];
-                          console.log(item)
                           return (
                             <>
                               <div
