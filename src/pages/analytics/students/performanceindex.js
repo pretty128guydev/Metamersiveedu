@@ -268,7 +268,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
                 // Wait for all API calls to complete
                 await Promise.all(promises);
 
-
+                console.log(aggregatedData)
                 let finalData = [];
                 if (selectedClass) {
                     const studentsArray = analyzeData(aggregatedData[selectedClass]);

@@ -109,6 +109,7 @@ const Scores = () => {
         class_id,
         student_id,
       });
+      console.log(getScoreData)
       return data.data;
     } catch (error) {
       console.log(error);
@@ -118,12 +119,15 @@ const Scores = () => {
   };
 
   const changeChartData = (data) => {
+    console.log(data)
     const customColors = {
       Village: {
         Reading: "#008ffb", // Blue
         Writing: "#00e396", // Green
-        Listening: "#ff4560", // Red (Change this to desired color)
+        "Listening A": "#ff4560", // Red (Change this to desired color)
+        "Listening B": "#775dd0", // Red (Change this to desired color)
         Speaking: "#feb019", // Yellow (Change this to desired color)
+        Pronunciation: "yellow"
       },
       Tag: {
         Images: "#9B59B6",
@@ -142,7 +146,7 @@ const Scores = () => {
     const selectedColors = customColors[selectedGame] || {};
 
     const labels = {
-      Village: ["Reading", "Writing", "Listening", "Speaking"],
+      Village: ["Reading", "Writing", "Listening A", "Listening B", "Speaking", "Pronunciation"],
       Tag: ["Images", "Signs", "Vocabulary", "Comprehension"],
       WordDash: ["Ranking", "W/L Ratio", "Spelling", "Mystery Words"],
     };
@@ -152,7 +156,7 @@ const Scores = () => {
         setChartData({
           ...initialData,
           series: data
-            ? [data.reading, data.writing, data.listening, data.speaking]
+            ? [data.reading, data.writing, data?.["listening A"], data?.["listening B"], data.speaking, data.pronunciation]
             : [],
           options: {
             ...initialData.options,
@@ -248,8 +252,6 @@ const Scores = () => {
       const uniqueClasses = Array.from(
         new Map(allClasses.map((item) => [item.id, item])).values()
       );
-
-      console.log(uniqueClasses)
 
       // Optional: you can now merge data for each class (wordDashInfo, tagInfo, etc.)
       const mergedClassData = uniqueClasses.map((classItem) => {

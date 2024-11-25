@@ -83,7 +83,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
     const [originalSeries, setoriginalSeries] = useState([]);
 
     function analyzeClassData(classData) {
-        const skills = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
+        const skills = ['Pronunciation', 'listening B', 'listening A', 'Reading', 'Writing', 'Speaking'];
 
         let totalCorrect = Array(skills.length).fill(0);
         let totalIncorrect = Array(skills.length).fill(0);
@@ -96,7 +96,9 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
 
             // Loop through each skill for the student
             skills.forEach((skill, idx) => {
-                const skillKey = skill.toLowerCase();  // Convert to lowercase to match keys
+                const skillKey = Object.keys(studentData).find(
+                    (key) => key.trim().toLowerCase() === skill.trim().toLowerCase()
+                );
 
                 if (studentData[skillKey]) {
                     const skillInfo = studentData[skillKey];
@@ -153,7 +155,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
     }
 
     function analyzeStudentData(studentData) {
-        const skills = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
+        const skills = ['Pronunciation', 'listening B', 'listening A', 'Reading', 'Writing', 'Speaking'];
 
         let correct = Array(skills.length).fill(0);
         let incorrect = Array(skills.length).fill(0);
@@ -161,7 +163,9 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
 
         // Loop through each skill and calculate the results for the student
         skills.forEach((skill, idx) => {
-            const skillKey = skill.toLowerCase();  // Convert to lowercase to match keys
+            const skillKey = Object.keys(studentData).find(
+                (key) => key.trim().toLowerCase() === skill.trim().toLowerCase()
+            );
 
             if (studentData[skillKey]) {
                 const skillInfo = studentData[skillKey];
@@ -183,7 +187,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
         };
     }
     function analyzeClassesData(classesData) {
-        const skills = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
+        const skills = ['Pronunciation', 'Listening B', 'Listening A', 'Reading', 'Writing', 'Speaking'];
 
         let totalCorrect = Array(skills.length).fill(0);
         let totalIncorrect = Array(skills.length).fill(0);
@@ -200,7 +204,9 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
 
                 // Loop through each skill for the student
                 skills.forEach((skill, idx) => {
-                    const skillKey = skill.toLowerCase();  // Convert to lowercase to match keys
+                    const skillKey = Object.keys(studentData).find(
+                        (key) => key.trim().toLowerCase() === skill.trim().toLowerCase()
+                    );
 
                     if (studentData[skillKey]) {
                         const skillInfo = studentData[skillKey];
@@ -299,22 +305,22 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
                     teacher_id: teacher_id,
                 });
                 const WordDashData = await WordApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
                 const TagData = await TagApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
-        
+
                 // Merging data from all three sources
                 const allClasses = [
-                  ...classData.data.ret, // village classes
-                  ...WordDashData.data.ret, // WordDash classes
-                  ...TagData.data.ret, // Tag classes
+                    ...classData.data.ret, // village classes
+                    ...WordDashData.data.ret, // WordDash classes
+                    ...TagData.data.ret, // Tag classes
                 ];
-        
+
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
-                  new Map(allClasses.map((item) => [item.id, item])).values()
+                    new Map(allClasses.map((item) => [item.id, item])).values()
                 );
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
@@ -355,6 +361,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
                             if (aggregatedData[selectedClass]) {
                                 allStudentsArray = analyzeClassData(aggregatedData[selectedClass]);
                                 if (selectedStudent) {
+                                    console.log(aggregatedData[selectedClass][selectedStudent])
                                     allStudentsArray = analyzeStudentData(aggregatedData[selectedClass][selectedStudent]);
                                 }
                             } else {

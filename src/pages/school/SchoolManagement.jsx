@@ -356,7 +356,7 @@ const SchoolManagement = () => {
     <div className="h-100">
       <h1 className="page-header">
         <i className="fas fa-lg fa-fw me-2 fa-heartbeat"></i>
-        Manage Teachers
+        Manage Schools
       </h1>
 
       <Card
@@ -376,7 +376,7 @@ const SchoolManagement = () => {
                     style={{ fontSize: "1.5rem" }}
                   ></i>
                 </div>
-                <div className="logo-text">{translate("Teachers")}</div>
+                <div className="logo-text">{translate("Schools")}</div>
               </Link>
             </div>
 

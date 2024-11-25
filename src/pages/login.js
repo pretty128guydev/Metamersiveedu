@@ -70,6 +70,7 @@ function PagesLogin() {
         setRedirect(true);
       })
       .catch((err) => {
+        console.log(err)
         notification.warning({
           message: 'Error',
           description: err.response.data.message,

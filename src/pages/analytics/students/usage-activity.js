@@ -26,6 +26,7 @@ const UsageBySkill = ({ originalSeries, name }) => {
                             height: 350,
                             stacked: true,
                         },
+                        colors: ["#008ffb", "#00e396", "#feb019", "#ff4560", "#775dd0", "#FFFF00"],
                         plotOptions: {
                             bar: {
                                 horizontal: true,
@@ -107,7 +108,6 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
 
     const processStudents = (data) => {
         const students = [];
-
         // Iterate over each student in the data
         Object.entries(data).forEach(([studentId, studentInfo]) => {
             const studentName = studentInfo.stdent_name;
@@ -169,8 +169,8 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
                 mastered: mastered,
             });
         });
-
         return students;
+
     };
 
     const processClass = (data, className, classes) => {
@@ -234,7 +234,10 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
         let studentCorrectAnswers = 0;
         let ReadingQuestions = 0;
         let WritingQuestions = 0;
-        let ListeningQuestions = 0;
+        let ListeningAQuestions = 0;
+        let ListeningBQuestions = 0;
+        let PronunciationQuestions = 0;
+        let SpeakingQuestions = 0;
 
         // Process each category for the student
         Object.entries(studentData).forEach(([category, stats]) => {
@@ -245,8 +248,14 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
                         ReadingQuestions = stats.totalQuestions;
                     } else if (category === "writing") {
                         WritingQuestions = stats.totalQuestions;
-                    } else if (category === "listeningA") {
-                        ListeningQuestions = stats.totalQuestions;
+                    } else if (category === "listening A") {
+                        ListeningAQuestions = stats.totalQuestions;
+                    } else if (category === "listening B") {
+                        ListeningBQuestions = stats.totalQuestions;
+                    } else if (category === "pronunciation") {
+                        PronunciationQuestions = stats.totalQuestions;
+                    } else if (category === "speaking") {
+                        SpeakingQuestions = stats.totalQuestions;
                     }
 
                     // Add the total score and correct answers
@@ -265,10 +274,10 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
             totalQuestions: studentTotalQuestions,
             R: Math.round((ReadingQuestions / studentTotalQuestions) * 100),
             W: Math.round((WritingQuestions / studentTotalQuestions) * 100),
-            S: 0,  // Assuming no Speaking data provided
-            LA: Math.round((ListeningQuestions / studentTotalQuestions) * 100),
-            LB: 0,  // Assuming no Listening B data provided
-            P: 0,   // Assuming no Pronunciation data provided
+            S: Math.round((SpeakingQuestions / studentTotalQuestions) * 100),
+            LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 100),
+            LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 100),
+            P: Math.round((PronunciationQuestions / studentTotalQuestions) * 100),
             TotalScore: studentTotalScore,
             AverageSkill: averageSkill
         };
@@ -324,22 +333,22 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
                     teacher_id: teacher_id,
                 });
                 const WordDashData = await WordApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
                 const TagData = await TagApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
-        
+
                 // Merging data from all three sources
                 const allClasses = [
-                  ...classData.data.ret, // village classes
-                  ...WordDashData.data.ret, // WordDash classes
-                  ...TagData.data.ret, // Tag classes
+                    ...classData.data.ret, // village classes
+                    ...WordDashData.data.ret, // WordDash classes
+                    ...TagData.data.ret, // Tag classes
                 ];
-        
+
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
-                  new Map(allClasses.map((item) => [item.id, item])).values()
+                    new Map(allClasses.map((item) => [item.id, item])).values()
                 );
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
@@ -388,7 +397,7 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id }) => {
                                 }
                             } else {
                                 if (aggregatedData[selectedClass]) {
-                                    allStudentsArray = allStudentsArray.concat(processStudents(aggregatedData[selectedClass]));
+                                    allStudentsArray = processStudents(aggregatedData[selectedClass]);
                                 } else {
                                     allStudentsArray = [];
                                 }

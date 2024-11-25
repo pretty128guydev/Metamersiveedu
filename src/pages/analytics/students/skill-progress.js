@@ -76,7 +76,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
                     if (aggregatedData.hasOwnProperty(key)) {
                         if (selectedClass) {
                             if (aggregatedData[selectedClass]) {
-                                allStudentsArray = allStudentsArray.concat(processStudents(aggregatedData[selectedClass]));
+                                allStudentsArray = processStudents(aggregatedData[selectedClass]);
                             } else {
                                 allStudentsArray = [];
                             }
@@ -206,8 +206,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
                 mastered: mastered,
             });
         });
-
-        return students;
+        return students;        
     };
 
     const getClassNameById = (classes, id) => {
