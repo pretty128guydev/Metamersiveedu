@@ -536,9 +536,7 @@ const SchoolManagement = () => {
                         </div>
                       )}
                       {selectedTable?.teacherCount > 1 && (
-                        <div
-                          className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
-                        >
+                        <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
                           <span className="text-decoration-underline mr-1">
                             Count of Teachers:{" "}
                             {`${selectedTable?.teacherCount - 1}`}
@@ -546,12 +544,42 @@ const SchoolManagement = () => {
                         </div>
                       )}
                       {selectedTable?.studentCount > 0 && (
-                        <div
-                          className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
-                        >
+                        <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
                           <span className="text-decoration-underline mr-1">
                             Count of Students:{" "}
                             {`${selectedTable?.studentCount}`}
+                          </span>
+                        </div>
+                      )}
+                      {selectedTable?.websiteUrl && (
+                        <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
+                          <span className="text-decoration-underline mr-1">
+                            School Website:{" "}
+                            {`${selectedTable?.websiteUrl}`}
+                          </span>
+                        </div>
+                      )}
+                      {selectedTable?.schoolEmail && (
+                        <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
+                          <span className="text-decoration-underline mr-1">
+                            School Name:{" "}
+                            {`${selectedTable?.schoolEmail}`}
+                          </span>
+                        </div>
+                      )}
+                      {selectedTable?.email && (
+                        <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
+                          <span className="text-decoration-underline mr-1">
+                            School Admin Email:{" "}
+                            {`${selectedTable?.email}`}
+                          </span>
+                        </div>
+                      )}
+                      {selectedTable?.name && (
+                        <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
+                          <span className="text-decoration-underline mr-1">
+                            School Admin Name:{" "}
+                            {`${selectedTable?.name}`}
                           </span>
                         </div>
                       )}

@@ -322,16 +322,16 @@ function PagesRegister() {
                 </div>
                 <div className="mb-3">
                   <label className="form-label">
-                    School Email<span className="text-danger">*</span>
+                    School Name<span className="text-danger">*</span>
                   </label>
                   <input
-                    type="email"
+                    type="name"
                     className={clsx({
                       "form-control form-control-lg bg-white bg-opacity-5": true,
                       "is-invalid": schoolEmail.length <= 0,
                     })}
                     id="schoolEmail"
-                    placeholder="mtm@edu.hk"
+                    placeholder="HongKong School"
                     value={schoolEmail}
                     onChange={(e) => setSchoolEmail(e.target.value)}
                   />
