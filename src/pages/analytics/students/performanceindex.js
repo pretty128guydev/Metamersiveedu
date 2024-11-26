@@ -135,8 +135,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
 
     const getTotalAnalyticsData = (data) => {
         const levels = ["level-1", "level-2", "level-3", "level-4"];
-        const categories = ["speaking", "writing", "reading", "listeningA", "listeningB", "pronunciation"];
-
+        const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
         // Helper function to calculate percentage
         const calculatePercentage = (correct, total) => (total > 0 ? Math.round((correct / total) * 100) : 0);
 
@@ -182,7 +181,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
         const categories = ["speaking", "writing", "reading", "listening A", "listeningB", "pronunciation"];
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const result = {};
-
+        console.log(studentData)
         // Initialize the result object with level keys
         levels.forEach(level => {
             result[level] = [0, 0, 0, 0, 0, 0]; // Initialize all categories for each level with zeros

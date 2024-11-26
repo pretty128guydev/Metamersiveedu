@@ -333,7 +333,7 @@ const Students = () => {
             aggregatedTimeByLocation.push(...data.data);
           });
           setTotalTimeByLocation(aggregatedTimeByLocation);
-
+          console.log(studentsDataArray)
           // Combine all students' data
           const aggregatedStudentsData = studentsDataArray.reduce(
             (acc, curr) => ({ ...acc, ...curr.data }),

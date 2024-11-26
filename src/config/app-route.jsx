@@ -111,6 +111,7 @@ import WordDashForAdmin from "../pages/class/worddash/WordDashForAdmin.jsx";
 import SchoolManagement from "../pages/school/SchoolManagement.jsx";
 import TeacherManagementForAdmin from "../pages/teacher/TeacherManagementForAdmin.jsx";
 import Activity from "../pages/analytics/activity/activity.js";
+import AdminPanel from "../pages/admin/PendingApproval.jsx";
 
 const AppRoute = [
   {
@@ -542,6 +543,7 @@ const AppRoute = [
   // },
   { path: "login", element: <Login /> },
   { path: "register", element: <Register /> },
+  { path: "approve_user", element: <AdminPanel /> },
   { path: "landing", element: <Landing /> },
   { path: "tag_overview", element: <TagOverview /> },
   { path: "worddash_overview", element: <WordDashOverview /> },

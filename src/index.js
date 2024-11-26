@@ -27,6 +27,7 @@ import AdminLayout from "./pages/admin/adminLayout.jsx";
 import AdminRequests from "./pages/admin/requests.jsx";
 
 import "./translations/conifg.js";
+import { NotificationProvider } from "./context/NotificationContext.js";
 
 const tolgee = Tolgee()
   .use(DevTools())
@@ -97,10 +98,12 @@ root.render(
         }}>Chinese</Button>
       </div> */}
       <Provider store={store}>
-        <Routes>
-          <Route path="/admin/*" element={<AdminApp />} />
-          <Route path="*" element={<App />} />
-        </Routes>
+        <NotificationProvider>
+          <Routes>
+            <Route path="/admin/*" element={<AdminApp />} />
+            <Route path="*" element={<App />} />
+          </Routes>
+        </NotificationProvider>
       </Provider>
     </TolgeeProvider>
   </BrowserRouter>

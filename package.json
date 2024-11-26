@@ -46,6 +46,7 @@
     "datatables.net-select-bs5": "^1.5.0",
     "dayjs": "^1.11.9",
     "file-saver": "^2.0.5",
+    "firebase": "^11.0.2",
     "google-map-react": "^2.2.0",
     "i18next": "^23.6.0",
     "jquery": "^3.6.1",

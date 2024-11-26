@@ -1,4 +1,4 @@
-import { sign_in, sign_up, user_list, send_verification_email } from "../config/app-apis";
+import { sign_in, sign_up, user_list, send_verification_email, approveUser } from "../config/app-apis";
 import { instance } from "./index";
 
 class UserApi {
@@ -20,6 +20,10 @@ class UserApi {
 
   static sendVerificationEmail = (data) => {
     return instance.post(send_verification_email, data);
+  };
+
+  static approveUser = (data) => {
+    return instance.post(approveUser, data);
   };
 }
 

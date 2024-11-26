@@ -4,6 +4,7 @@ import Sidebar from "./components/sidebar/sidebar.jsx";
 import Content from "./components/content/content.jsx";
 import Footer from "./components/footer/footer.jsx";
 import ThemePanel from "./components/theme-panel/theme-panel.jsx";
+import usePendingUsersListener from "./hooks/usePendingUsersListener";
 import { AppSettings } from "./config/app-settings.js";
 import { useSelector } from "react-redux";
 import TeacherMenus from "./config/app-menu-teacher.jsx";
@@ -17,7 +18,8 @@ import "react-toastify/dist/ReactToastify.css";
 function App() {
   const isLoggedIn = useSelector((store) => store.auth.isLoggedIn);
   const userInfo = useSelector((store) => store.auth.userInfo);
-
+  usePendingUsersListener(userInfo);
+  
   var defaultOptions = {
     appTheme: "",
     appCover: "",

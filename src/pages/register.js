@@ -7,6 +7,8 @@ import UserApi from "../api-clients/UserApi.js";
 import { notification } from "antd";
 import { T } from "@tolgee/react";
 import useLanguageToggle from "../hooks/useLanguageToggle.js";
+import { useNotificationContext } from "../context/NotificationContext.js";
+import "antd/dist/reset.css";
 
 function PagesRegister() {
   const [api, contextHolder] = notification.useNotification();
@@ -24,6 +26,7 @@ function PagesRegister() {
   const [schoolId, setSchoolId] = useState("");
   const [loading, setLoading] = useState(false);
   const { translate } = useLanguageToggle();
+  const { showNotification } = useNotificationContext();
 
   const isValidate = (arg0) => {
     if (arg0 === "") {
@@ -76,9 +79,37 @@ function PagesRegister() {
 
       UserApi.register(body)
         .then((_res) => {
-          api.success({
-            message: <T keyName="success_registered" />,
-            description: <T keyName="please_check_inbox" />,
+          // Show success notification
+          // await api.success({
+          //   message: <T keyName="success_registered" />,
+          //   // description: <T keyName="please_check_inbox" />,
+          // });
+
+          // // Notify about pending status
+          // await api.info({
+          //   message: "Registration Pending",
+          //   description:
+          //     "Your registration is complete. Your account is now pending approval. Please wait for the admin to approve your account.",
+          //   duration: 10, // Notification visible for 10 seconds
+          // });
+
+          // Delay the redirect to allow notifications to show
+
+          // Show success notification
+          // showNotification({
+          //   type: "success",
+          //   message: "Registration Successful",
+          //   // description: "Please check your inbox to confirm your email.",
+          //   duration: 5,
+          //   persistent: true, // Ensures it persists after redirection
+          // });
+
+          showNotification({
+            type: "success",
+            message: "Registration Pending",
+            description: "Your registration is complete. Your account is now pending approval. Please wait for the admin to approve your account.",
+            duration: 15,
+            // persistent: true, // Ensures it persists after redirection
           });
           setRedirect(true);
         })

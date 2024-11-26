@@ -16,6 +16,7 @@ const StudentsByAnswers = ({ data, selectedStudent }) => {
       <div className="d-flex flex-column mt-2 gap-2 text-white">
         {filteredKeys.map((key, index) => {
           const item = data[key];
+          console.log(item)
           return (
             <div className="bg-gray-600 rounded" key={key}>
               {/* Header */}
@@ -52,8 +53,8 @@ const StudentsByAnswers = ({ data, selectedStudent }) => {
                   <div>
                     {item.last_play_time
                       ? `Practiced ${getIntervalDescription(
-                          item.last_play_time
-                        )}`
+                        item.last_play_time
+                      )}`
                       : "No practice"}
                   </div>
                 </div>
@@ -86,15 +87,18 @@ const StudentsByAnswers = ({ data, selectedStudent }) => {
                       className="d-flex align-items-center justify-content-center gap-2"
                       style={{ flexBasis: "180px" }}
                     >
-                      {subItem.questions.score ? (
+                      {subItem.questions.total > 0 ? (
                         <div className="d-flex gap-1 align-items-center w-100 px-2">
-                          <div className="me-2">0</div>
+                          {/* Start Label */}
+                          <div className="me-2">0%</div>
+
                           <div className="w-100 position-relative">
+                            {/* Progress Bar */}
                             <div
                               className="progress"
                               role="progressbar"
                               aria-label="Success example"
-                              aria-valuenow={subItem.questions.score}
+                              aria-valuenow={(subItem.questions.correct / subItem.questions.total) * 100}
                               aria-valuemin="0"
                               aria-valuemax="100"
                               style={{ height: "8px" }}
@@ -102,29 +106,34 @@ const StudentsByAnswers = ({ data, selectedStudent }) => {
                               <div
                                 className="progress-bar bg-green-600"
                                 style={{
-                                  width: `calc(${subItem.questions.score > 100 ? 100 : subItem.questions.score + "%"} - 10px)`,
+                                  width: `${Math.min((subItem.questions.correct / subItem.questions.total) * 100, 100)}%`, // Calculate correct/total * 100, cap at 100%
                                 }}
                               ></div>
                             </div>
+
+                            {/* Position Indicator */}
                             <div
                               className="position-absolute"
                               style={{
-                                transform: `translate(0, -50%)`,
-                                top: "50%",
-                                left: `calc(${subItem.questions.score > 100 ? 100 : subItem.questions.score + "%"} - 10px)`,
+                                transform: `translate(-50%, -50%)`, // Center the indicator
+                                top: "50%", // Vertically center it
+                                left: `${Math.min((subItem.questions.correct / subItem.questions.total) * 100, 100)}%`, // Position indicator based on correct/total * 100, cap at 100%
                                 borderTop: "10px solid transparent",
                                 borderBottom: "10px solid transparent",
                                 borderLeft: "10px solid #18a329",
                               }}
                             ></div>
                           </div>
+
+                          {/* End Label */}
                           <div className="text-white">
-                            {subItem.questions.score}
+                            {Math.round((subItem.questions.correct / subItem.questions.total) * 100)}%
                           </div>
                         </div>
                       ) : (
-                        <></>
+                        <div>No Data Available</div> // Handle case where total is 0
                       )}
+
                     </div>
                   </div>
                 ))}

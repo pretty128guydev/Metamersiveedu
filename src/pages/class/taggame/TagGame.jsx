@@ -586,6 +586,8 @@ const TagGame = () => {
         .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
     : [];
 
+  console.log(selectedTable);
+
   return (
     <div className="h-100">
       <ul className="breadcrumb">
@@ -818,7 +820,7 @@ const TagGame = () => {
                     </div>
                     <div className="d-flex justify-content-between w-100">
                       <h5 className="pos-order py-3">
-                        Teacher Name: {userInfo.name}
+                        Teacher Name: {selectedTable.teacherName}
                       </h5>
                     </div>
                     <hr className="m-0 opacity-3 text-primary" />

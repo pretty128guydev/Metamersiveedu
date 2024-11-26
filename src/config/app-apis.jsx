@@ -1,6 +1,7 @@
 export const sign_up = "auth/signup";
 export const sign_in = "auth/signin";
 export const send_verification_email = "auth/verify-email";
+export const approveUser = "auth/approve-user"
 export const user_list = "user/list";
 
 export const romeo_add_classroom = "game/romeo/addclassroom";

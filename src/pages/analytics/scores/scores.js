@@ -74,6 +74,7 @@ const Scores = () => {
         selectedClass,
         e.target.value
       );
+      console.log(villageData)
       setVillageData(villageData);
     }
   };
@@ -109,7 +110,6 @@ const Scores = () => {
         class_id,
         student_id,
       });
-      console.log(getScoreData)
       return data.data;
     } catch (error) {
       console.log(error);

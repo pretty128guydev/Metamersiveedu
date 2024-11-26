@@ -324,14 +324,14 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
     return (
         <div className="my-4 p-3 rounded bg-light">
-            <h5 className="text-muted">Class Breakdown</h5>
+            <h5 className="text-muted">{selectedClass ? selectedStudent ? "Student" : "Student Breakdown" : "Class Breakdown"}</h5>
             <table className="table table-bordered text-center">
                 <thead className="bg-secondary text-white">
                     <tr>
                         <th colSpan={11}>Skill Progress</th>
                     </tr>
                     <tr className="bg-light">
-                        <th rowSpan={2} className="align-middle">Students</th>
+                        <th rowSpan={2} className="align-middle">{selectedClass ? selectedStudent ? "Student" : "Student" : "Class"}</th>
                         <th rowSpan={2} className="align-middle">Total questions answered</th>
                         <th colSpan={6}>Skills practiced</th>
                         <th colSpan={2}>Skills proficient</th>

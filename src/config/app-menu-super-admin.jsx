@@ -126,7 +126,11 @@ const Menu = [
       // { path: "/analytics/progress", title: "Progress" },
     ],
   },
-
+  {
+    path: "/approve_user",
+    icon: "bi bi-envelope",
+    title: "Approve User",
+  },
   // {
   //   path: "/QB",
   //   icon: "bi bi-bank",
