@@ -28,6 +28,7 @@ import AdminRequests from "./pages/admin/requests.jsx";
 
 import "./translations/conifg.js";
 import { NotificationProvider } from "./context/NotificationContext.js";
+import AdminPanel from "./pages/admin/PendingApproval.jsx";
 
 const tolgee = Tolgee()
   .use(DevTools())

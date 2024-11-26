@@ -167,11 +167,11 @@ const Menu = [
   //     },
   //   ],
   // },
-  // {
-  //   path: '/FAQ',
-  //   icon: "bi bi-question",
-  //   title: 'FAQ',
-  // },
+  {
+    path: '/FAQ',
+    icon: "bi bi-question",
+    title: 'FAQ',
+  },
   // {
   //   path: '/OPENAI',
   //   icon: "bi bi-alexa",

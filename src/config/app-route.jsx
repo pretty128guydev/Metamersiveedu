@@ -396,10 +396,10 @@ const AppRoute = [
         path: "school-management/:school_id",
         element: <TeacherManagementForAdmin />,
       },
-      // {
-      //   path: 'FAQ',
-      //   element: <FAQ />,
-      // },
+      {
+        path: 'FAQ',
+        element: <FAQ />,
+      },
       // {
       //   path: 'OPENAI',
       //   element: <OPENAI />,

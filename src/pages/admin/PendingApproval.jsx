@@ -3,7 +3,6 @@ import { db } from "../../config/firebase"; // Firestore configuration
 import { collection, query, where, onSnapshot } from "firebase/firestore"; // Modular Firestore imports
 import UserApi from "../../api-clients/UserApi";
 import { useNotificationContext } from "../../context/NotificationContext";
-import { useNavigate } from "react-router";
 import useLanguageToggle from "../../hooks/useLanguageToggle";
 import "./pendingApproval.scss";
 
@@ -12,7 +11,7 @@ function AdminPanel() {
   const [pendingCount, setPendingCount] = useState(0); // Track count of pending users
   const [lastCount, setLastCount] = useState(0); // Track previous count to avoid redundant notifications
   const { showNotification } = useNotificationContext();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { translate } = useLanguageToggle();
 
   useEffect(() => {
@@ -27,7 +26,6 @@ function AdminPanel() {
         id: doc.id,
         ...doc.data(),
       }));
-      console.log(users);
       setPendingUsers(users);
 
       // Update the count of pending users
@@ -62,20 +60,12 @@ function AdminPanel() {
     }
   };
 
-  const handleGoBack = () => {
-    navigate(-1);
-  };
   return (
     <div className="container mt-5">
       <div className="d-flex justify-content-end mt-3 text-end mb-3">
-        <button
-          type="button"
-          className="btn btn-outline-info btn-lg d-flex align-items-center justify-content-center"
-          onClick={handleGoBack}
-        >
-          <i className="bi bi-arrow-left me-2"></i>
-          {translate("Go Back")}
-        </button>
+        <a href="/home" className="btn btn-outline-info btn-lg">
+          <i className="bi bi-arrow-left me-2"></i> Go Back
+        </a>
       </div>
       <div className="row justify-content-center container">
         <div className="col-md-10">
