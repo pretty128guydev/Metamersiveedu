@@ -391,6 +391,9 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
                 },
             }
         },
+        title: {
+            text: "Progress Report by Month"
+        },
         dataLabels: {
             enabled: true,
             offsetX: -6,

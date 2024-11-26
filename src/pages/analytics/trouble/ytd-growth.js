@@ -345,6 +345,9 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
       type: 'bar',
       height: 430
     },
+    title: {
+        text: 'Skill Drill - YTD Growth',
+    },
     plotOptions: {
       bar: {
         horizontal: false, // Vertical bars
