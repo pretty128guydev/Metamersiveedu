@@ -821,7 +821,7 @@ const WordDash = () => {
                     </div>
                     <div className="d-flex justify-content-between w-100">
                       <h5 className="pos-order py-3">
-                        Teacher Name: {selectedTable.teacherName}
+                        Teacher Name: {selectedTable?.teacherName}
                       </h5>
                     </div>
                     <hr className="m-0 opacity-3 text-primary" />

@@ -389,6 +389,9 @@ const TopStudentPerformance = ({ selectedClass, selectedStudent, teacher_id }) =
                 }
             }
         }],
+        title: {
+            text: "Top 5 Perfomance"
+        },
         colors: ["#008ffb", "#00e396", "#feb019", "#ff4560", "#775dd0", "#FFFF00"],
         plotOptions: {
             bar: {
