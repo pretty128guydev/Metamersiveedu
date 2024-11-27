@@ -349,7 +349,6 @@ const Students = () => {
               AnalyticsAPI.getTotalSpentTimeByLocationStudent({ classId: selectedClass, studentId: selectedStudent }),
               AnalyticsAPI.getStudentsDataStudent({ classId: selectedClass, studentId: selectedStudent }),
             ]);
-            console.log(timeByGameData.data)
             setTotalTimeByGame(timeByGameData.data);
             setTotalTimeByLocation(timeByLocationData.data);
             setStudentsData(studentsData.data);
@@ -359,7 +358,6 @@ const Students = () => {
               AnalyticsAPI.getTotalSpentTimeByLocation({ classId: selectedClass }),
               AnalyticsAPI.getStudentsData({ classId: selectedClass }),
             ]);
-            console.log(timeByGameData)
             setTotalTimeByGame(timeByGameData.data);
             setTotalTimeByLocation(timeByLocationData.data);
             setStudentsData(studentsData.data);

@@ -93,7 +93,7 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
         const month = String(now.getMonth() + 1).padStart(2, "0"); // Get the month (1-based) and pad with "0"
         return `${year}-${month}`; // Combine year and month
     }
-    
+
     function analyzeDataByLevels(data, months, selectedCategory = null) {
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const result = [];
@@ -206,38 +206,40 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
         for (const studentId in data) {
             const studentData = data[studentId];
 
-            // Skip empty student data
             if (!studentData || Object.keys(studentData).length === 0) continue;
 
-            // Iterate through all classes (e.g., s1, s4, S5)
             for (const className in studentData) {
                 const classData = studentData[className];
 
-                // Iterate through all months
                 for (const month in classData) {
                     const monthIndex = months.indexOf(month);
 
-                    // Skip months not in the provided `months` array
-                    if (monthIndex === -1) continue;
+                    if (monthIndex === -1) {
+                        console.error(`Invalid month: ${month}, available months: ${months}`);
+                        continue;
+                    }
 
-                    // If a category is selected, limit to that category; otherwise, include all categories
                     const categories = selectedCategory
                         ? { [selectedCategory]: classData[month][selectedCategory] }
                         : classData[month];
 
-                    // Iterate through all categories (or the selected category only)
                     for (const category in categories) {
                         const categoryData = categories[category];
                         if (!categoryData) continue;
 
-                        // Iterate through levels in the category
                         for (const level in categoryData) {
                             const levelData = categoryData[level];
 
-                            // Skip if there are no questions for the level
-                            if (levelData.questions === 0) continue;
+                            if (!totals[level]) {
+                                console.error(`Unexpected level: ${level}, available levels: ${Object.keys(totals)}`);
+                                continue;
+                            }
 
-                            // Accumulate totals
+                            if (!levelData || levelData.questions === 0 || typeof levelData.correct !== "number") {
+                                console.warn(`Skipping invalid level data: ${JSON.stringify(levelData)}`);
+                                continue;
+                            }
+
                             totals[level][monthIndex] += levelData.correct;
                             questions[level][monthIndex] += levelData.questions;
                         }
@@ -270,22 +272,22 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
                     teacher_id: teacher_id,
                 });
                 const WordDashData = await WordApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
                 const TagData = await TagApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
-        
+
                 // Merging data from all three sources
                 const allClasses = [
-                  ...classData.data.ret, // village classes
-                  ...WordDashData.data.ret, // WordDash classes
-                  ...TagData.data.ret, // Tag classes
+                    ...classData.data.ret, // village classes
+                    ...WordDashData.data.ret, // WordDash classes
+                    ...TagData.data.ret, // Tag classes
                 ];
-        
+
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
-                  new Map(allClasses.map((item) => [item.id, item])).values()
+                    new Map(allClasses.map((item) => [item.id, item])).values()
                 );
 
                 // Initialize an array to hold promises for all API calls
@@ -382,7 +384,7 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
             type: 'bar',
             height: 430
         },
-        colors: ['#D2B48C', '#A0522D', '#8B4513', '#5C4033'], 
+        colors: ['#D2B48C', '#A0522D', '#8B4513', '#5C4033'],
         plotOptions: {
             bar: {
                 horizontal: false, // Vertical bars

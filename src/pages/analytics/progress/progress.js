@@ -12,6 +12,7 @@ import TagApi from "../../../api-clients/TagApi";
 import WordApi from "../../../api-clients/WordApi";
 import BarsScale from "../../../components/loading/BarsScale";
 import TopStudentPerformance from "../trouble/topstudentperformance";
+import TopScoringStudents from "../trouble/topscoringstudents";
 
 const Progress = () => {
   const [loading, setLoading] = useState(false);
@@ -209,6 +210,7 @@ const Progress = () => {
           <YTD_Growth selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
           <Progress_Report selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
           <TopStudentPerformance selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          <TopScoringStudents selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
           <TroubleZone />
         </>
       )}
