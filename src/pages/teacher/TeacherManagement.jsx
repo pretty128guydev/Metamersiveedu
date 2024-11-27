@@ -1083,7 +1083,7 @@ const TeacherManagement = () => {
                       data-bs-dismiss="modal"
                       onClick={activeStudent}
                     >
-                      Active
+                      Activate
                     </button>
                   )}
                 </div>

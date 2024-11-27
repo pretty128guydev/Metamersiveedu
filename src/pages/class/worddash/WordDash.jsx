@@ -836,11 +836,16 @@ const WordDash = () => {
                         {selectedTable?.status}
                       </div>
                     )}
-                    <div>
-                      <div className="pos-order py-3">
-                        {selectedTable?.description}
+                    {selectedTable?.description && (
+                      <div>
+                        <div
+                          className="pos-order py-3"
+                          style={{ whiteSpace: "pre-line" }}
+                        >
+                          {selectedTable?.description}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </PerfectScrollbar>
                   {selectedTable && (
                     <div className="pos-sidebar-footer">
@@ -1059,7 +1064,7 @@ const WordDash = () => {
                       data-bs-dismiss="modal"
                       onClick={activeStudent}
                     >
-                      Active
+                      Activate
                     </button>
                   )}
                 </div>

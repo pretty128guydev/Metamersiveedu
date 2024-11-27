@@ -820,7 +820,7 @@ const TagGame = () => {
                     </div>
                     <div className="d-flex justify-content-between w-100">
                       <h5 className="pos-order py-3">
-                        Teacher Name: {selectedTable.teacherName}
+                        Teacher Name: {selectedTable?.teacherName}
                       </h5>
                     </div>
                     <hr className="m-0 opacity-3 text-primary" />
@@ -836,9 +836,16 @@ const TagGame = () => {
                           {selectedTable?.status}
                         </div>
                       )}
-                      <div className="pos-order py-3">
-                        {selectedTable?.description}
-                      </div>
+                      {selectedTable?.description && (
+                        <div>
+                          <div
+                            className="pos-order py-3"
+                            style={{ whiteSpace: "pre-line" }}
+                          >
+                            {selectedTable?.description}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </PerfectScrollbar>
                   {selectedTable && (
@@ -1124,7 +1131,7 @@ const TagGame = () => {
                       data-bs-dismiss="modal"
                       onClick={activeStudent}
                     >
-                      Active
+                      Activate
                     </button>
                   )}
                 </div>

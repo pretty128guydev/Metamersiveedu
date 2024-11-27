@@ -824,11 +824,16 @@ const VillageGame = () => {
                         {selectedTable?.status}
                       </div>
                     )}
-                    <div className="h-100">
-                      <div className="pos-order py-3 h-50 text-wrap text-break overflow-auto">
-                        {selectedTable?.description}
+                    {selectedTable?.description && (
+                      <div>
+                        <div
+                          className="pos-order py-3"
+                          style={{ whiteSpace: "pre-line" }}
+                        >
+                          {selectedTable?.description}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </PerfectScrollbar>
                   {selectedTable && userInfo.type !== "Student" && (
                     <div className="pos-sidebar-footer">
@@ -1112,7 +1117,7 @@ const VillageGame = () => {
                       data-bs-dismiss="modal"
                       onClick={activeStudent}
                     >
-                      Active
+                      Activate
                     </button>
                   )}
                 </div>

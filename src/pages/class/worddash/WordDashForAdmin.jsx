@@ -12,7 +12,7 @@ import BarsScale from "../../../components/loading/BarsScale.jsx";
 import useLanguageToggle from "../../../hooks/useLanguageToggle.js";
 import { AdminAPI } from "../../../api-clients/AdminApi.js";
 import { toast } from "react-toastify";
-import "./WordDash.scss"
+import "./WordDash.scss";
 
 const loadingState = {
   before: 0,
@@ -838,11 +838,16 @@ const WordDashForAdmin = () => {
                       </h5>
                     </div>
                     <hr className="m-0 opacity-3 text-primary" />
-                    <div>
-                      <div className="pos-order py-3">
-                        {selectedTable?.description}
+                    {selectedTable?.description && (
+                      <div>
+                        <div
+                          className="pos-order py-3"
+                          style={{ whiteSpace: "pre-line" }}
+                        >
+                          {selectedTable?.description}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </PerfectScrollbar>
                   {selectedTable && (
                     <div className="pos-sidebar-footer">
@@ -1061,7 +1066,7 @@ const WordDashForAdmin = () => {
                       data-bs-dismiss="modal"
                       onClick={activeStudent}
                     >
-                      Active
+                      Activate
                     </button>
                   )}
                 </div>

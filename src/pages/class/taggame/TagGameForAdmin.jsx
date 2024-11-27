@@ -823,20 +823,22 @@ const TagGameForAdmin = () => {
                     <hr className="m-0 opacity-3 text-primary" />
                     {selectedTable?.status && (
                       <div
-                        className={`pos-order py-3 ${
-                          selectedTable?.status === "active"
-                            ? "bg-success"
-                            : "bg-danger"
-                        }`}
+                        className="pos-order py-3"
+                        style={{ whiteSpace: "pre-line" }}
                       >
-                        {selectedTable?.status}
-                      </div>
-                    )}
-                    <div>
-                      <div className="pos-order py-3">
                         {selectedTable?.description}
                       </div>
-                    </div>
+                    )}
+                    {selectedTable?.description && (
+                      <div>
+                        <div
+                          className="pos-order py-3"
+                          style={{ whiteSpace: "pre-line" }}
+                        >
+                          {selectedTable?.description}
+                        </div>
+                      </div>
+                    )}
                   </PerfectScrollbar>
                   {selectedTable && (
                     <div className="pos-sidebar-footer">
@@ -1121,7 +1123,7 @@ const TagGameForAdmin = () => {
                       data-bs-dismiss="modal"
                       onClick={activeStudent}
                     >
-                      Active
+                      Activate
                     </button>
                   )}
                 </div>
