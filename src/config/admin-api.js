@@ -7,4 +7,5 @@ export const school_url = "admin/school";
 export const app_url = "admin/app";
 export const get_requests = "admin/request";
 export const approve_request = "admin/approve-request";
+export const block_school = "auth/block-school"
 export const school_limits = "admin/school-limits";

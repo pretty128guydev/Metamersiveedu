@@ -26,6 +26,10 @@ const TagApi = {
         return instance.get('tag/classroom', { params: query });
     },
 
+    getClassroomsByStudentId: (query) => {
+      return instance.get("tag/studentclassroom", { params: query });
+    },
+
     editClassroom: (body) => {
       return instance.post("tag/classroom/edit", body);
     },

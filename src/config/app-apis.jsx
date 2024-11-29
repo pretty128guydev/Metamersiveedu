@@ -1,7 +1,7 @@
 export const sign_up = "auth/signup";
 export const sign_in = "auth/signin";
 export const send_verification_email = "auth/verify-email";
-export const approveUser = "auth/approve-user"
+export const approveUser = "auth/approve-user";
 export const user_list = "user/list";
 
 export const romeo_add_classroom = "game/romeo/addclassroom";
@@ -85,14 +85,26 @@ export const tag_get_question = "tag/hp-question";
 
 // Analytics
 export const result_time_by_game = "analytics/game_result/time_by_game";
-export const time_by_game_student = "analytics/game_result/time_by_game_student"
+export const time_by_game_student =
+  "analytics/game_result/time_by_game_student";
+export const time_by_game_one_student =
+  "analytics/game_result/time_by_game_one_student";
 export const result_time_by_location = "analytics/game_result/time_by_location";
-export const result_time_by_location_student = "analytics/game_result/time_by_location_student";
+export const result_time_by_one_student_location =
+  "analytics/game_result/time_by_one_stdent_location";
+export const result_time_by_location_student =
+  "analytics/game_result/time_by_location_student";
 export const result_data_by_teacher = "analytics/game_result/data_by_teacher";
-export const result_data_by_teacher_student = "analytics/game_result/data_by_teacher_student";
-export const data_by_teacher_for_year = "analytics/game_result/data_by_teacher_for_year";
+export const result_data_by_teacher_student =
+  "analytics/game_result/data_by_teacher_student";
+export const data_by_teacher_for_year =
+  "analytics/game_result/data_by_teacher_for_year";
 export const result_scores_by_student =
   "analytics/game_result/scores_by_student";
+export const result_scores_by_one_student =
+  "analytics/game_result/scores_by_one_student";
+export const result_skills_scores_by_one_student =
+  "analytics/game_result/skills_scores_by_one_student";
 export const result_skills_scores_by_student =
   "analytics/game_result/skills_scores_by_student";
 export const result_skills_progress = "analytics/game_result/skills_progress";

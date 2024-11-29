@@ -118,8 +118,19 @@ const Menu = [
     icon: "bi bi-bar-chart",
     title: "Analytics",
     children: [
-      { path: "/analytics/normalQuiz", title: "Stand Alone Quiz" },
-      { path: "/analytics/adaptiveQuiz", title: "Skill Drill" },
+      // { path: "/analytics/normalQuiz", title: "Stand Alone Quiz" },
+      // { path: "/analytics/adaptiveQuiz", title: "Skill Drill" },
+      { path: "/analytics/dashboard", title: "DASHBOARD" },
+      { path: "/analytics/score-chart", title: "SCORE CHART" },
+      { path: "/analytics/activity", title: "ACTIVITY" },
+      {
+        path: "/analytics/progress-improvement",
+        title: "PROGRESS & IMPROVEMENT",
+        // children: [
+        //   { path: "/analytics/progress-improvement/practiced", title: "Skills Practiced" },
+        //   { path: "/analytics/progress-improvement/analysis", title: "Skills Analysis" },
+        // ],
+      },
     ],
   },
 ];

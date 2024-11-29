@@ -241,6 +241,15 @@ const Activity = () => {
     console.log(userInfo)
     const fetchAllApisForAllClasses = async () => {
       try {
+        const VillagestudentData = await VillageApi.getClassroomsByStudentId({
+          student_id: userInfo.uid
+        });
+        const WordDashstudentData = await WordApi.getClassroomsByStudentId({
+          student_id: userInfo.uid
+        });
+        const TagstudentData = await TagApi.getClassroomsByStudentId({
+          student_id: userInfo.uid
+        });
         // Fetch data from all sources
         const classData = await VillageApi.getClassroomsByTeacherId({
           teacher_id: userInfo.uid,
@@ -259,12 +268,25 @@ const Activity = () => {
         });
         setcount(count.data.count);
 
+        if (userInfo.type == "Student") {
+          const selectedStudentData = studentData.find(
+            (student) => student.student_id === userInfo.uid
+          );
+          setSelectedStudentName(selectedStudentData?.name)
+        }
+        let allClasses = [];
         // Merging data from all three sources
-        const allClasses = [
-          ...classData.data.ret, // village classes
-          ...WordDashData.data.ret, // WordDash classes
-          ...TagData.data.ret, // Tag classes
-        ];
+        userInfo.type == "Student" ?
+          allClasses = [
+            ...VillagestudentData.data, // village classes
+            ...WordDashstudentData.data, // WordDash classes
+            ...TagstudentData.data, // Tag classes
+          ] :
+          allClasses = [
+            ...classData.data.ret, // village classes
+            ...WordDashData.data.ret, // WordDash classes
+            ...TagData.data.ret, // Tag classes
+          ];
 
         // Remove duplicates by class ID
         const uniqueClasses = Array.from(
@@ -314,21 +336,40 @@ const Activity = () => {
               )
             ),
           ]);
+          let timeByStudent = [];
+          let locationByStudent = [];
+          if (userInfo.type == "Student") {
+            timeByStudent[0] = await AnalyticsAPI.getTotalSpentTimeByOneStudent({ studentId: userInfo.uid })
+            locationByStudent[0] = await AnalyticsAPI.getTotalSpentTimeByOneStudentLocation({ studentId: userInfo.uid })
+          }
           // Aggregate data for total time by game
-          const aggregatedTimeByGame = timeByGameData.reduce((acc, curr) => {
-            const data = curr.data;
-            for (let game in data) {
-              acc[game] = Number(acc[game] || 0) + Number(data[game]);
-            }
-            return acc;
-          }, {});
+          const aggregatedTimeByGame = userInfo.type == "Student" ?
+            timeByStudent.reduce((acc, curr) => {
+              const data = curr.data;
+              for (let game in data) {
+                acc[game] = Number(acc[game] || 0) + Number(data[game]);
+              }
+              return acc;
+            }, {}) : timeByGameData.reduce((acc, curr) => {
+              const data = curr.data;
+              for (let game in data) {
+                acc[game] = Number(acc[game] || 0) + Number(data[game]);
+              }
+              return acc;
+            }, {});
           setTotalTimeByGame(aggregatedTimeByGame);
 
           // Aggregate data for total time by location
           const aggregatedTimeByLocation = [];
-          timeByLocationData.forEach((data) => {
-            aggregatedTimeByLocation.push(...data.data);
-          });
+          if (userInfo.type == "Student") {
+            locationByStudent.forEach((data) => {
+              aggregatedTimeByLocation.push(...data.data);
+            });
+          } else {
+            timeByLocationData.forEach((data) => {
+              aggregatedTimeByLocation.push(...data.data);
+            });
+          }
           setTotalTimeByLocation(aggregatedTimeByLocation);
 
           // Combine all students' data
@@ -394,54 +435,56 @@ const Activity = () => {
         ) : (
           <>
             <div className="mt-4">
-              <div className="mt-2 row mb-2">
-                <div className="col">
-                  <div className="input-group">
-                    <label
-                      className="input-group-text"
-                      htmlFor="inputGroupSelect02"
-                    >
-                      Class
-                    </label>
-                    <select
-                      className="form-select"
-                      id="inputGroupSelect02"
-                      value={selectedClass}
-                      onChange={handleSelectClass}
-                    >
-                      <option defaultValue={""}>Select All</option>
-                      {classesData.map((item, index) => (
-                        <option value={item.id} key={index}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
+              {userInfo.type != "Student" &&
+                <div className="mt-2 row mb-2">
+                  <div className="col">
+                    <div className="input-group">
+                      <label
+                        className="input-group-text"
+                        htmlFor="inputGroupSelect02"
+                      >
+                        Class
+                      </label>
+                      <select
+                        className="form-select"
+                        id="inputGroupSelect02"
+                        value={selectedClass}
+                        onChange={handleSelectClass}
+                      >
+                        <option defaultValue={""}>Select All</option>
+                        {classesData.map((item, index) => (
+                          <option value={item.id} key={index}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div className="input-group">
+                      <label
+                        className="input-group-text"
+                        htmlFor="inputGroupSelect03"
+                      >
+                        Student
+                      </label>
+                      <select
+                        className="form-select"
+                        id="inputGroupSelect03"
+                        value={selectedStudent}
+                        onChange={handleSelectStudent}
+                      >
+                        <option defaultValue={""}>Select All</option>
+                        {studentData?.map((item, index) => (
+                          <option value={item?.student_id} key={index}>
+                            {item?.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
-                <div className="col">
-                  <div className="input-group">
-                    <label
-                      className="input-group-text"
-                      htmlFor="inputGroupSelect03"
-                    >
-                      Student
-                    </label>
-                    <select
-                      className="form-select"
-                      id="inputGroupSelect03"
-                      value={selectedStudent}
-                      onChange={handleSelectStudent}
-                    >
-                      <option defaultValue={""}>Select All</option>
-                      {studentData?.map((item, index) => (
-                        <option value={item?.student_id} key={index}>
-                          {item?.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
+              }
               <Card>
                 {/* <CardHeader>
                   <h3 className="mb-0 fw-lighter">
@@ -510,7 +553,7 @@ const Activity = () => {
               </div>
             </div>
             <div className="mt-4">
-              <SkillProgress selectedClass={selectedClass} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+              <SkillProgress studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
             </div>
           </>
         )}

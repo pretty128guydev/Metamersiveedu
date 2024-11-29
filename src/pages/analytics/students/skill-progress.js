@@ -5,41 +5,60 @@ import VillageApi from "../../../api-clients/VillageApi";
 import WordApi from "../../../api-clients/WordApi";
 import TagApi from "../../../api-clients/TagApi";
 
-const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
+const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage }) => {
     const [loading, setLoading] = useState(false);
     const [students, setstudents] = useState([]);
 
-
     useEffect(() => {
         setLoading(true);
-
         const fetchAllApis = async () => {
             try {
+                let VillagestudentData;
+                let WordDashstudentData;
+                let TagstudentData;
+                if (studentPage) {
+                    VillagestudentData = await VillageApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    WordDashstudentData = await WordApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    TagstudentData = await TagApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                }
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
                     teacher_id: teacher_id,
                 });
                 const WordDashData = await WordApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
                 const TagData = await TagApi.getClassroomsByTeacherId({
-                  teacher_id: teacher_id,
+                    teacher_id: teacher_id,
                 });
-
+                let allClasses = [];
                 // Merging data from all three sources
-                const allClasses = [
-                  ...classData.data.ret, // village classes
-                  ...WordDashData.data.ret, // WordDash classes
-                  ...TagData.data.ret, // Tag classes
-                ];
-        
+                studentPage ?
+                    allClasses = [
+                        ...VillagestudentData.data, // village classes
+                        ...WordDashstudentData.data, // WordDash classes
+                        ...TagstudentData.data, // Tag classes
+                    ] :
+                    allClasses = [
+                        ...classData.data.ret, // village classes
+                        ...WordDashData.data.ret, // WordDash classes
+                        ...TagData.data.ret, // Tag classes
+                    ];
+
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
-                  new Map(allClasses.map((item) => [item.id, item])).values()
+                    new Map(allClasses.map((item) => [item.id, item])).values()
                 );
 
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
+                let aggregatedByCategory = {}; // Use let if reassignment is needed
 
                 const promises = uniqueClasses.map(async (classId) => {
                     try {
@@ -49,15 +68,36 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
-                            // Aggregate questions by category for this student
                             const result = aggregateQuestionsByCategory(studentInfo.data);
 
-                            // Temporarily store the aggregated result in the variable
+                            if (studentPage && studentPage === studentId) {
+                                aggregatedByCategory = studentInfo.data.reduce(
+                                    (acc, activity) => {
+                                        const category = activity.category;
+                                        if (!acc[category]) {
+                                            acc[category] = {
+                                                totalSpentTime: 0,
+                                                totalQuestions: 0,
+                                                totalCorrect: 0,
+                                                totalIncorrect: 0,
+                                            };
+                                        }
+                                        acc.name = studentInfo.student_name
+                                        acc[category].totalSpentTime += activity.spent_time || 0;
+                                        acc[category].totalQuestions += parseInt(activity.questions.total, 10) || 0;
+                                        acc[category].totalCorrect += parseInt(activity.questions.correct, 10) || 0;
+                                        acc[category].totalIncorrect += parseInt(activity.questions.inCorrect, 10) || 0;
+                                        return acc;
+                                    },
+                                    {}
+                                );
+                            }
+
                             if (!aggregatedData[classId.id]) {
                                 aggregatedData[classId.id] = {};
                             }
                             aggregatedData[classId.id][studentId] = result;
-                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].student_name = studentInfo.student_name;
                             aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
@@ -67,7 +107,6 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-
                 // Set the aggregated data to the state after all promises have completed
                 setLoading(false); // Set loading to false after all API calls are finished
                 let allStudentsArray = [];
@@ -85,11 +124,18 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
                         }
                     }
                 }
-
-                if (selectedClass) {
-                    setstudents(allStudentsArray)
-                } else {
-                    setstudents(allClassesArray)
+                // If the user is student:
+                if (studentPage) {
+                    const studentPageData = processStudentData(aggregatedByCategory)
+                    setstudents(studentPageData)
+                }
+                // If the user is not a student:
+                else {
+                    if (selectedClass) {
+                        setstudents(allStudentsArray);
+                    } else {
+                        setstudents(allClassesArray);
+                    }
                 }
 
             } catch (error) {
@@ -133,7 +179,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
         // Iterate over each student in the data
         Object.entries(data).forEach(([studentId, studentInfo]) => {
-            const studentName = studentInfo.stdent_name;
+            const studentName = studentInfo.student_name;
             const studentTotalQuestions = studentInfo.total_questions;
 
             let studentTotalScore = 0;
@@ -147,14 +193,13 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
-                if (category !== "stdent_name" && category !== "total_questions") {
+                if (category !== "student_name" && category !== "total_questions") {
                     if (stats.totalQuestions) {
                         if (category === "listening A") {
                             ListeningAQuestions = stats.totalQuestions;
                         } else if (category === "listening B") {
                             ListeningBQuestions = stats.totalQuestions;
                         } else if (category === "reading") {
-                            console.log(stats.correct, stats.totalQuestions)
                             ReadingQuestions = stats.totalQuestions;
                         } else if (category === "writing") {
                             WritingQuestions = stats.totalQuestions;
@@ -206,7 +251,90 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
                 mastered: mastered,
             });
         });
-        return students;        
+        return students;
+    };
+
+    const processStudentData = (data) => {
+        const students = [];
+        const studentInfo = data
+        const studentName = studentInfo.name || "Unknown";
+        const categories = studentInfo;
+
+        let studentTotalQuestions = 0;
+        let studentCorrectAnswers = 0;
+
+        let ReadingQuestions = 0;
+        let WritingQuestions = 0;
+        let SpeakingQuestions = 0;
+        let ListeningAQuestions = 0;
+        let ListeningBQuestions = 0;
+        let PronunciationQuestions = 0;
+
+        const categoryTotals = {};
+
+        Object.entries(categories).forEach(([category, stats]) => {
+            if (category === "name") return; // Skip the name field
+
+            const totalQuestions = stats.totalQuestions || 0;
+            const correctAnswers = stats.totalCorrect || 0;
+
+            studentTotalQuestions += totalQuestions;
+            studentCorrectAnswers += correctAnswers;
+
+            switch (category.toLowerCase()) {
+                case "reading":
+                    ReadingQuestions = totalQuestions;
+                    break;
+                case "writing":
+                    WritingQuestions = totalQuestions;
+                    break;
+                case "speaking":
+                    SpeakingQuestions = totalQuestions;
+                    break;
+                case "listening A":
+                    ListeningAQuestions = totalQuestions;
+                    break;
+                case "listening B":
+                    ListeningBQuestions = totalQuestions;
+                    break;
+                case "pronunciation":
+                    PronunciationQuestions = totalQuestions;
+                    break;
+                default:
+                    break;
+            }
+
+            // Store the percentage for each category
+            categoryTotals[category.charAt(0).toUpperCase()] = Math.round(
+                (totalQuestions / studentTotalQuestions) * 100
+            );
+        });
+
+        // Calculate mastery and highest skill category
+        const mastered = Object.entries(categoryTotals)
+            .filter(([_, value]) => value > 50)
+            .map(([key]) => key);
+
+        const [highestCategory, highestPercentage] = Object.entries(categoryTotals).reduce(
+            (max, curr) => (curr[1] > max[1] ? curr : max),
+            ["", 0]
+        );
+
+        // Push the processed student info
+        students.push({
+            name: studentName,
+            totalQuestions: studentTotalQuestions,
+            R: categoryTotals.R || 0,
+            W: categoryTotals.W || 0,
+            S: categoryTotals.S || 0,
+            LA: categoryTotals.LA || 0,
+            LB: categoryTotals.LB || 0,
+            P: categoryTotals.P || 0,
+            Skill: highestCategory,
+            Score: highestPercentage,
+            mastered: mastered,
+        });
+        return students;
     };
 
     const getClassNameById = (classes, id) => {
@@ -235,7 +363,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
-                if (category !== "stdent_name" && category !== "total_questions") {
+                if (category !== "student_name" && category !== "total_questions") {
                     if (stats.totalQuestions) {
                         if (category === "reading") {
                             classTotals.totalReadingQuestions += stats.totalQuestions;
@@ -331,7 +459,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id }) => {
                         <th colSpan={11}>Skill Progress</th>
                     </tr>
                     <tr className="bg-light">
-                        <th rowSpan={2} className="align-middle">{selectedClass ? selectedStudent ? "Student" : "Student" : "Class"}</th>
+                        <th rowSpan={2} className="align-middle">{selectedClass ? selectedStudent ? "Student" : "Student" : studentPage ? "Student" : "Class"}</th>
                         <th rowSpan={2} className="align-middle">Total questions answered</th>
                         <th colSpan={6}>Skills practiced</th>
                         <th colSpan={2}>Skills proficient</th>

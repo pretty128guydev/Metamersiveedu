@@ -137,52 +137,57 @@ const Progress = () => {
       ) : (
         <>
           <div className="mt-2 row mb-2">
-            <div className="col">
-              <div className="input-group">
-                <label
-                  className="input-group-text"
-                  htmlFor="inputGroupSelect02"
-                >
-                  Class
-                </label>
-                <select
-                  className="form-select"
-                  id="inputGroupSelect02"
-                  value={selectedClass}
-                  onChange={handleSelectClass}
-                >
-                  <option defaultValue={""}>Select All</option>
-                  {classesData.map((item, index) => (
-                    <option value={item.id} key={index}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+
+            {userInfo.type != "Student" &&
+              <div className="col">
+                <div className="input-group">
+                  <label
+                    className="input-group-text"
+                    htmlFor="inputGroupSelect02"
+                  >
+                    Class
+                  </label>
+                  <select
+                    className="form-select"
+                    id="inputGroupSelect02"
+                    value={selectedClass}
+                    onChange={handleSelectClass}
+                  >
+                    <option defaultValue={""}>Select All</option>
+                    {classesData.map((item, index) => (
+                      <option value={item.id} key={index}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-            <div className="col">
-              <div className="input-group">
-                <label
-                  className="input-group-text"
-                  htmlFor="inputGroupSelect03"
-                >
-                  Student
-                </label>
-                <select
-                  className="form-select"
-                  id="inputGroupSelect03"
-                  value={selectedStudent}
-                  onChange={handleSelectStudent}
-                >
-                  <option defaultValue={""}>Select All</option>
-                  {studentData?.map((item, index) => (
-                    <option value={item?.student_id} key={index}>
-                      {item?.name}
-                    </option>
-                  ))}
-                </select>
+            }
+            {userInfo.type != "Student" &&
+              <div className="col">
+                <div className="input-group">
+                  <label
+                    className="input-group-text"
+                    htmlFor="inputGroupSelect03"
+                  >
+                    Student
+                  </label>
+                  <select
+                    className="form-select"
+                    id="inputGroupSelect03"
+                    value={selectedStudent}
+                    onChange={handleSelectStudent}
+                  >
+                    <option defaultValue={""}>Select All</option>
+                    {studentData?.map((item, index) => (
+                      <option value={item?.student_id} key={index}>
+                        {item?.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
+            }
             <div className="col">
               <div className="input-group">
                 <label
@@ -207,11 +212,15 @@ const Progress = () => {
               </div>
             </div>
           </div>
-          <YTD_Growth selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
-          <Progress_Report selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
-          <TopStudentPerformance selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
-          <TopScoringStudents selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
-          <TroubleZone />
+          <YTD_Growth studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          <Progress_Report studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          <TopStudentPerformance studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          {userInfo.type != "Student" &&
+            <TopScoringStudents selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          }
+          {userInfo.type != "Student" &&
+            <TroubleZone />
+          }
         </>
       )}
       {/* <div className="row gap-2 mt-4">

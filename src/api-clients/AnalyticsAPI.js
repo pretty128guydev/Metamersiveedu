@@ -13,6 +13,10 @@ import {
   time_by_game_student,
   result_time_by_location_student,
   result_data_by_teacher_student,
+  time_by_game_one_student,
+  result_time_by_one_student_location,
+  result_scores_by_one_student,
+  result_skills_scores_by_one_student,
 } from "../config/app-apis";
 import { instance } from "./index";
 
@@ -23,8 +27,14 @@ export const AnalyticsAPI = {
   getTotalSpentTimeByGameStudent: (query) => {
     return instance.get(time_by_game_student, { params: query });
   },
+  getTotalSpentTimeByOneStudent: (query) => {
+    return instance.get(time_by_game_one_student, { params: query });
+  },
   getClassroomsByTeacherId: (query) => {
     return instance.get('analytics/classroom', { params: query });
+  },
+  getTotalSpentTimeByOneStudentLocation: (query) => {
+    return instance.get(result_time_by_one_student_location, { params: query });
   },
   getTotalSpentTimeByLocation: (query) => {
     return instance.get(result_time_by_location, { params: query });
@@ -46,6 +56,12 @@ export const AnalyticsAPI = {
   },
   getScoresByStudent: (query) => {
     return instance.get(result_scores_by_student, { params: query });
+  },
+  getScoresByOneStudent: (query) => {
+    return instance.get(result_scores_by_one_student, { params: query });
+  },
+  getSkillScoresByOneStudent: (query) => {
+    return instance.get(result_skills_scores_by_one_student, { params: query });
   },
   getSkillScoresByStudent: (query) => {
     return instance.get(result_skills_scores_by_student, { params: query });

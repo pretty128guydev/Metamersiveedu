@@ -349,8 +349,44 @@ const SchoolManagement = () => {
         student.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
+  const activeSchool = async () => {
+    if (selectedTable) {
+      try {
+        // Optimistically update the status in `selectedTable` and table data
+        const newStatus =
+          selectedTable.status === "active" ? "block" : "active";
+        setTableData((prevData) =>
+          prevData.map((school) =>
+            school.id === selectedTable.id
+              ? { ...school, status: newStatus }
+              : school
+          )
+        );
 
-  console.log(selectedTable);
+        // Update selectedTable with the new status
+        setSelectedTable({ ...selectedTable, status: newStatus });
+
+        // Call the API to persist the change
+        await AdminAPI.BlockSchool({
+          schoolId: selectedTable.id,
+          action: newStatus,
+        });
+
+        // Fetch updated data for consistency
+        const data = await AdminAPI.getSchools({});
+        setTableData(data.data);
+      } catch (error) {
+        console.error("An error occurred:", error);
+        notification.error({
+          message: "Error",
+          description:
+            error.response?.data?.message || "Failed to update status.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   return (
     <div className="h-100">
@@ -554,33 +590,44 @@ const SchoolManagement = () => {
                       {selectedTable?.websiteUrl && (
                         <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
                           <span className="text-decoration-underline mr-1">
-                            School Website:{" "}
-                            {`${selectedTable?.websiteUrl}`}
+                            School Website: {`${selectedTable?.websiteUrl}`}
                           </span>
                         </div>
                       )}
                       {selectedTable?.schoolEmail && (
                         <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
                           <span className="text-decoration-underline mr-1">
-                            School Name:{" "}
-                            {`${selectedTable?.schoolEmail}`}
+                            School Name: {`${selectedTable?.schoolEmail}`}
                           </span>
                         </div>
                       )}
                       {selectedTable?.email && (
                         <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
                           <span className="text-decoration-underline mr-1">
-                            School Admin Email:{" "}
-                            {`${selectedTable?.email}`}
+                            School Admin Email: {`${selectedTable?.email}`}
                           </span>
                         </div>
                       )}
                       {selectedTable?.name && (
                         <div className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer">
                           <span className="text-decoration-underline mr-1">
-                            School Admin Name:{" "}
-                            {`${selectedTable?.name}`}
+                            School Admin Name: {`${selectedTable?.name}`}
                           </span>
+                        </div>
+                      )}
+                      {selectedTable?.status && (
+                        <div
+                          className={`pos-order py-3 cursor-pointer ${
+                            selectedTable?.status === "active"
+                              ? "bg-success"
+                              : "bg-danger"
+                          }`}
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEditSchool"
+                        >
+                          {selectedTable?.status == "active"
+                            ? "Activated"
+                            : "Blocked"}
                         </div>
                       )}
                     </div>
@@ -729,6 +776,72 @@ const SchoolManagement = () => {
                     <label className="form-label">{translate("done")}</label>
                   </button>
                 )}
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div className="modal fade" id="modalEditSchool">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Edit Student</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+            <form>
+              <div className="modal-body">
+                <div className="mb-3">
+                  {selectedTable ? (
+                    <div>
+                      <label className="form-label">
+                        {`Name: ${selectedTable?.schoolEmail}`}
+                      </label>
+                      <br />
+
+                      <label className="form-label">
+                        {`ID: ${selectedTable?.id}`}
+                      </label>
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <div>
+                  {/* <button
+                    type="button"
+                    className="btn btn-danger m-1"
+                    data-bs-dismiss="modal"
+                    // onClick={handleRemoveSchool}
+                  >
+                    Remove
+                  </button> */}
+                  {selectedTable?.status === "active" ? (
+                    <button
+                      type="button"
+                      className="btn btn-warning"
+                      data-bs-dismiss="modal"
+                      onClick={activeSchool}
+                    >
+                      Block
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-success m-1"
+                      data-bs-dismiss="modal"
+                      onClick={activeSchool}
+                    >
+                      Activate
+                    </button>
+                  )}
+                </div>
               </div>
             </form>
           </div>

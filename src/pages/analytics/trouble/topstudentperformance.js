@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import WordApi from '../../../api-clients/WordApi';
 import TagApi from '../../../api-clients/TagApi';
 
-const TopStudentPerformance = ({ selectedClass, selectedStudent, teacher_id }) => {
+const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, teacher_id }) => {
     const [loading, setLoading] = useState(false);
     const [name, setname] = useState([]);
     const [originalSeries, setoriginalSeries] = useState([]);
@@ -260,6 +260,20 @@ const TopStudentPerformance = ({ selectedClass, selectedStudent, teacher_id }) =
 
         const fetchAllApis = async () => {
             try {
+                let VillagestudentData;
+                let WordDashstudentData;
+                let TagstudentData;
+                if (studentPage) {
+                    VillagestudentData = await VillageApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    WordDashstudentData = await WordApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    TagstudentData = await TagApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                }
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
                     teacher_id: teacher_id,
@@ -271,12 +285,20 @@ const TopStudentPerformance = ({ selectedClass, selectedStudent, teacher_id }) =
                     teacher_id: teacher_id,
                 });
 
+                let allClasses = [];
                 // Merging data from all three sources
-                const allClasses = [
-                    ...classData.data.ret, // village classes
-                    ...WordDashData.data.ret, // WordDash classes
-                    ...TagData.data.ret, // Tag classes
-                ];
+                studentPage ?
+                    allClasses = [
+                        ...VillagestudentData.data, // village classes
+                        ...WordDashstudentData.data, // WordDash classes
+                        ...TagstudentData.data, // Tag classes
+                    ] :
+                    allClasses = [
+                        ...classData.data.ret, // village classes
+                        ...WordDashData.data.ret, // WordDash classes
+                        ...TagData.data.ret, // Tag classes
+                    ];
+
 
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
@@ -284,6 +306,7 @@ const TopStudentPerformance = ({ selectedClass, selectedStudent, teacher_id }) =
                 );
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
+                let aggregatedByCategory = {}; // Use let if reassignment is needed
 
                 const promises = uniqueClasses.map(async (classId) => {
                     try {
@@ -294,11 +317,17 @@ const TopStudentPerformance = ({ selectedClass, selectedStudent, teacher_id }) =
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
 
                             // Aggregate questions by category for this student
+                            const studentPageName = studentsData.data[studentPage].student_name;
                             const result = aggregateQuestionsByCategory(studentInfo.data);
-
+                            console.log(result)
                             // Temporarily store the aggregated result in the variable
                             if (!aggregatedData[classId.id]) {
                                 aggregatedData[classId.id] = {};
+                            }
+                            if (studentInfo.student_name == studentPageName) {
+                                aggregatedByCategory[studentPage] = result
+                                aggregatedByCategory[studentPage].student_name = studentInfo.student_name
+                                aggregatedByCategory[studentPage].total_questions = studentInfo.total_questions
                             }
                             aggregatedData[classId.id][studentId] = result;
                             aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
@@ -322,39 +351,46 @@ const TopStudentPerformance = ({ selectedClass, selectedStudent, teacher_id }) =
 
                 for (let key in aggregatedData) {
                     if (aggregatedData.hasOwnProperty(key)) {
-                        if (selectedClass) {
-                            if (selectedStudent) {
-                                if (aggregatedData[selectedClass][selectedStudent]) {
-                                    StudentsArray[0] = analyzeStudentData(aggregatedData[selectedClass][selectedStudent])
+                        if (studentPage) {
+                            StudentsArray[0] = analyzeStudentData(aggregatedByCategory[studentPage])
+                        } else {
+                            if (selectedClass) {
+                                if (selectedStudent) {
+                                    if (aggregatedData[selectedClass][selectedStudent]) {
+                                        StudentsArray[0] = analyzeStudentData(aggregatedData[selectedClass][selectedStudent])
+                                    } else {
+                                        StudentsArray = [];
+                                    }
                                 } else {
-                                    StudentsArray = [];
+                                    if (aggregatedData[selectedClass]) {
+                                        allStudentsArray = processStudents(aggregatedData[selectedClass]);
+                                        allStudentsArray.sort((a, b) => b.total - a.total)
+                                        top5Students = allStudentsArray.slice(0, 5);
+                                    } else {
+                                        allStudentsArray = [];
+                                    }
                                 }
                             } else {
-                                if (aggregatedData[selectedClass]) {
-                                    allStudentsArray = processStudents(aggregatedData[selectedClass]);
-                                    allStudentsArray.sort((a, b) => b.total - a.total)
-                                    top5Students = allStudentsArray.slice(0, 5);
-                                } else {
-                                    allStudentsArray = [];
-                                }
+                                allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key, uniqueClasses));
+                                allClassesArray.sort((a, b) => b.total - a.total)
+                                top5Classes = allClassesArray.slice(0, 5);
                             }
-                        } else {
-                            allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key, uniqueClasses));
-                            allClassesArray.sort((a, b) => b.total - a.total)
-                            top5Classes = allClassesArray.slice(0, 5);
                         }
                     }
                 }
-                if (selectedClass) {
-                    if (selectedStudent) {
-                        getArrays(StudentsArray)
-                    } else {
-                        getArrays(top5Students)
-                    }
+                if (studentPage) {
+                    getArrays(StudentsArray)
                 } else {
-                    getArrays(top5Classes)
+                    if (selectedClass) {
+                        if (selectedStudent) {
+                            getArrays(StudentsArray)
+                        } else {
+                            getArrays(top5Students)
+                        }
+                    } else {
+                        getArrays(top5Classes)
+                    }
                 }
-
                 setLoading(false); // Set loading to false after all API calls are finished
 
             } catch (error) {

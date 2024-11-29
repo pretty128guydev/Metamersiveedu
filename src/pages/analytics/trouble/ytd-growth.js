@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import WordApi from '../../../api-clients/WordApi';
 import TagApi from '../../../api-clients/TagApi';
 
-const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_id }) => {
+const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStudent, teacher_id }) => {
   const [loading, setLoading] = useState(false);
   const [months, setmonths] = useState([]);
   const [chartdata, setchartdata] = useState([]);
@@ -89,10 +89,10 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
   }
 
   const getClassNameById = (classes, id) => {
-      // Find the class with the matching id
-      const foundClass = classes.find(classItem => classItem.id === id);
-      // Return the name if found, otherwise return null or a default message
-      return foundClass ? foundClass.name : null;
+    // Find the class with the matching id
+    const foundClass = classes.find(classItem => classItem.id === id);
+    // Return the name if found, otherwise return null or a default message
+    return foundClass ? foundClass.name : null;
   };
 
   // Function to analyze data
@@ -224,6 +224,20 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
 
     const fetchAllApis = async () => {
       try {
+        let VillagestudentData;
+        let WordDashstudentData;
+        let TagstudentData;
+        if (studentPage) {
+          VillagestudentData = await VillageApi.getClassroomsByStudentId({
+            student_id: studentPage
+          });
+          WordDashstudentData = await WordApi.getClassroomsByStudentId({
+            student_id: studentPage
+          });
+          TagstudentData = await TagApi.getClassroomsByStudentId({
+            student_id: studentPage
+          });
+        }
         // Fetch the classrooms
         const classData = await VillageApi.getClassroomsByTeacherId({
           teacher_id: teacher_id,
@@ -235,12 +249,19 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
           teacher_id: teacher_id,
         });
 
+        let allClasses = [];
         // Merging data from all three sources
-        const allClasses = [
-          ...classData.data.ret, // village classes
-          ...WordDashData.data.ret, // WordDash classes
-          ...TagData.data.ret, // Tag classes
-        ];
+        studentPage ?
+          allClasses = [
+            ...VillagestudentData.data, // village classes
+            ...WordDashstudentData.data, // WordDash classes
+            ...TagstudentData.data, // Tag classes
+          ] :
+          allClasses = [
+            ...classData.data.ret, // village classes
+            ...WordDashData.data.ret, // WordDash classes
+            ...TagData.data.ret, // Tag classes
+          ];
 
         // Remove duplicates by class ID
         const uniqueClasses = Array.from(
@@ -249,6 +270,7 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
 
         // Initialize an array to hold promises for all API calls
         const aggregatedData = {}; // Temporary variable to hold all the aggregated data
+        let aggregatedByCategory = {}; // Use let if reassignment is needed
 
         const promises = uniqueClasses.map(async (classId) => {
           try {
@@ -256,13 +278,17 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
               classId: classId.id,
             });
             // Iterate over each student in the response
+            const studentPageName = studentsData.data[studentPage].student_name;
             const result = analyzeDataByMonth(studentsData.data);
-
             // Temporarily store the aggregated result in the variable
             if (!aggregatedData[classId.id]) {
               aggregatedData[classId.id] = {};
             }
+            if (!aggregatedByCategory[studentPageName]) {
+              aggregatedByCategory[studentPageName] = {};
+            }
             aggregatedData[classId.id] = result;
+            aggregatedByCategory[studentPageName][studentPageName] = result[studentPageName]
           } catch (error) {
             console.error(`Error fetching data for class ${classId.id}:`, error);
             setLoading(false);
@@ -271,7 +297,6 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
 
         // Wait for all API calls to complete
         await Promise.all(promises);
-
         // Set the aggregated data to the state after all promises have completed
         setLoading(false); // Set loading to false after all API calls are finished
         let newSeries = [];
@@ -281,52 +306,66 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
 
         for (let key in aggregatedData) {
           if (aggregatedData.hasOwnProperty(key)) {
-            if (selectedClass) {
-              if (selectedStudent) {
-                if (aggregatedData[selectedClass][selectedStudent]) {
-                  const oneStudentArray = analyzeStudentData(aggregatedData[selectedClass][selectedStudent], months, selectedCategory ? selectedCategory : null)
-                  const finalOneStudentArray = {
-                    [selectedStudent]: oneStudentArray
-                  }
-                  newSeries = Object.keys(finalOneStudentArray).map((studetname) => {
-                    const percentages = finalOneStudentArray[studetname];
-                    return {
-                      name: studetname,
-                      data: percentages,  // Ensure this is an array of percentages per month
-                    };
-                  });
-                }
-              } else {
-                if (aggregatedData[selectedClass]) {
-                  // Process data for selectedClass
-                  const allStudentsArray = analyzeData(aggregatedData[selectedClass], months, selectedCategory ? selectedCategory : null);
-                  newSeries = Object.keys(allStudentsArray).map((className) => {
-                    const percentages = allStudentsArray[className];
-                    return {
-                      name: className,
-                      data: percentages,  // Ensure this is an array of percentages per month
-                    };
-                  });
-                }
-              }
-            } else {
-              const allClassesArray = analyzeDataByClass(aggregatedData, selectedCategory ? selectedCategory : null, months);
+            if (studentPage) {
+              const allClassesArray = analyzeDataByClass(aggregatedByCategory, selectedCategory ? selectedCategory : null, months);
               newSeries = Object.keys(allClassesArray).map((className) => {
-                const invalidClassName = getClassNameById(uniqueClasses, className);
                 const percentages = allClassesArray[className];
                 return {
-                  name: invalidClassName,
+                  name: className,
                   data: percentages,  // Ensure this is an array of percentages per month
                 };
               });
+            } else {
+              if (selectedClass) {
+                if (selectedStudent) {
+                  if (aggregatedData[selectedClass][selectedStudent]) {
+                    const oneStudentArray = analyzeStudentData(aggregatedData[selectedClass][selectedStudent], months, selectedCategory ? selectedCategory : null)
+                    const finalOneStudentArray = {
+                      [selectedStudent]: oneStudentArray
+                    }
+                    newSeries = Object.keys(finalOneStudentArray).map((studetname) => {
+                      const percentages = finalOneStudentArray[studetname];
+                      return {
+                        name: studetname,
+                        data: percentages,  // Ensure this is an array of percentages per month
+                      };
+                    });
+                  }
+                } else {
+                  if (aggregatedData[selectedClass]) {
+                    // Process data for selectedClass
+                    const allStudentsArray = analyzeData(aggregatedData[selectedClass], months, selectedCategory ? selectedCategory : null);
+                    newSeries = Object.keys(allStudentsArray).map((className) => {
+                      const percentages = allStudentsArray[className];
+                      return {
+                        name: className,
+                        data: percentages,  // Ensure this is an array of percentages per month
+                      };
+                    });
+                  }
+                }
+              } else {
+                const allClassesArray = analyzeDataByClass(aggregatedData, selectedCategory ? selectedCategory : null, months);
+                newSeries = Object.keys(allClassesArray).map((className) => {
+                  const invalidClassName = getClassNameById(uniqueClasses, className);
+                  const percentages = allClassesArray[className];
+                  return {
+                    name: invalidClassName,
+                    data: percentages,  // Ensure this is an array of percentages per month
+                  };
+                });
+              }
             }
           }
         }
-
-        if (selectedClass) {
+        if (studentPage) {
           setchartdata(newSeries)
         } else {
-          setchartdata(newSeries)
+          if (selectedClass) {
+            setchartdata(newSeries)
+          } else {
+            setchartdata(newSeries)
+          }
         }
 
       } catch (error) {
@@ -346,7 +385,7 @@ const YTD_Growth = ({ selectedClass, selectedCategory, selectedStudent, teacher_
       height: 430
     },
     title: {
-        text: 'Skill Drill - YTD Growth',
+      text: 'Skill Drill - YTD Growth',
     },
     plotOptions: {
       bar: {

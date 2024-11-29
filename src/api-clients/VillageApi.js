@@ -5,6 +5,10 @@ const VillageApi = {
     return instance.get("game/village/classroom", { params: query });
   },
 
+  getClassroomsByStudentId: (query) => {
+    return instance.get("game/village/studentclassroom", { params: query });
+  },
+
   getAllClassroomsByTeacherId: (query) => {
     return instance.get("game/village/getallclassroombyteacherid", { params: query });
   },

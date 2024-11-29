@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import WordApi from '../../../api-clients/WordApi';
 import TagApi from '../../../api-clients/TagApi';
 
-const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, teacher_id }) => {
+const Progress_Report = ({ studentPage, selectedClass, selectedCategory, selectedStudent, teacher_id }) => {
     const [loading, setLoading] = useState(false);
     const [months, setmonths] = useState([]);
     const [chartdata, setchartdata] = useState([]);
@@ -267,6 +267,20 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
 
         const fetchAllApis = async () => {
             try {
+                let VillagestudentData;
+                let WordDashstudentData;
+                let TagstudentData;
+                if (studentPage) {
+                    VillagestudentData = await VillageApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    WordDashstudentData = await WordApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    TagstudentData = await TagApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                }
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
                     teacher_id: teacher_id,
@@ -278,12 +292,20 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
                     teacher_id: teacher_id,
                 });
 
+                let allClasses = [];
                 // Merging data from all three sources
-                const allClasses = [
-                    ...classData.data.ret, // village classes
-                    ...WordDashData.data.ret, // WordDash classes
-                    ...TagData.data.ret, // Tag classes
-                ];
+                studentPage ?
+                    allClasses = [
+                        ...VillagestudentData.data, // village classes
+                        ...WordDashstudentData.data, // WordDash classes
+                        ...TagstudentData.data, // Tag classes
+                    ] :
+                    allClasses = [
+                        ...classData.data.ret, // village classes
+                        ...WordDashData.data.ret, // WordDash classes
+                        ...TagData.data.ret, // Tag classes
+                    ];
+
 
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
@@ -292,6 +314,7 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
 
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
+                let aggregatedByCategory = {}; // Use let if reassignment is needed
 
                 const promises = uniqueClasses.map(async (classId) => {
                     try {
@@ -299,13 +322,18 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
                             classId: classId.id,
                         });
                         // Iterate over each student in the response
+                        const studentPageName = studentsData.data[studentPage].student_name;
                         const result = analyzeDataByLevelAndCategoryWithDate(studentsData.data);
 
                         // Temporarily store the aggregated result in the variable
                         if (!aggregatedData[classId.id]) {
                             aggregatedData[classId.id] = {};
                         }
+                        if (!aggregatedByCategory[studentPageName]) {
+                            aggregatedByCategory[studentPageName] = {};
+                        }
                         aggregatedData[classId.id] = result;
+                        aggregatedByCategory[studentPageName][studentPageName] = result[studentPageName]
                     } catch (error) {
                         console.error(`Error fetching data for class ${classId.id}:`, error);
                         setLoading(false);
@@ -324,35 +352,8 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
 
                 for (let key in aggregatedData) {
                     if (aggregatedData.hasOwnProperty(key)) {
-                        if (selectedClass) {
-                            if (selectedStudent) {
-                                const studentData = analyzeStudentDataByMonth(aggregatedData[selectedClass][selectedStudent], months, selectedCategory ? selectedCategory : null)
-                                newSeries = studentData.map((data) => {
-                                    const studentName = Object.keys(data)[0]; // Extract student name
-                                    const percentages = data[studentName]; // Get percentages for the months
-
-                                    return {
-                                        name: studentName,
-                                        data: percentages,
-                                    };
-                                });
-                            } else {
-                                if (aggregatedData[selectedClass]) {
-                                    // Process data for selectedClass
-                                    const finalData = analyzeDataByLevels(aggregatedData[selectedClass], months, selectedCategory ? selectedCategory : null)
-                                    newSeries = finalData.map((data) => {
-                                        const studentName = Object.keys(data)[0]; // Extract student name
-                                        const percentages = data[studentName]; // Get percentages for the months
-
-                                        return {
-                                            name: studentName,
-                                            data: percentages,
-                                        };
-                                    });
-                                }
-                            }
-                        } else {
-                            const allClassesArray = transformDataToLevelArrays(aggregatedData, selectedCategory ? selectedCategory : null, months);
+                        if (studentPage) {
+                            const allClassesArray = transformDataToLevelArrays(aggregatedByCategory, selectedCategory ? selectedCategory : null, months);
                             newSeries = allClassesArray.map((data) => {
                                 const studentName = Object.keys(data)[0]; // Extract student name
                                 const percentages = data[studentName]; // Get percentages for the months
@@ -362,6 +363,46 @@ const Progress_Report = ({ selectedClass, selectedCategory, selectedStudent, tea
                                     data: percentages,
                                 };
                             });
+                        } else {
+                            if (selectedClass) {
+                                if (selectedStudent) {
+                                    const studentData = analyzeStudentDataByMonth(aggregatedData[selectedClass][selectedStudent], months, selectedCategory ? selectedCategory : null)
+                                    newSeries = studentData.map((data) => {
+                                        const studentName = Object.keys(data)[0]; // Extract student name
+                                        const percentages = data[studentName]; // Get percentages for the months
+
+                                        return {
+                                            name: studentName,
+                                            data: percentages,
+                                        };
+                                    });
+                                } else {
+                                    if (aggregatedData[selectedClass]) {
+                                        // Process data for selectedClass
+                                        const finalData = analyzeDataByLevels(aggregatedData[selectedClass], months, selectedCategory ? selectedCategory : null)
+                                        newSeries = finalData.map((data) => {
+                                            const studentName = Object.keys(data)[0]; // Extract student name
+                                            const percentages = data[studentName]; // Get percentages for the months
+
+                                            return {
+                                                name: studentName,
+                                                data: percentages,
+                                            };
+                                        });
+                                    }
+                                }
+                            } else {
+                                const allClassesArray = transformDataToLevelArrays(aggregatedData, selectedCategory ? selectedCategory : null, months);
+                                newSeries = allClassesArray.map((data) => {
+                                    const studentName = Object.keys(data)[0]; // Extract student name
+                                    const percentages = data[studentName]; // Get percentages for the months
+
+                                    return {
+                                        name: studentName,
+                                        data: percentages,
+                                    };
+                                });
+                            }
                         }
                     }
                 }

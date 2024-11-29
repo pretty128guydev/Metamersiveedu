@@ -22,6 +22,10 @@ const WordApi = {
         return instance.get('word-dash/classroom', { params: query });
     },
 
+    getClassroomsByStudentId: (query) => {
+      return instance.get("word-dash/studentclassroom", { params: query });
+    },
+
     editClassroom: (body) => {
       return instance.post("word-dash/classroom/edit", body);
     },

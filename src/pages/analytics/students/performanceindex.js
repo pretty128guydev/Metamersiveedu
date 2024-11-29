@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import WordApi from "../../../api-clients/WordApi";
 import TagApi from "../../../api-clients/TagApi";
 
-const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
+const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentPage }) => {
 
 
     const [loading, setLoading] = useState(false);
@@ -76,6 +76,25 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
 
         return results;
     }
+
+    function transformAggregatedDataToResultFormat(aggregatedData) {
+        const levels = ["level-1", "level-2", "level-3", "level-4"];
+        const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
+    
+        const result = {};
+    
+        levels.forEach((level) => {
+            result[level] = categories.map((category) => {
+                if (aggregatedData[category] && aggregatedData[category][level]) {
+                    return aggregatedData[category][level].totalQuestions || 0;
+                }
+                return 0; // Default to 0 if data is not available
+            });
+        });
+    
+        return result;
+    }
+    
 
     function getTotalAnalytics(data) {
         const levels = ["level-1", "level-2", "level-3", "level-4"];
@@ -181,7 +200,6 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
         const categories = ["speaking", "writing", "reading", "listening A", "listeningB", "pronunciation"];
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const result = {};
-        console.log(studentData)
         // Initialize the result object with level keys
         levels.forEach(level => {
             result[level] = [0, 0, 0, 0, 0, 0]; // Initialize all categories for each level with zeros
@@ -208,11 +226,58 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
         return result;
     }
 
+    function aggregateStudentsDataByCategoryAndLevel(studentData) {
+        const categories = ["speaking", "writing", "reading", "listening A", "listeningB", "pronunciation"];
+        const levels = ["level-1", "level-2", "level-3", "level-4"];
+
+        // Initialize the structure with all categories and levels
+        const aggregatedByCategory = {};
+        categories.forEach((category) => {
+            aggregatedByCategory[category] = {};
+            levels.forEach((level) => {
+                aggregatedByCategory[category][level] = {
+                    totalScore: 0,
+                    totalQuestions: 0,
+                    correct: 0,
+                    incorrect: 0,
+                };
+            });
+        });
+
+        // Aggregate data from the studentData array
+        studentData.forEach((entry) => {
+            const { category, level, questions } = entry;
+
+            if (aggregatedByCategory[category] && aggregatedByCategory[category][level]) {
+                aggregatedByCategory[category][level].totalScore += parseInt(questions.score, 10);
+                aggregatedByCategory[category][level].totalQuestions += parseInt(questions.total, 10);
+                aggregatedByCategory[category][level].correct += parseInt(questions.correct, 10);
+                aggregatedByCategory[category][level].incorrect += parseInt(questions.inCorrect, 10);
+            }
+        });
+
+        return aggregatedByCategory;
+    }
+
     useEffect(() => {
         setLoading(true);
 
         const fetchAllApis = async () => {
             try {
+                let VillagestudentData;
+                let WordDashstudentData;
+                let TagstudentData;
+                if (studentPage) {
+                    VillagestudentData = await VillageApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    WordDashstudentData = await WordApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    TagstudentData = await TagApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                }
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
                     teacher_id: teacher_id,
@@ -224,12 +289,19 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
                     teacher_id: teacher_id,
                 });
 
+                let allClasses = [];
                 // Merging data from all three sources
-                const allClasses = [
-                    ...classData.data.ret, // village classes
-                    ...WordDashData.data.ret, // WordDash classes
-                    ...TagData.data.ret, // Tag classes
-                ];
+                studentPage ?
+                    allClasses = [
+                        ...VillagestudentData.data, // village classes
+                        ...WordDashstudentData.data, // WordDash classes
+                        ...TagstudentData.data, // Tag classes
+                    ] :
+                    allClasses = [
+                        ...classData.data.ret, // village classes
+                        ...WordDashData.data.ret, // WordDash classes
+                        ...TagData.data.ret, // Tag classes
+                    ];
 
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
@@ -237,15 +309,18 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
                 );
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
+                let aggregatedByCategory = {}; // Use let if reassignment is needed
 
                 const promises = uniqueClasses.map(async (classId) => {
                     try {
                         const studentsData = await AnalyticsAPI.getStudentsData({
                             classId: classId.id,
                         });
-
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
+
+
+                            aggregatedByCategory = aggregateStudentsDataByCategoryAndLevel(studentInfo.data);
 
                             // Aggregate questions by category for this student
                             const result = aggregateQuestionsByCategoryAndLevel(studentInfo.data);
@@ -266,29 +341,30 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-
-                console.log(aggregatedData)
                 let finalData = [];
-                if (selectedClass) {
-                    const studentsArray = analyzeData(aggregatedData[selectedClass]);
-                    if (aggregatedData[selectedClass]) {
-                        finalData = getTotalAnalytics(studentsArray)
-                    } else {
-                        finalData = [];
+                if (studentPage) {
+                    finalData = transformAggregatedDataToResultFormat(aggregatedByCategory)
+                } else {
+                    if (selectedClass) {
+                        const studentsArray = analyzeData(aggregatedData[selectedClass]);
+                        if (aggregatedData[selectedClass]) {
+                            finalData = getTotalAnalytics(studentsArray)
+                        } else {
+                            finalData = [];
+                        }
+                    }
+                    if (selectedClass && selectedStudent) {
+                        const tmpstudentsArray = analyzeData(aggregatedData[selectedClass]);
+                        if (tmpstudentsArray[selectedStudent]) {
+                            finalData = analyzeSingleStudentData(tmpstudentsArray[selectedStudent])
+                        } else {
+                            finalData = [];
+                        }
+                    }
+                    if (!selectedClass && !selectedStudent) {
+                        finalData = getTotalAnalyticsData(aggregatedData)
                     }
                 }
-                if (selectedClass && selectedStudent) {
-                    const tmpstudentsArray = analyzeData(aggregatedData[selectedClass]);
-                    if (tmpstudentsArray[selectedStudent]) {
-                        finalData = analyzeSingleStudentData(tmpstudentsArray[selectedStudent])
-                    } else {
-                        finalData = [];
-                    }
-                }
-                if (!selectedClass && !selectedStudent) {
-                    finalData = getTotalAnalyticsData(aggregatedData)
-                }
-
                 setfinalData(finalData)
 
                 setLoading(false); // Set loading to false after all API calls are finished
@@ -343,7 +419,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id }) => {
                     right: 0    // No right padding
                 }
             },
-            colors: ['#D2B48C', '#A0522D', '#8B4513', '#5C4033'], 
+            colors: ['#D2B48C', '#A0522D', '#8B4513', '#5C4033'],
             dataLabels: {
                 enabled: false  // Disable data labels inside the blocks
             },

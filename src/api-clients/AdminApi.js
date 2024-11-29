@@ -9,6 +9,7 @@ import {
   get_requests,
   approve_request,
   school_limits,
+  block_school,
 } from "../config/admin-api";
 
 import { instance } from "./index";
@@ -81,6 +82,10 @@ export const AdminAPI = {
 
   approveRequest: (body) => {
     return instance.post(approve_request, body);
+  },
+
+  BlockSchool: (body) => {
+    return instance.post(block_school, body);
   },
 
   getSchoolLimits: (query) => {

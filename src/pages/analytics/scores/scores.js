@@ -74,14 +74,12 @@ const Scores = () => {
         selectedClass,
         e.target.value
       );
-      console.log(villageData)
       setVillageData(villageData);
     }
   };
 
   const handleSelectClass = async (e) => {
     const classId = e.target.value;
-    console.log(classId);
 
     if (classId == "Select All") {
       setSelectedClass('');
@@ -94,12 +92,10 @@ const Scores = () => {
     // Extract the data in the desired format
     const studentsList = await extractStudentNames(studentsData.data);
 
-    console.log(studentsList);  // This should give you the array of students
-
     // Set the student data in the state
     await setStudentData(studentsList);
   };
- 
+
   const getScoreData = async (game, class_id, student_id) => {
     if (game === "" || class_id === "" || student_id === "") return;
     try {
@@ -119,7 +115,6 @@ const Scores = () => {
   };
 
   const changeChartData = (data) => {
-    console.log(data)
     const customColors = {
       Village: {
         Reading: "#008ffb", // Blue
@@ -241,6 +236,12 @@ const Scores = () => {
       const TagData = await TagApi.getClassroomsByTeacherId({
         teacher_id: userInfo.uid,
       });
+      if (selectedGame == "Village" && userInfo.type === "Student") {
+        const StudentData = await AnalyticsAPI.getSkillScoresByOneStudent({ student_id: userInfo.uid })
+        const StudentChartData = await AnalyticsAPI.getScoresByOneStudent({ game: selectedGame, student_id: userInfo.uid })
+        await setVillageData(StudentData.data)
+        await changeChartData(StudentChartData.data)
+      }
       // Merging data from all three sources
       const allClasses = [
         ...classData.data.ret, // village classes
@@ -281,7 +282,7 @@ const Scores = () => {
     fetchClass().catch(() => {
       setLoading(false);
     });
-  }, []);
+  }, [selectedGame]);
 
   return (
     <div>
@@ -304,57 +305,59 @@ const Scores = () => {
               <option value="WordDash">Word Dash</option>
             </select>
           </div>
-          <div className="mt-2 row">
-            <div className="col">
-              <div className="input-group">
-                <label
-                  className="input-group-text"
-                  htmlFor="inputGroupSelect02"
-                >
-                  Class
-                </label>
-                <select
-                  className="form-select"
-                  id="inputGroupSelect02"
-                  value={selectedClass}
-                  onChange={handleSelectClass}
-                >
-                  <option defaultValue={""}>Select All</option>
-                  {classData.map((item, index) => (
-                    <option value={item.id} key={index}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+          {userInfo.type != "Student" &&
+            <div className="mt-2 row">
+              <div className="col">
+                <div className="input-group">
+                  <label
+                    className="input-group-text"
+                    htmlFor="inputGroupSelect02"
+                  >
+                    Class
+                  </label>
+                  <select
+                    className="form-select"
+                    id="inputGroupSelect02"
+                    value={selectedClass}
+                    onChange={handleSelectClass}
+                  >
+                    <option defaultValue={""}>Select All</option>
+                    {classData.map((item, index) => (
+                      <option value={item.id} key={index}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="col">
+                <div className="input-group">
+                  <label
+                    className="input-group-text"
+                    htmlFor="inputGroupSelect03"
+                  >
+                    Student
+                  </label>
+                  <select
+                    className="form-select"
+                    id="inputGroupSelect03"
+                    value={selectedStudent}
+                    onChange={handleSelectStudent}
+                  >
+                    <option defaultValue={""}>Select All</option>
+                    {studentData?.map((item, index) => (
+                      <option value={item?.student_id} key={index}>
+                        {item?.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-            <div className="col">
-              <div className="input-group">
-                <label
-                  className="input-group-text"
-                  htmlFor="inputGroupSelect03"
-                >
-                  Student
-                </label>
-                <select
-                  className="form-select"
-                  id="inputGroupSelect03"
-                  value={selectedStudent}
-                  onChange={handleSelectStudent}
-                >
-                  <option defaultValue={""}>Select All</option>
-                  {studentData?.map((item, index) => (
-                    <option value={item?.student_id} key={index}>
-                      {item?.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+          }
         </div>
         <div className="mt-4">
-          {selectedGame && selectedClass && selectedStudent ? (
+          {userInfo.type != "Student" ? selectedGame && selectedClass && selectedStudent : selectedGame == "Village" ? (
             <>
               <Card>
                 <CardHeader className="text-theme fs-3">
@@ -488,7 +491,7 @@ const Scores = () => {
             </>
           ) : (
             <Card>
-              <CardBody>Select Game, Class and Student</CardBody>
+              <CardBody>{userInfo.type != "Student" ? "Select Game, Class and Student" : "No Data" }</CardBody>
             </Card>
           )}
         </div>

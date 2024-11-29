@@ -77,7 +77,7 @@ const UsageBySkill = ({ originalSeries, name }) => {
 };
 
 
-const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
+const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id, studentPage }) => {
     const [loading, setLoading] = useState(false);
     const name = ['Pronunciation', 'ListeningB', 'ListeningA', 'Reading', 'Writing', 'Speaking'];
     const [originalSeries, setoriginalSeries] = useState([]);
@@ -186,6 +186,41 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
             UQ: unanswered
         };
     }
+
+    function analyzeAllData(data) {
+        const skills = ['Pronunciation', 'Listening B', 'Listening A', 'Reading', 'Writing', 'Speaking'];
+        const result = {
+            CR: [],
+            E: [],
+            UQ: []
+        };
+
+        skills.forEach(skill => {
+            // Convert skill name to match key format in the input data
+            const skillKey = skill.trim().toLowerCase().replace(/\s+/g, '_');
+            const skillData = data[skillKey] || {}; // Default to an empty object if the skill is missing
+
+            const totalQuestions = skillData.totalQuestions || 0;
+            const totalCorrect = skillData.totalCorrect || 0;
+            const totalIncorrect = skillData.totalIncorrect || 0;
+
+            // Calculate unanswered questions
+            const unansweredQuestions = totalQuestions - (totalCorrect + totalIncorrect);
+
+            // Calculate percentages
+            const CR = Math.round((totalCorrect / totalQuestions) * 100) || 0;
+            const E = Math.round((totalIncorrect / totalQuestions) * 100) || 0;
+            const UQ = Math.round((unansweredQuestions / totalQuestions) * 100) || 0;
+
+            // Append results
+            result.CR.push(CR);
+            result.E.push(E);
+            result.UQ.push(UQ);
+        });
+
+        return result;
+    }
+
     function analyzeClassesData(classesData) {
         const skills = ['Pronunciation', 'Listening B', 'Listening A', 'Reading', 'Writing', 'Speaking'];
 
@@ -300,6 +335,20 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
 
         const fetchAllApis = async () => {
             try {
+                let VillagestudentData;
+                let WordDashstudentData;
+                let TagstudentData;
+                if (studentPage) {
+                    VillagestudentData = await VillageApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    WordDashstudentData = await WordApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                    TagstudentData = await TagApi.getClassroomsByStudentId({
+                        student_id: studentPage
+                    });
+                }
                 // Fetch the classrooms
                 const classData = await VillageApi.getClassroomsByTeacherId({
                     teacher_id: teacher_id,
@@ -311,12 +360,19 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
                     teacher_id: teacher_id,
                 });
 
+                let allClasses = [];
                 // Merging data from all three sources
-                const allClasses = [
-                    ...classData.data.ret, // village classes
-                    ...WordDashData.data.ret, // WordDash classes
-                    ...TagData.data.ret, // Tag classes
-                ];
+                studentPage ?
+                    allClasses = [
+                        ...VillagestudentData.data, // village classes
+                        ...WordDashstudentData.data, // WordDash classes
+                        ...TagstudentData.data, // Tag classes
+                    ] :
+                    allClasses = [
+                        ...classData.data.ret, // village classes
+                        ...WordDashData.data.ret, // WordDash classes
+                        ...TagData.data.ret, // Tag classes
+                    ];
 
                 // Remove duplicates by class ID
                 const uniqueClasses = Array.from(
@@ -324,35 +380,55 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
                 );
                 // Initialize an array to hold promises for all API calls
                 const aggregatedData = {}; // Temporary variable to hold all the aggregated data
+                let aggregatedByCategory = {}; // Use let if reassignment is needed
 
                 const promises = uniqueClasses.map(async (classId) => {
                     try {
                         const studentsData = await AnalyticsAPI.getStudentsData({
                             classId: classId.id,
                         });
+
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
-
-                            // Aggregate questions by category for this student
                             const result = aggregateQuestionsByCategory(studentInfo.data);
 
-                            // Temporarily store the aggregated result in the variable
+                            if (studentPage && studentPage === studentId) {
+                                aggregatedByCategory = studentInfo.data.reduce(
+                                    (acc, activity) => {
+                                        const category = activity.category;
+                                        if (!acc[category]) {
+                                            acc[category] = {
+                                                totalSpentTime: 0,
+                                                totalQuestions: 0,
+                                                totalCorrect: 0,
+                                                totalIncorrect: 0,
+                                            };
+                                        }
+                                        acc.name = studentInfo.student_name
+                                        acc[category].totalSpentTime += activity.spent_time || 0;
+                                        acc[category].totalQuestions += parseInt(activity.questions.total, 10) || 0;
+                                        acc[category].totalCorrect += parseInt(activity.questions.correct, 10) || 0;
+                                        acc[category].totalIncorrect += parseInt(activity.questions.inCorrect, 10) || 0;
+                                        return acc;
+                                    },
+                                    {}
+                                );
+                            }
+
                             if (!aggregatedData[classId.id]) {
                                 aggregatedData[classId.id] = {};
                             }
                             aggregatedData[classId.id][studentId] = result;
-                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].student_name = studentInfo.student_name;
                             aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
-                        console.error(`Error fetching data for class ${classId.id}:`, error);
-                        setLoading(false);
+                        console.error(`Error fetching data for class ${classId.name}:`, error);
                     }
                 });
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-
                 let allStudentsArray = [];
 
                 for (let key in aggregatedData) {
@@ -372,13 +448,18 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id }) => {
                         }
                     }
                 }
-                if (selectedClass) {
-                    getArrays(allStudentsArray)
-                    if (selectedStudent) {
+                if (studentPage) {
+                    const finalData = analyzeAllData(aggregatedByCategory)
+                    getArrays(finalData)
+                } else {
+                    if (selectedClass) {
+                        getArrays(allStudentsArray)
+                        if (selectedStudent) {
+                            getArrays(allStudentsArray)
+                        }
+                    } else {
                         getArrays(allStudentsArray)
                     }
-                } else {
-                    getArrays(allStudentsArray)
                 }
 
                 setLoading(false); // Set loading to false after all API calls are finished
