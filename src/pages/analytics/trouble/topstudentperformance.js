@@ -316,8 +316,12 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
 
-                            // Aggregate questions by category for this student
-                            const studentPageName = studentsData.data[studentPage].student_name;
+                            let studentPageName;
+                            // Iterate over each student in the response
+                            if (studentPage) {
+                                studentPageName = studentsData.data[studentPage].student_name;
+                            }
+
                             const result = aggregateQuestionsByCategory(studentInfo.data);
                             console.log(result)
                             // Temporarily store the aggregated result in the variable

@@ -277,8 +277,11 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
             const studentsData = await AnalyticsAPI.getStudentsData({
               classId: classId.id,
             });
+            let studentPageName;
             // Iterate over each student in the response
-            const studentPageName = studentsData.data[studentPage].student_name;
+            if (studentPage) {
+              studentPageName = studentsData.data[studentPage].student_name;
+            }
             const result = analyzeDataByMonth(studentsData.data);
             // Temporarily store the aggregated result in the variable
             if (!aggregatedData[classId.id]) {

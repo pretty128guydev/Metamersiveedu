@@ -322,7 +322,11 @@ const Progress_Report = ({ studentPage, selectedClass, selectedCategory, selecte
                             classId: classId.id,
                         });
                         // Iterate over each student in the response
-                        const studentPageName = studentsData.data[studentPage].student_name;
+                        let studentPageName;
+                        // Iterate over each student in the response
+                        if (studentPage) {
+                            studentPageName = studentsData.data[studentPage].student_name;
+                        }
                         const result = analyzeDataByLevelAndCategoryWithDate(studentsData.data);
 
                         // Temporarily store the aggregated result in the variable
