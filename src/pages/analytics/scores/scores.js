@@ -106,6 +106,7 @@ const Scores = () => {
         class_id,
         student_id,
       });
+      console.log(data)
       return data.data;
     } catch (error) {
       console.log(error);
@@ -122,7 +123,7 @@ const Scores = () => {
         "Listening A": "#ff4560", // Red (Change this to desired color)
         "Listening B": "#775dd0", // Red (Change this to desired color)
         Speaking: "#feb019", // Yellow (Change this to desired color)
-        Pronunciation: "yellow"
+        Pronunciation: "#ffff00"
       },
       Tag: {
         Images: "#9B59B6",
@@ -145,7 +146,7 @@ const Scores = () => {
       Tag: ["Images", "Signs", "Vocabulary", "Comprehension"],
       WordDash: ["Ranking", "W/L Ratio", "Spelling", "Mystery Words"],
     };
-
+    console.log(data)
     switch (selectedGame) {
       case "Village":
         setChartData({
@@ -284,6 +285,11 @@ const Scores = () => {
     });
   }, [selectedGame]);
 
+  const isAllowed =
+    userInfo.type === "Student"
+      ? selectedGame === "Village"
+      : selectedGame && selectedClass && selectedStudent && selectedGame === "Village";
+
   return (
     <div>
       <div className="h5">STUDENT SCORE CHART</div>
@@ -357,7 +363,7 @@ const Scores = () => {
           }
         </div>
         <div className="mt-4">
-          {userInfo.type != "Student" ? selectedGame && selectedClass && selectedStudent : selectedGame == "Village" ? (
+          {isAllowed ? (
             <>
               <Card>
                 <CardHeader className="text-theme fs-3">
@@ -425,6 +431,7 @@ const Scores = () => {
                       >
                         {Object.keys(villageData).map((key, index) => {
                           const item = villageData[key];
+                          console.log(item, key)
                           return (
                             <>
                               <div
@@ -454,7 +461,7 @@ const Scores = () => {
                                         className="text-center border border-secondary border-top-0 d-flex align-items-center justify-content-center align-self-stretch"
                                         style={{ width: "150px" }}
                                       >
-                                        {Math.round(childItem.totalcorrect / childItem.totalQuestions * 100) || ""} {childItem.totalcorrect / childItem.totalQuestions * 100 > 0 && "%"}
+                                        {(childItem.totalcorrect / childItem.totalQuestions * 100) >= 0 ? Math.round(childItem.totalcorrect / childItem.totalQuestions * 100) : ""} {childItem.totalcorrect / childItem.totalQuestions * 100 >= 0 && "%"}
                                       </div>
                                       <div
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"
@@ -491,7 +498,7 @@ const Scores = () => {
             </>
           ) : (
             <Card>
-              <CardBody>{userInfo.type != "Student" ? "Select Game, Class and Student" : "No Data" }</CardBody>
+              <CardBody>{userInfo.type != "Student" ? "Select Game, Class and Student" : "No Data"}</CardBody>
             </Card>
           )}
         </div>

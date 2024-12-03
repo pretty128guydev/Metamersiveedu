@@ -8,64 +8,71 @@ import WordApi from "../../../api-clients/WordApi";
 
 
 const UsageBySkill = ({ originalSeries, name }) => {
-
     useEffect(() => {
-        if (originalSeries.length === 0 || name.length === 0) {
-            console.error("Invalid data for chart rendering: originalSeries or name is empty.");
-            return;
+        if (!Array.isArray(originalSeries) || originalSeries.length === 0) {
+            console.error("Invalid data for chart rendering: originalSeries is empty or not an array.");
+        }
+        if (!Array.isArray(name) || name.length === 0) {
+            console.error("Invalid data for chart rendering: name is empty or not an array.");
         }
     }, [originalSeries, name]);
+
+    const chartOptions = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            stacked: true,
+        },
+        colors: ["#008ffb", "#00e396", "#feb019", "#ff4560", "#775dd0", "#FFFF00"],
+        plotOptions: {
+            bar: {
+                horizontal: true,
+            },
+        },
+        stroke: {
+            width: 1,
+            colors: ['#fff'],
+        },
+        title: {
+            text: 'Usage By Skill ( % )',
+        },
+        xaxis: {
+            categories: Array.isArray(name) ? name : [], // Ensure name is an array
+            max: 100, // Max value for X-axis is 100% (so bars take up 100%)
+        },
+        tooltip: {
+            enabled: false, // Disable tooltips completely
+        },
+        fill: {
+            opacity: 1,
+        },
+        dataLabels: {
+            enabled: false,
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'left',
+            offsetX: 40,
+        },
+        yaxis: {
+            labels: {
+                formatter: function (value) {
+                    return value; // Remove decimals from the Y-axis labels
+                },
+            },
+        },
+    };
+
+    const chartSeries = Array.isArray(originalSeries) && originalSeries.length > 0
+        ? originalSeries
+        : [{ name: "No Data", data: [] }]; // Default series if originalSeries is invalid
 
     return (
         <div>
             <div id="chart">
                 <ReactApexChart
-                    options={{
-                        chart: {
-                            type: 'bar',
-                            height: 350,
-                            stacked: true,
-                        },
-                        colors: ["#008ffb", "#00e396", "#feb019", "#ff4560", "#775dd0", "#FFFF00"],
-                        plotOptions: {
-                            bar: {
-                                horizontal: true,
-                            },
-                        },
-                        stroke: {
-                            width: 1,
-                            colors: ['#fff'],
-                        },
-                        title: {
-                            text: 'Usage By Skill',
-                        },
-                        xaxis: {
-                            categories: name, // Categories for the X-axis
-                            max: 100, // Max value for X-axis is 100% (so bars take up 100%)
-                        },
-                        tooltip: {
-                            enabled: false, // Disable tooltips completely
-                        },
-                        fill: {
-                            opacity: 1,
-                        },
-                        dataLabels: {
-                            enabled: false,
-                        },
-                        legend: {
-                            position: 'top',
-                            horizontalAlign: 'left',
-                            offsetX: 40,
-                        },
-                        yaxis: {
-                            labels: {
-                                formatter: function (value) {
-                                    return value; // Remove decimals from the Y-axis labels
-                                },
-                            },
-                        },
-                    }}
-                    series={originalSeries.length > 0 ? originalSeries : [{ name: "No Data", data: [] }]}
+                    options={chartOptions}
+                    series={chartSeries}
                     type="bar"
                     height={350}
                     width="100%"
@@ -83,60 +90,44 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
     const [originalSeries, setoriginalSeries] = useState([]);
 
 
+
     const processStudentData = (data) => {
         const students = [];
-        const studentInfo = data
+        const studentInfo = data;
         const studentName = studentInfo.name || "Unknown";
         const categories = studentInfo;
 
-        let studentTotalQuestions = 0;
-        let studentCorrectAnswers = 0;
-
-        let ReadingQuestions = 0;
-        let WritingQuestions = 0;
-        let SpeakingQuestions = 0;
-        let ListeningAQuestions = 0;
-        let ListeningBQuestions = 0;
-        let PronunciationQuestions = 0;
-
         const categoryTotals = {};
+        let studentTotalQuestions = 0;
 
+        // First, calculate the total number of questions answered correctly
         Object.entries(categories).forEach(([category, stats]) => {
             if (category === "name") return; // Skip the name field
+            const totalCorrect = stats.totalCorrect || 0;
+            studentTotalQuestions += totalCorrect;
+        });
 
-            const totalQuestions = stats.totalQuestions || 0;
-            const correctAnswers = stats.totalCorrect || 0;
+        // Now calculate the percentage for each category
+        Object.entries(categories).forEach(([category, stats]) => {
+            if (category === "name") return; // Skip the name field
+            const totalCorrect = stats.totalCorrect || 0;
 
-            studentTotalQuestions += totalQuestions;
-            studentCorrectAnswers += correctAnswers;
+            const categoryShortNames = {
+                reading: "R",
+                writing: "W",
+                speaking: "S",
+                "listening A": "LA",
+                "listening B": "LB",
+                pronunciation: "P",
+            };
 
-            switch (category.toLowerCase()) {
-                case "reading":
-                    ReadingQuestions = totalQuestions;
-                    break;
-                case "writing":
-                    WritingQuestions = totalQuestions;
-                    break;
-                case "speaking":
-                    SpeakingQuestions = totalQuestions;
-                    break;
-                case "listening A":
-                    ListeningAQuestions = totalQuestions;
-                    break;
-                case "listening B":
-                    ListeningBQuestions = totalQuestions;
-                    break;
-                case "pronunciation":
-                    PronunciationQuestions = totalQuestions;
-                    break;
-                default:
-                    break;
-            }
-
+            const shortName = categoryShortNames[category];
             // Store the percentage for each category
-            categoryTotals[category.charAt(0).toUpperCase()] = Math.round(
-                (totalQuestions / studentTotalQuestions) * 100
-            );
+            if (shortName && studentTotalQuestions > 0) {
+                categoryTotals[shortName] = Math.round(
+                    (totalCorrect / studentTotalQuestions) * 100
+                );
+            }
         });
 
         // Calculate mastery and highest skill category
@@ -194,9 +185,9 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
         const students = [];
         // Iterate over each student in the data
         Object.entries(data).forEach(([studentId, studentInfo]) => {
-            const studentName = studentInfo.stdent_name;
-            const studentTotalQuestions = studentInfo.total_questions;
+            const studentName = studentInfo.student_name;
 
+            let studentTotalCorrect = 0;
             let studentTotalScore = 0;
             let studentCorrectAnswers = 0;
             let ReadingQuestions = 0;
@@ -209,26 +200,32 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
-                if (category !== "stdent_name" && category !== "total_questions") {
-                    if (stats.totalQuestions) {
+                if (category !== "student_name" && category !== "total_questions") {
+                    if (stats.correct) {
                         if (category === "listening A") {
-                            ListeningAQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            ListeningAQuestions = stats.correct;
+                            studentTotalCorrect += stats.correct
+                            stats.correct > stats.correct / 2 && mastered.push(category);
                         } else if (category === "listening B") {
-                            ListeningBQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            ListeningBQuestions = stats.correct;
+                            studentTotalCorrect += stats.correct
+                            stats.correct > stats.correct / 2 && mastered.push(category);
                         } else if (category === "reading") {
-                            ReadingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            ReadingQuestions = stats.correct;
+                            studentTotalCorrect += stats.correct
+                            stats.correct > stats.correct / 2 && mastered.push(category);
                         } else if (category === "writing") {
-                            WritingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            WritingQuestions = stats.correct;
+                            studentTotalCorrect += stats.correct
+                            stats.correct > stats.correct / 2 && mastered.push(category);
                         } else if (category === "speaking") {
-                            SpeakingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            SpeakingQuestions = stats.correct;
+                            studentTotalCorrect += stats.correct
+                            stats.correct > stats.correct / 2 && mastered.push(category);
                         } else if (category === "pronunciation") {
-                            PronunciationQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            PronunciationQuestions = stats.correct;
+                            studentTotalCorrect += stats.correct
+                            stats.correct > stats.correct / 2 && mastered.push(category);
                         }
 
                         // Accumulate student totals
@@ -241,18 +238,19 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
             // Add the student data to the students array
             students.push({
                 name: studentName,
-                totalQuestions: studentTotalQuestions,
-                R: Math.round((ReadingQuestions / studentTotalQuestions) * 100),
-                W: Math.round((WritingQuestions / studentTotalQuestions) * 100),
-                S: Math.round((SpeakingQuestions / studentTotalQuestions) * 100),
-                LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 100),
-                LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 100),
-                P: Math.round((PronunciationQuestions / studentTotalQuestions) * 100),
-                Skill: ((studentCorrectAnswers / studentTotalQuestions) * 100).toFixed(2),
+                totalQuestions: studentTotalCorrect,
+                R: studentTotalCorrect > 0 ? Math.round((ReadingQuestions / studentTotalCorrect) * 100) : 0,
+                W: studentTotalCorrect > 0 ? Math.round((WritingQuestions / studentTotalCorrect) * 100) : 0,
+                S: studentTotalCorrect > 0 ? Math.round((SpeakingQuestions / studentTotalCorrect) * 100) : 0,
+                LA: studentTotalCorrect > 0 ? Math.round((ListeningAQuestions / studentTotalCorrect) * 100) : 0,
+                LB: studentTotalCorrect > 0 ? Math.round((ListeningBQuestions / studentTotalCorrect) * 100) : 0,
+                P: studentTotalCorrect > 0 ? Math.round((PronunciationQuestions / studentTotalCorrect) * 100) : 0,
+                Skill: studentTotalCorrect > 0 ? ((studentCorrectAnswers / studentTotalCorrect) * 100).toFixed(2) : 0,
                 Score: studentTotalScore,
                 mastered: mastered,
             });
         });
+        console.log(students)
         return students;
 
     };
@@ -272,18 +270,17 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
         const invalidClassName = getClassNameById(classes, className);
 
         Object.entries(data).forEach(([studentId, studentInfo]) => {
-            const studentTotalQuestions = studentInfo.total_questions;
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
-                if (category !== "stdent_name" && category !== "total_questions") {
-                    if (stats.totalQuestions) {
-                        if (category === "reading") classTotals.totalReadingQuestions += stats.totalQuestions;
-                        if (category === "writing") classTotals.totalWritingQuestions += stats.totalQuestions;
-                        if (category === "speaking") classTotals.totalSpeakingQuestions += stats.totalQuestions;
-                        if (category === "listening A") classTotals.totalListeningAQuestions += stats.totalQuestions;
-                        if (category === "listening B") classTotals.totalListeningBQuestions += stats.totalQuestions;
-                        if (category === "pronunciation") classTotals.totalPronunciationQuestions += stats.totalQuestions;
+                if (category !== "student_name" && category !== "total_questions") {
+                    if (stats.correct) {
+                        if (category === "reading") classTotals.totalReadingQuestions += stats.correct;
+                        if (category === "writing") classTotals.totalWritingQuestions += stats.correct;
+                        if (category === "speaking") classTotals.totalSpeakingQuestions += stats.correct;
+                        if (category === "listening A") classTotals.totalListeningAQuestions += stats.correct;
+                        if (category === "listening B") classTotals.totalListeningBQuestions += stats.correct;
+                        if (category === "pronunciation") classTotals.totalPronunciationQuestions += stats.correct;
 
                         // Accumulate overall totals
                         classTotals.totalScore += stats.totalScore;
@@ -291,29 +288,27 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
                     }
                 }
             });
-
-            classTotals.totalQuestions += studentTotalQuestions;
         });
 
         // Calculate class-wide metrics
         return {
             name: invalidClassName,
             totalQuestions: classTotals.totalQuestions,
-            R: Math.round((classTotals.totalReadingQuestions / classTotals.totalQuestions) * 100),
-            W: Math.round((classTotals.totalWritingQuestions / classTotals.totalQuestions) * 100),
-            S: Math.round((classTotals.totalSpeakingQuestions / classTotals.totalQuestions) * 100),
-            LA: Math.round((classTotals.totalListeningAQuestions / classTotals.totalQuestions) * 100),
-            LB: Math.round((classTotals.totalListeningBQuestions / classTotals.totalQuestions) * 100),
-            P: Math.round((classTotals.totalPronunciationQuestions / classTotals.totalQuestions) * 100),
+            R: Math.round((classTotals.totalReadingQuestions / classTotals.totalCorrectAnswers) * 100),
+            W: Math.round((classTotals.totalWritingQuestions / classTotals.totalCorrectAnswers) * 100),
+            S: Math.round((classTotals.totalSpeakingQuestions / classTotals.totalCorrectAnswers) * 100),
+            LA: Math.round((classTotals.totalListeningAQuestions / classTotals.totalCorrectAnswers) * 100),
+            LB: Math.round((classTotals.totalListeningBQuestions / classTotals.totalCorrectAnswers) * 100),
+            P: Math.round((classTotals.totalPronunciationQuestions / classTotals.totalCorrectAnswers) * 100),
             TotalScore: classTotals.totalScore,
             AverageSkill: ((classTotals.totalCorrectAnswers / classTotals.totalQuestions) * 100).toFixed(2),
         };
     };
 
     const analyzeStudentData = (studentData) => {
-        const studentName = studentData.stdent_name;
-        const studentTotalQuestions = studentData.total_questions;
+        const studentName = studentData.student_name;
 
+        let studentTotalQuestions = 0;
         let studentTotalScore = 0;
         let studentCorrectAnswers = 0;
         let ReadingQuestions = 0;
@@ -325,21 +320,27 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
 
         // Process each category for the student
         Object.entries(studentData).forEach(([category, stats]) => {
-            if (category !== "stdent_name" && category !== "total_questions") {
-                if (stats.totalQuestions) {
+            if (category !== "student_name" && category !== "total_questions") {
+                if (stats.correct) {
                     // Handle Reading, Writing, and Listening categories
                     if (category === "reading") {
-                        ReadingQuestions = stats.totalQuestions;
+                        ReadingQuestions = stats.correct;
+                        studentTotalQuestions += stats.correct;
                     } else if (category === "writing") {
-                        WritingQuestions = stats.totalQuestions;
+                        WritingQuestions = stats.correct;
+                        studentTotalQuestions += stats.correct;
                     } else if (category === "listening A") {
-                        ListeningAQuestions = stats.totalQuestions;
+                        ListeningAQuestions = stats.correct;
+                        studentTotalQuestions += stats.correct;
                     } else if (category === "listening B") {
-                        ListeningBQuestions = stats.totalQuestions;
+                        ListeningBQuestions = stats.correct;
+                        studentTotalQuestions += stats.correct;
                     } else if (category === "pronunciation") {
-                        PronunciationQuestions = stats.totalQuestions;
+                        PronunciationQuestions = stats.correct;
+                        studentTotalQuestions += stats.correct;
                     } else if (category === "speaking") {
-                        SpeakingQuestions = stats.totalQuestions;
+                        SpeakingQuestions = stats.correct;
+                        studentTotalQuestions += stats.correct;
                     }
 
                     // Add the total score and correct answers
@@ -356,12 +357,12 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
         return {
             name: studentName,
             totalQuestions: studentTotalQuestions,
-            R: Math.round((ReadingQuestions / studentTotalQuestions) * 100),
-            W: Math.round((WritingQuestions / studentTotalQuestions) * 100),
-            S: Math.round((SpeakingQuestions / studentTotalQuestions) * 100),
-            LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 100),
-            LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 100),
-            P: Math.round((PronunciationQuestions / studentTotalQuestions) * 100),
+            R: studentTotalQuestions ? Math.round((ReadingQuestions / studentTotalQuestions) * 100) : 0,
+            W: studentTotalQuestions ? Math.round((WritingQuestions / studentTotalQuestions) * 100) : 0,
+            S: studentTotalQuestions ? Math.round((SpeakingQuestions / studentTotalQuestions) * 100) : 0,
+            LA: studentTotalQuestions ? Math.round((ListeningAQuestions / studentTotalQuestions) * 100) : 0,
+            LB: studentTotalQuestions ? Math.round((ListeningBQuestions / studentTotalQuestions) * 100) : 0,
+            P: studentTotalQuestions ? Math.round((PronunciationQuestions / studentTotalQuestions) * 100) : 0,
             TotalScore: studentTotalScore,
             AverageSkill: averageSkill
         };
@@ -565,10 +566,12 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
         });
     }, [selectedClass]);
 
+
     // Only render the chart if originalSeries and name have valid data
     if (loading || originalSeries.length === 0 || name.length === 0) {
         return <div></div>;
     }
+
 
     return (
         <div>

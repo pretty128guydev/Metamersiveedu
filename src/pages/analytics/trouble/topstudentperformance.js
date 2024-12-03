@@ -39,7 +39,7 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
         const students = [];
         // Iterate over each student in the data
         Object.entries(data).forEach(([studentId, studentInfo]) => {
-            const studentName = studentInfo.stdent_name;
+            const studentName = studentInfo.student_name;
             const studentTotalQuestions = studentInfo.total_questions;
 
             let studentTotalScore = 0;
@@ -54,7 +54,7 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
-                if (category !== "stdent_name" && category !== "total_questions") {
+                if (category !== "student_name" && category !== "total_questions") {
                     if (stats.totalQuestions) {
                         if (category === "listening A") {
                             ListeningAQuestions = stats.totalQuestions;
@@ -124,7 +124,7 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
-                if (category !== "stdent_name" && category !== "total_questions") {
+                if (category !== "student_name" && category !== "total_questions") {
                     if (stats.totalQuestions) {
                         if (category === "reading") classTotals.totalReadingQuestions += stats.totalQuestions;
                         if (category === "writing") classTotals.totalWritingQuestions += stats.totalQuestions;
@@ -158,7 +158,7 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
     };
 
     const analyzeStudentData = (studentData) => {
-        const studentName = studentData.stdent_name;
+        const studentName = studentData.student_name;
         const studentTotalQuestions = studentData.total_questions;
 
         let studentTotalScore = 0;
@@ -172,7 +172,7 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
 
         // Process each category for the student
         Object.entries(studentData).forEach(([category, stats]) => {
-            if (category !== "stdent_name" && category !== "total_questions") {
+            if (category !== "student_name" && category !== "total_questions") {
                 if (stats.totalQuestions) {
                     // Handle Reading, Writing, and Listening categories
                     if (category === "reading") {
@@ -334,7 +334,7 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
                                 aggregatedByCategory[studentPage].total_questions = studentInfo.total_questions
                             }
                             aggregatedData[classId.id][studentId] = result;
-                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].student_name = studentInfo.student_name;
                             aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
@@ -430,7 +430,7 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
             }
         }],
         title: {
-            text: "Top 5 Perfomance"
+            text: "Top 5 Perfomance ( % )"
         },
         colors: ["#008ffb", "#00e396", "#feb019", "#ff4560", "#775dd0", "#FFFF00"],
         plotOptions: {
@@ -442,11 +442,19 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
                         enabled: true,
                         style: {
                             fontSize: '13px',
-                            fontWeight: 900
+                            fontWeight: 900,
+                            colors: ['#222']
                         }
-                    }
+                    },
                 }
             },
+        },
+        dataLabels: {
+            enabled: true,
+            style: {
+                fontSize: '12px',
+                colors: ['#222'] // Color for all percentages
+            }
         },
         xaxis: {
             type: 'category', // Set to category for static labels

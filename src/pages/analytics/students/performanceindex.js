@@ -58,7 +58,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
         const results = {};
         for (const studentId in data) {
             const studentData = data[studentId];
-            const studentResult = { name: studentData.stdent_name || "" };
+            const studentResult = { name: studentData.student_name || "" };
 
             // Process each category
             categories.forEach(category => {
@@ -71,7 +71,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
             });
 
             // Add to final results
-            results[studentData.stdent_name] = studentResult;
+            results[studentData.student_name] = studentResult;
         }
 
         return results;
@@ -80,9 +80,9 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
     function transformAggregatedDataToResultFormat(aggregatedData) {
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
-    
+
         const result = {};
-    
+
         levels.forEach((level) => {
             result[level] = categories.map((category) => {
                 if (aggregatedData[category] && aggregatedData[category][level]) {
@@ -91,10 +91,10 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                 return 0; // Default to 0 if data is not available
             });
         });
-    
+
         return result;
     }
-    
+
 
     function getTotalAnalytics(data) {
         const levels = ["level-1", "level-2", "level-3", "level-4"];
@@ -117,6 +117,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
         // Aggregate data across all students
         for (const studentKey in data) {
             const studentData = data[studentKey];
+            let totalCorrect = 0;
             for (const level of levels) {
                 for (let i = 0; i < categories.length; i++) {
                     const category = categories[i];
@@ -124,12 +125,14 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                         const stats = studentData[category][level];
                         const correct = stats.correct || 0;
                         const totalQuestions = stats.totalQuestions || 0;
-
+                        totalCorrect += stats.correct
+                        console.log(category)
                         // Add to the correct total
                         result[level][i] += correct;
 
                         // Add to the total questions for each category and level
                         result.totalQuestions[level][i] += totalQuestions;
+                        result.totalCorrect[level][i] += totalCorrect;
                     }
                 }
             }
@@ -138,11 +141,11 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
         // Now calculate the percentage for each category at each level
         for (const level of levels) {
             for (let i = 0; i < categories.length; i++) {
-                const totalQuestions = result.totalQuestions[level][i];
+                const totalCorrect = result.totalCorrect[level][i];
                 const correct = result[level][i];
 
-                if (totalQuestions > 0) {
-                    result[level][i] = Math.round((correct / totalQuestions) * 100); // Calculate percentage
+                if (totalCorrect > 0) {
+                    result[level][i] = Math.round((correct / totalCorrect) * 100); // Calculate percentage
                 } else {
                     result[level][i] = 0; // No questions, so 0%
                 }
@@ -162,9 +165,12 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
         const totals = {};
 
         levels.forEach((level) => {
-            totals[level] = {};
+            totals[level] = {
+                totalQuestions: 0, // For overall correct answers by level
+                categories: {}, // To store per-category data
+            };
             categories.forEach((category) => {
-                totals[level][category] = { correct: 0, totalQuestions: 0 };
+                totals[level].categories[category] = { correct: 0, totalQuestions: 0 };
             });
         });
 
@@ -175,8 +181,9 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                     categories.forEach((category) => {
                         const categoryData = studentData[category]?.[level];
                         if (categoryData) {
-                            totals[level][category].correct += categoryData.correct || 0;
-                            totals[level][category].totalQuestions += categoryData.totalQuestions || 0;
+                            const correct = categoryData.correct || 0;
+                            totals[level].categories[category].correct += correct;
+                            totals[level].totalQuestions += correct; // Aggregate total correct for the level
                         }
                     });
                 });
@@ -188,13 +195,15 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
 
         levels.forEach((level) => {
             analytics[level] = categories.map((category) => {
-                const { correct, totalQuestions } = totals[level][category];
+                const { correct } = totals[level].categories[category];
+                const { totalQuestions } = totals[level];
                 return calculatePercentage(correct, totalQuestions);
             });
         });
-
+        console.log(analytics)
         return analytics;
     };
+
 
     function analyzeSingleStudentData(studentData) {
         const categories = ["speaking", "writing", "reading", "listening A", "listeningB", "pronunciation"];
@@ -330,7 +339,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                                 aggregatedData[classId.id] = {};
                             }
                             aggregatedData[classId.id][studentId] = result;
-                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].student_name = studentInfo.student_name;
                             aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
@@ -348,20 +357,20 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                     if (selectedClass) {
                         const studentsArray = analyzeData(aggregatedData[selectedClass]);
                         if (aggregatedData[selectedClass]) {
-                            finalData = getTotalAnalytics(studentsArray)
+                            if (selectedClass && selectedStudent) {
+                                const tmpstudentsArray = analyzeData(aggregatedData[selectedClass]);
+                                if (tmpstudentsArray[selectedStudent]) {
+                                    finalData = analyzeSingleStudentData(tmpstudentsArray[selectedStudent])
+                                } else {
+                                    finalData = [];
+                                }
+                            } else {
+                                finalData = getTotalAnalytics(studentsArray)
+                            }
                         } else {
                             finalData = [];
                         }
-                    }
-                    if (selectedClass && selectedStudent) {
-                        const tmpstudentsArray = analyzeData(aggregatedData[selectedClass]);
-                        if (tmpstudentsArray[selectedStudent]) {
-                            finalData = analyzeSingleStudentData(tmpstudentsArray[selectedStudent])
-                        } else {
-                            finalData = [];
-                        }
-                    }
-                    if (!selectedClass && !selectedStudent) {
+                    } else {
                         finalData = getTotalAnalyticsData(aggregatedData)
                     }
                 }
@@ -480,7 +489,8 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
     if (loading || !state.series[0].data) {
         return <div></div>;
     }
-
+    console.log(state.options)
+    console.log(state.series)
     return (
         <div>
             <div id="chart">

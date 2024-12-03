@@ -338,6 +338,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
                   if (aggregatedData[selectedClass]) {
                     // Process data for selectedClass
                     const allStudentsArray = analyzeData(aggregatedData[selectedClass], months, selectedCategory ? selectedCategory : null);
+                    console.log(allStudentsArray)
                     newSeries = Object.keys(allStudentsArray).map((className) => {
                       const percentages = allStudentsArray[className];
                       return {
@@ -388,7 +389,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
       height: 430
     },
     title: {
-      text: 'Skill Drill - YTD Growth',
+      text: 'Skill Drill - YTD Growth ( % )',
     },
     plotOptions: {
       bar: {
@@ -403,7 +404,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
       offsetX: -6,
       style: {
         fontSize: '12px',
-        colors: ['#fff']
+        colors: ['#222']
       }
     },
     stroke: {

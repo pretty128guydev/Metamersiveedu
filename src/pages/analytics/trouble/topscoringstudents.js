@@ -16,20 +16,48 @@ const TopScoringStudents = ({ teacher_id }) => {
         for (const [className, students] of Object.entries(data)) {
             const originalName = getClassNameById(classes, className)
             for (const [studentId, studentData] of Object.entries(students)) {
-                const studentName = studentData.stdent_name;
+                const studentName = studentData.student_name;
                 let totalCorrect = 0;
                 let totalQuestions = 0;
-
+                let studentTotalScore = 0;
+                let studentCorrectAnswers = 0;
+                let ReadingQuestions = 0;
+                let WritingQuestions = 0;
+                let ListeningAQuestions = 0;
+                let ListeningBQuestions = 0;
+                let PronunciationQuestions = 0;
+                let SpeakingQuestions = 0;
+                console.log(studentData)
+                const studentTotalQuestions = studentData.total_questions;
                 // Loop through all subjects (listening, reading, writing) and calculate scores
                 for (const [subject, subjectData] of Object.entries(studentData)) {
-                    if (subject !== "stdent_name" && subject !== "total_questions") {
+                    if (subject !== "student_name" && subject !== "total_questions") {
                         totalCorrect += subjectData.correct;
                         totalQuestions += subjectData.totalQuestions;
+                        if (subject === "reading") {
+                            ReadingQuestions = subjectData.totalQuestions;
+                        } else if (subject === "writing") {
+                            WritingQuestions = subjectData.totalQuestions;
+                        } else if (subject === "listening A") {
+                            ListeningAQuestions = subjectData.totalQuestions;
+                        } else if (subject === "listening B") {
+                            ListeningBQuestions = subjectData.totalQuestions;
+                        } else if (subject === "pronunciation") {
+                            PronunciationQuestions = subjectData.totalQuestions;
+                        } else if (subject === "speaking") {
+                            SpeakingQuestions = subjectData.totalQuestions;
+                        }
                     }
                 }
 
+                const total = Math.round((ReadingQuestions / studentTotalQuestions) * 20) +
+                    Math.round((WritingQuestions / studentTotalQuestions) * 20) +
+                    Math.round((SpeakingQuestions / studentTotalQuestions) * 20) +
+                    Math.round((ListeningAQuestions / studentTotalQuestions) * 15) +
+                    Math.round((ListeningBQuestions / studentTotalQuestions) * 15) +
+                    15;
                 const totalScore = ((totalCorrect / totalQuestions) * 100).toFixed(2); // Calculate percentage
-                result.push({ classname: originalName, studentName, totalScore, totalCorrect, totalQuestions });
+                result.push({ classname: originalName, studentName, totalScore, totalCorrect, totalQuestions, total });
             }
         }
 
@@ -113,7 +141,7 @@ const TopScoringStudents = ({ teacher_id }) => {
                                 aggregatedData[classId.id] = {};
                             }
                             aggregatedData[classId.id][studentId] = result;
-                            aggregatedData[classId.id][studentId].stdent_name = studentInfo.student_name;
+                            aggregatedData[classId.id][studentId].student_name = studentInfo.student_name;
                             aggregatedData[classId.id][studentId].total_questions = studentInfo.total_questions;
                         });
                     } catch (error) {
@@ -147,7 +175,7 @@ const TopScoringStudents = ({ teacher_id }) => {
 
 const StudentsTable = ({ data }) => {
     // Sort data by totalScore in descending order
-    const sortedData = [...data].sort((a, b) => b.totalScore - a.totalScore);
+    const sortedData = [...data].sort((a, b) => b.total - a.total);
 
     // Process the data to add serial numbers
     const processedData = sortedData.map((student, index) => ({
@@ -211,7 +239,7 @@ const StudentsTable = ({ data }) => {
                                     <div>{student.no}</div>
                                     <div>{student.classname}</div>
                                     <div>{student.studentName}</div>
-                                    <div>{student.totalScore}%</div>
+                                    <div>{student.total}%</div>
                                 </div>
                             ))}
                         </div>

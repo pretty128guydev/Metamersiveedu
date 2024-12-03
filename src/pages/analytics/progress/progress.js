@@ -13,6 +13,7 @@ import WordApi from "../../../api-clients/WordApi";
 import BarsScale from "../../../components/loading/BarsScale";
 import TopStudentPerformance from "../trouble/topstudentperformance";
 import TopScoringStudents from "../trouble/topscoringstudents";
+import NegativeProgress from "../trouble/negative-progress";
 
 const Progress = () => {
   const [loading, setLoading] = useState(false);
@@ -220,6 +221,9 @@ const Progress = () => {
           }
           {userInfo.type != "Student" &&
             <TroubleZone />
+          }
+          {userInfo.type != "Student" &&
+            <NegativeProgress />
           }
         </>
       )}

@@ -439,14 +439,14 @@ const Progress_Report = ({ studentPage, selectedClass, selectedCategory, selecte
             }
         },
         title: {
-            text: "Progress Report by Month"
+            text: "Progress Report by Month ( % )"
         },
         dataLabels: {
             enabled: true,
             offsetX: -6,
             style: {
                 fontSize: '12px',
-                colors: ['#fff']
+                colors: ['#222']
             }
         },
         stroke: {

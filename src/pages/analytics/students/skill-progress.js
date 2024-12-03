@@ -180,8 +180,8 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
         // Iterate over each student in the data
         Object.entries(data).forEach(([studentId, studentInfo]) => {
             const studentName = studentInfo.student_name;
-            const studentTotalQuestions = studentInfo.total_questions;
 
+            let studentTotalQuestions = 0;
             let studentTotalScore = 0;
             let studentCorrectAnswers = 0;
             let ReadingQuestions = 0;
@@ -194,19 +194,25 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "student_name" && category !== "total_questions") {
-                    if (stats.totalQuestions) {
+                    if (stats.correct) {
                         if (category === "listening A") {
-                            ListeningAQuestions = stats.totalQuestions;
+                            ListeningAQuestions = stats.correct;
+                            studentTotalQuestions += stats.correct
                         } else if (category === "listening B") {
-                            ListeningBQuestions = stats.totalQuestions;
+                            ListeningBQuestions = stats.correct;
+                            studentTotalQuestions += stats.correct
                         } else if (category === "reading") {
-                            ReadingQuestions = stats.totalQuestions;
+                            ReadingQuestions = stats.correct;
+                            studentTotalQuestions += stats.correct
                         } else if (category === "writing") {
-                            WritingQuestions = stats.totalQuestions;
+                            WritingQuestions = stats.correct;
+                            studentTotalQuestions += stats.correct
                         } else if (category === "speaking") {
-                            SpeakingQuestions = stats.totalQuestions;
+                            SpeakingQuestions = stats.correct;
+                            studentTotalQuestions += stats.correct
                         } else if (category === "pronunciation") {
-                            PronunciationQuestions = stats.totalQuestions;
+                            PronunciationQuestions = stats.correct;
+                            studentTotalQuestions += stats.correct
                         }
 
                         // Accumulate student totals
@@ -218,17 +224,18 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
 
             // Calculate percentages for each category
             const categories = {
-                R: Math.round((ReadingQuestions / studentTotalQuestions) * 100),
-                W: Math.round((WritingQuestions / studentTotalQuestions) * 100),
-                S: Math.round((SpeakingQuestions / studentTotalQuestions) * 100),
-                LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 100),
-                LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 100),
-                P: Math.round((PronunciationQuestions / studentTotalQuestions) * 100),
+                R: studentTotalQuestions > 0 ? Math.round((ReadingQuestions / studentTotalQuestions) * 100) : 0,
+                W: studentTotalQuestions > 0 ? Math.round((WritingQuestions / studentTotalQuestions) * 100) : 0,
+                S: studentTotalQuestions > 0 ? Math.round((SpeakingQuestions / studentTotalQuestions) * 100) : 0,
+                LA: studentTotalQuestions > 0 ? Math.round((ListeningAQuestions / studentTotalQuestions) * 100) : 0,
+                LB: studentTotalQuestions > 0 ? Math.round((ListeningBQuestions / studentTotalQuestions) * 100) : 0,
+                P: studentTotalQuestions > 0 ? Math.round((PronunciationQuestions / studentTotalQuestions) * 100) : 0,
             };
-
+            console.log(categories)
             const mastered = Object.entries(categories)
                 .filter(([key, value]) => value > 50) // Filter categories with percentage > 50
                 .map(([key]) => key);
+            console.log(mastered)
 
             // Find the category with the highest percentage
             const [highestCategory, highestPercentage] = Object.entries(categories).reduce(
@@ -256,58 +263,41 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
 
     const processStudentData = (data) => {
         const students = [];
-        const studentInfo = data
+        const studentInfo = data;
         const studentName = studentInfo.name || "Unknown";
         const categories = studentInfo;
 
-        let studentTotalQuestions = 0;
-        let studentCorrectAnswers = 0;
-
-        let ReadingQuestions = 0;
-        let WritingQuestions = 0;
-        let SpeakingQuestions = 0;
-        let ListeningAQuestions = 0;
-        let ListeningBQuestions = 0;
-        let PronunciationQuestions = 0;
-
         const categoryTotals = {};
+        let studentTotalQuestions = 0;
 
+        // First, calculate the total number of questions answered correctly
         Object.entries(categories).forEach(([category, stats]) => {
             if (category === "name") return; // Skip the name field
+            const totalCorrect = stats.totalCorrect || 0;
+            studentTotalQuestions += totalCorrect;
+        });
 
-            const totalQuestions = stats.totalQuestions || 0;
-            const correctAnswers = stats.totalCorrect || 0;
+        // Now calculate the percentage for each category
+        Object.entries(categories).forEach(([category, stats]) => {
+            if (category === "name") return; // Skip the name field
+            const totalCorrect = stats.totalCorrect || 0;
 
-            studentTotalQuestions += totalQuestions;
-            studentCorrectAnswers += correctAnswers;
+            const categoryShortNames = {
+                reading: "R",
+                writing: "W",
+                speaking: "S",
+                "listening A": "LA",
+                "listening B": "LB",
+                pronunciation: "P",
+            };
 
-            switch (category.toLowerCase()) {
-                case "reading":
-                    ReadingQuestions = totalQuestions;
-                    break;
-                case "writing":
-                    WritingQuestions = totalQuestions;
-                    break;
-                case "speaking":
-                    SpeakingQuestions = totalQuestions;
-                    break;
-                case "listening A":
-                    ListeningAQuestions = totalQuestions;
-                    break;
-                case "listening B":
-                    ListeningBQuestions = totalQuestions;
-                    break;
-                case "pronunciation":
-                    PronunciationQuestions = totalQuestions;
-                    break;
-                default:
-                    break;
-            }
-
+            const shortName = categoryShortNames[category];
             // Store the percentage for each category
-            categoryTotals[category.charAt(0).toUpperCase()] = Math.round(
-                (totalQuestions / studentTotalQuestions) * 100
-            );
+            if (shortName && studentTotalQuestions > 0) {
+                categoryTotals[shortName] = Math.round(
+                    (totalCorrect / studentTotalQuestions) * 100
+                );
+            }
         });
 
         // Calculate mastery and highest skill category
@@ -337,6 +327,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
         return students;
     };
 
+
     const getClassNameById = (classes, id) => {
         // Find the class with the matching id
         const foundClass = classes.find(classItem => classItem.id === id);
@@ -345,6 +336,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
     };
 
     const processClass = (data, className, classes) => {
+        console.log(data)
         const classTotals = {
             totalQuestions: 0,
             totalReadingQuestions: 0,
@@ -364,24 +356,30 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "student_name" && category !== "total_questions") {
-                    if (stats.totalQuestions) {
+                    if (stats.correct) {
                         if (category === "reading") {
-                            classTotals.totalReadingQuestions += stats.totalQuestions;
+                            classTotals.totalReadingQuestions += stats.correct;
+                            classTotals.totalQuestions += stats.correct;
                         }
                         if (category === "writing") {
-                            classTotals.totalWritingQuestions += stats.totalQuestions;
+                            classTotals.totalWritingQuestions += stats.correct;
+                            classTotals.totalQuestions += stats.correct;
                         }
                         if (category === "speaking") {
-                            classTotals.totalSpeakingQuestions += stats.totalQuestions;
+                            classTotals.totalSpeakingQuestions += stats.correct;
+                            classTotals.totalQuestions += stats.correct;
                         }
                         if (category === "listening A") {
-                            classTotals.totalListeningAQuestions += stats.totalQuestions;
+                            classTotals.totalListeningAQuestions += stats.correct;
+                            classTotals.totalQuestions += stats.correct;
                         }
                         if (category === "listening B") {
-                            classTotals.totalListeningBQuestions += stats.totalQuestions;
+                            classTotals.totalListeningBQuestions += stats.correct;
+                            classTotals.totalQuestions += stats.correct;
                         }
                         if (category === "pronunciation") {
-                            classTotals.totalPronunciationQuestions += stats.totalQuestions;
+                            classTotals.totalPronunciationQuestions += stats.correct;
+                            classTotals.totalQuestions += stats.correct;
                         }
 
                         // Accumulate overall totals
@@ -390,8 +388,6 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
                     }
                 }
             });
-
-            classTotals.totalQuestions += studentTotalQuestions;
         });
 
         // Calculate percentages for each category
@@ -491,7 +487,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
                                 <td>{student.LB}%</td>
                                 <td>{student.P}%</td>
                                 <td>{student.Skill}</td>
-                                <td>{student.Score}%</td>
+                                <td>{student.Score > 0 && `${student.Score}%`}</td>
                                 <td>{student.mastered}</td>
                             </tr>
                         ))}
