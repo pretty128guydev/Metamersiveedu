@@ -415,6 +415,18 @@ const Scores = () => {
                             className="text-center"
                             style={{ width: "150px" }}
                           >
+                            CORRECT RESPONSES
+                          </div>
+                          <div
+                            className="text-center"
+                            style={{ width: "150px" }}
+                          >
+                            ERRORS
+                          </div>
+                          <div
+                            className="text-center"
+                            style={{ width: "150px" }}
+                          >
                             TIME SPENT
                           </div>
                           <div
@@ -431,7 +443,7 @@ const Scores = () => {
                       >
                         {Object.keys(villageData).map((key, index) => {
                           const item = villageData[key];
-                          console.log(item, key)
+                          console.log(item)
                           return (
                             <>
                               <div
@@ -468,6 +480,18 @@ const Scores = () => {
                                         style={{ width: "150px" }}
                                       >
                                         {childItem.totalQuestions || ""}
+                                      </div>
+                                      <div
+                                        className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"
+                                        style={{ width: "150px" }}
+                                      >
+                                        {childItem.totalcorrect || ""}
+                                      </div>
+                                      <div
+                                        className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"
+                                        style={{ width: "150px" }}
+                                      >
+                                        {childItem.totalIncorrect || ""}
                                       </div>
                                       <div
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"

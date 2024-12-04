@@ -220,10 +220,10 @@ const Progress = () => {
             <TopScoringStudents selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
           }
           {userInfo.type != "Student" &&
-            <TroubleZone />
+            <NegativeProgress teacher_id={userInfo.uid} />
           }
           {userInfo.type != "Student" &&
-            <NegativeProgress />
+            <TroubleZone />
           }
         </>
       )}

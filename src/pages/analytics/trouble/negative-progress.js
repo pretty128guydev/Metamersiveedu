@@ -8,14 +8,10 @@ import { AnalyticsAPI } from "../../../api-clients/AnalyticsAPI";
 
 const NegativeProgress = ({ teacher_id }) => {
     const [loading, setLoading] = useState(false);
-    const [data, setdata] = useState([]);
+    const [data, setData] = useState([]);
 
-    function analyzeStudentNegativeData(data) {
+    function analyzeStudentData(data) {
         const currentDate = new Date();
-        const quarters = [
-            { start: 1, end: 15 },
-            { start: 16, end: 31 },
-        ];
 
         const parseDate = (dateStr) => new Date(dateStr);
 
@@ -25,17 +21,23 @@ const NegativeProgress = ({ teacher_id }) => {
                 return recordDate.getFullYear() === year && recordDate.getMonth() === month;
             });
 
-        const filterByQuarter = (records, year, month, quarter) =>
-            records.filter((record) => {
+        const filterByQuarter = (records, year, quarter) => {
+            const monthRange = getQuarterMonthRange(quarter);
+            return records.filter((record) => {
                 const recordDate = parseDate(record.createdAt);
-                const day = recordDate.getDate();
-                return (
-                    recordDate.getFullYear() === year &&
-                    recordDate.getMonth() === month &&
-                    day >= quarter.start &&
-                    day <= quarter.end
-                );
+                return recordDate.getFullYear() === year && monthRange.includes(recordDate.getMonth());
             });
+        };
+
+        const getQuarterMonthRange = (quarter) => {
+            switch (quarter) {
+                case 1: return [0, 1, 2]; // Jan-Mar
+                case 2: return [3, 4, 5]; // Apr-Jun
+                case 3: return [6, 7, 8]; // Jul-Sep
+                case 4: return [9, 10, 11]; // Oct-Dec
+                default: return [];
+            }
+        };
 
         const calculateCategoryPercentage = (records, category) => {
             const categoryRecords = records.filter((record) => record.category === category);
@@ -101,66 +103,59 @@ const NegativeProgress = ({ teacher_id }) => {
             };
 
             // Quarterly Growth Calculations
-            quarters.forEach((quarter, index) => {
-                const thisQuarterData = filterByQuarter(
-                    records,
-                    currentDate.getFullYear(),
-                    currentDate.getMonth(),
-                    quarter
+            const currentQuarter = Math.floor(currentDate.getMonth() / 3) + 1;
+            const lastQuarter = currentQuarter === 1 ? 4 : currentQuarter - 1;
+
+            const thisQuarterData = filterByQuarter(records, currentDate.getFullYear(), currentQuarter);
+            const lastQuarterData = filterByQuarter(
+                records,
+                currentDate.getFullYear(),
+                lastQuarter
+            );
+
+            const thisQuarterPercentages = {};
+            const lastQuarterPercentages = {};
+            const quarterlyGrowthPercentages = {};
+
+            categories.forEach((category) => {
+                thisQuarterPercentages[category] = calculateCategoryPercentage(thisQuarterData, category);
+                lastQuarterPercentages[category] = calculateCategoryPercentage(lastQuarterData, category);
+                quarterlyGrowthPercentages[category] = calculateGrowth(
+                    thisQuarterPercentages[category],
+                    lastQuarterPercentages[category]
                 );
-                const previousQuarterData =
-                    index > 0
-                        ? filterByQuarter(records, currentDate.getFullYear(), currentDate.getMonth(), quarters[index - 1])
-                        : [];
-
-                const thisQuarterPercentages = {};
-                const previousQuarterPercentages = {};
-                const growthPercentages = {};
-
-                categories.forEach((category) => {
-                    thisQuarterPercentages[category] = calculateCategoryPercentage(thisQuarterData, category);
-                    previousQuarterPercentages[category] = calculateCategoryPercentage(previousQuarterData, category);
-                    growthPercentages[category] = calculateGrowth(
-                        thisQuarterPercentages[category],
-                        previousQuarterPercentages[category]
-                    );
-                });
-
-                // Total Quarterly Growth
-                const thisQuarterCorrect = thisQuarterData.reduce(
-                    (acc, record) => acc + parseInt(record.questions.correct, 10),
-                    0
-                );
-                const thisQuarterTotal = thisQuarterData.reduce((acc, record) => acc + parseInt(record.questions.total, 10), 0);
-                const previousQuarterCorrect = previousQuarterData.reduce(
-                    (acc, record) => acc + parseInt(record.questions.correct, 10),
-                    0
-                );
-                const previousQuarterTotal = previousQuarterData.reduce(
-                    (acc, record) => acc + parseInt(record.questions.total, 10),
-                    0
-                );
-
-                const totalThisQuarterPercentage =
-                    thisQuarterTotal > 0 ? (thisQuarterCorrect / thisQuarterTotal) * 100 : 0;
-                const totalPreviousQuarterPercentage =
-                    previousQuarterTotal > 0 ? (previousQuarterCorrect / previousQuarterTotal) * 100 : 0;
-
-                const totalQuarterlyGrowth = calculateGrowth(
-                    totalThisQuarterPercentage,
-                    totalPreviousQuarterPercentage
-                );
-
-                studentResults.quarterly.push({
-                    quarter: index + 1,
-                    thisQuarterPercentages,
-                    previousQuarterPercentages,
-                    growthPercentages,
-                    totalThisQuarterPercentage,
-                    totalPreviousQuarterPercentage,
-                    totalQuarterlyGrowth,
-                });
             });
+
+            // Total Quarterly Growth
+            const thisQuarterCorrect = thisQuarterData.reduce(
+                (acc, record) => acc + parseInt(record.questions.correct, 10),
+                0
+            );
+            const thisQuarterTotal = thisQuarterData.reduce(
+                (acc, record) => acc + parseInt(record.questions.total, 10),
+                0
+            );
+            const lastQuarterCorrect = lastQuarterData.reduce(
+                (acc, record) => acc + parseInt(record.questions.correct, 10),
+                0
+            );
+            const lastQuarterTotal = lastQuarterData.reduce(
+                (acc, record) => acc + parseInt(record.questions.total, 10),
+                0
+            );
+
+            const totalThisQuarterPercentage = thisQuarterTotal > 0 ? (thisQuarterCorrect / thisQuarterTotal) * 100 : 0;
+            const totalLastQuarterPercentage = lastQuarterTotal > 0 ? (lastQuarterCorrect / lastQuarterTotal) * 100 : 0;
+            const totalQuarterlyGrowth = calculateGrowth(totalThisQuarterPercentage, totalLastQuarterPercentage);
+
+            studentResults.quarterly = {
+                thisQuarterPercentages,
+                lastQuarterPercentages,
+                quarterlyGrowthPercentages,
+                totalThisQuarterPercentage,
+                totalLastQuarterPercentage,
+                totalQuarterlyGrowth,
+            };
 
             results[studentId] = {
                 studentName: studentData.student_name,
@@ -170,6 +165,7 @@ const NegativeProgress = ({ teacher_id }) => {
 
         return results;
     }
+
 
     useEffect(() => {
         setLoading(true);
@@ -198,135 +194,176 @@ const NegativeProgress = ({ teacher_id }) => {
                     new Map(allClasses.map((item) => [item.id, item])).values()
                 );
 
-                // Initialize an array to hold promises for all API calls
+                const results = {};
 
+                // Fetch student data for each class and analyze
                 const promises = uniqueClasses.map(async (classId) => {
                     try {
                         const studentsData = await AnalyticsAPI.getStudentsData({
                             classId: classId.id,
                         });
-                        console.log(studentsData)
-                        const negativeData = analyzeStudentNegativeData(studentsData.data)
-                        console.log(negativeData)
-                        // Iterate over each student in the response
+                        const negativeData = analyzeStudentData(studentsData.data);
+                        Object.entries(negativeData).forEach(([studentId, studentInfo]) => {
+                            results[studentInfo.studentName] = studentInfo; // Add analyzed data to results
+                        })
                     } catch (error) {
                         console.error(`Error fetching data for class ${classId.id}:`, error);
-                        setLoading(false);
                     }
                 });
 
-                // Wait for all API calls to complete
                 await Promise.all(promises);
-
+                setData(results);
+                setLoading(false);
             } catch (error) {
                 console.error('Error fetching classrooms or data:', error);
                 setLoading(false);
             }
         };
 
-        fetchAllApis().catch(() => {
-            setLoading(false);
-        });
-    }, []);  // Empty dependency array means this effect runs only once when the component mounts
-
-
-    return (<StudentsTable data={data} />)
-
-}
-
-const StudentsTable = ({ data }) => {
-    // Sort data by totalScore in descending order
-    const sortedData = [...data].sort((a, b) => b.total - a.total);
-
-    // Process the data to add serial numbers
-    const processedData = sortedData.map((student, index) => ({
-        ...student,
-        no: index + 1, // Add serial number
-    }));
-
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 5; // Number of entries per page
-    const totalPages = Math.ceil(processedData.length / pageSize);
-
-    const [filter, setFilter] = useState(null); // State for filter
-
-    // Apply the selected filter
-    const filteredData = filter
-        ? processedData.filter((student) => student.totalScore > filter)
-        : processedData;
-
-    // Pagination logic
-    const displayedData = filteredData.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    );
+        fetchAllApis().catch(() => setLoading(false));
+    }, [teacher_id]);
 
     return (
         <div>
-            <div className="mb-4">
-                <Card className="bg-transparent" style={{ border: "solid 1px #a8b6bc" }}>
-                    <CardBody>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <div className="fw-bold fs-16px">Student Analysis</div>
-                            <select
-                                className="form-select w-auto"
-                                onChange={(e) => {
-                                    setFilter(Number(e.target.value) || null);
-                                    setCurrentPage(1); // Reset to first page on filter change
-                                }}
-                            >
-                                <option value="">All Scores</option>
-                                <option value="50">{"Scores > 50%"}</option>
-                                <option value="70">{"Scores > 70%"}</option>
-                                <option value="90">{"Scores > 90%"}</option>
-                            </select>
-                        </div>
-                        <div className="p-3 mb-2" style={{ border: "solid 1px #a8b6bc" }}>
-                            <div
-                                className="d-flex justify-content-between gap-4 fw-bold"
-                                style={{ borderBottom: "solid 1px #a8b6bc" }}
-                            >
-                                <div className="fs-5">No.</div>
-                                <div className="fs-5">Classname</div>
-                                <div className="fs-5">Student Name</div>
-                                <div className="fs-5">Total Score</div>
-                            </div>
-                            {displayedData.map((student) => (
-                                <div
-                                    key={student.no}
-                                    className="d-flex justify-content-between gap-4 py-2"
-                                    style={{ borderBottom: "solid 1px #a8b6bc" }}
-                                >
-                                    <div>{student.no}</div>
-                                    <div>{student.classname}</div>
-                                    <div>{student.studentName}</div>
-                                    <div>{student.total}%</div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="btn-group float-end">
-                            <button
-                                type="button"
-                                className="btn btn-outline-secondary"
-                                disabled={currentPage === 1}
-                                onClick={() => setCurrentPage(currentPage - 1)}
-                            >
-                                Prev
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-outline-secondary"
-                                disabled={currentPage === totalPages || filteredData.length === 0}
-                                onClick={() => setCurrentPage(currentPage + 1)}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </CardBody>
-                </Card>
-            </div>
+            {loading ? (
+                <div>Loading...</div>
+            ) : (
+                <StudentsTable data={data} />
+            )}
         </div>
     );
 };
+
+const StudentsTable = ({ data }) => {
+    console.log(data)
+    const [timeFilter, setTimeFilter] = useState("monthly"); // Default to "monthly"
+    const [skillFilter, setSkillFilter] = useState(""); // Default to showing all skills
+    const [currentPage, setCurrentPage] = useState(1); // Pagination control
+    const itemsPerPage = 5; // Define how many students to show per page
+
+    // Function to handle time and skill-based filtering
+    const getFilteredData = () => {
+        const filteredData = Object.values(data).map((student) => {
+            const studentData = student.results[timeFilter]; // Get data based on time filter (monthly/quarterly)
+            console.log(skillFilter)
+            // If a skill filter is applied, we will include only the relevant skill's data
+            if (skillFilter) {
+                const skillData = studentData[`${timeFilter}GrowthPercentages`]; // Access relevant percentage data based on time filter
+                console.log(skillData, skillFilter)
+                return {
+                    ...student,
+                    skillData: skillData[skillFilter] ? skillData[skillFilter] : null,
+                    growth: studentData[`${timeFilter}GrowthPercentages`][skillFilter] || null,
+                };
+            } else {
+                // If no skill filter is applied, show total percentage and growth
+                return {
+                    ...student,
+                    total: studentData[`totalThis${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}GrowthPercentage`] || 0,
+                    growth: studentData[`total${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}Growth`] || 0,
+                };
+            }
+        }).filter((student) => skillFilter ? student.skillData !== null : true);
+
+        const sortedData = [...filteredData].sort((a, b) => b.growth - a.growth);
+
+        return sortedData;
+    };
+
+    // Get the filtered students based on the filters
+    const displayedData = getFilteredData();
+
+    // Pagination: Calculate total pages
+    const totalPages = Math.ceil(displayedData.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageData = displayedData.slice(startIndex, endIndex);
+
+    return (
+        <div>
+            <Card className="bg-transparent" style={{ border: "solid 1px #a8b6bc" }}>
+                <CardBody>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                        <div className="fw-bold fs-16px">Student Analysis</div>
+                        <div className="d-flex align-items-center gap-2">
+                            {/* Time Filter */}
+                            <select
+                                className="form-select w-auto"
+                                onChange={(e) => {
+                                    setTimeFilter(e.target.value);
+                                    setCurrentPage(1); // Reset to first page
+                                }}
+                            >
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                            </select>
+
+                            {/* Skill Filter */}
+                            <select
+                                className="form-select w-auto"
+                                onChange={(e) => {
+                                    setSkillFilter(e.target.value);
+                                    setCurrentPage(1); // Reset to first page
+                                }}
+                            >
+                                <option value="">All Skills</option>
+                                <option value="reading">Reading</option>
+                                <option value="speaking">Speaking</option>
+                                <option value="listening A">Listening A</option>
+                                <option value="listening B">Listening B</option>
+                                <option value="writing">Writing</option>
+                                <option value="pronunciation">Pronunciation</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="p-3 mb-2" style={{ border: "solid 1px #a8b6bc" }}>
+                        <div
+                            className="d-flex justify-content-between gap-4 fw-bold"
+                            style={{ borderBottom: "solid 1px #a8b6bc" }}
+                        >
+                            <div className="fs-5">No.</div>
+                            <div className="fs-5">Student Name</div>
+                            <div className="fs-5">Category</div>
+                            <div className="fs-5">Growth</div>
+                        </div>
+                        {currentPageData.map((student, index) => (
+                            student.growth < 0 &&
+                            <div
+                                key={student.studentName}
+                                className="d-flex justify-content-between gap-4 py-2"
+                                style={{ borderBottom: "solid 1px #a8b6bc" }}
+                            >
+                                <div>{startIndex + index + 1}</div>
+                                <div>{student.studentName}</div>
+                                <div>{skillFilter || "All Skills"}</div>
+                                <div>{student.growth !== null ? student.growth.toFixed(2) + "%" : "N/A"}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="btn-group float-end">
+                        <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                        >
+                            Prev
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            disabled={currentPage === totalPages || displayedData.length === 0}
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </CardBody>
+            </Card>
+        </div>
+    );
+};
+
+
 
 export default NegativeProgress;
