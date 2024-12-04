@@ -216,7 +216,6 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
 
 
     const getArrays = (data) => {
-        console.log(data)
         // Initialize arrays to hold the values
         const name = [];
         const R = [];
@@ -323,7 +322,6 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
                             }
 
                             const result = aggregateQuestionsByCategory(studentInfo.data);
-                            console.log(result)
                             // Temporarily store the aggregated result in the variable
                             if (!aggregatedData[classId.id]) {
                                 aggregatedData[classId.id] = {};

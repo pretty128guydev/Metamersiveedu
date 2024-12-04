@@ -126,7 +126,6 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                         const correct = stats.correct || 0;
                         const totalQuestions = stats.totalQuestions || 0;
                         totalCorrect += stats.correct
-                        console.log(category)
                         // Add to the correct total
                         result[level][i] += correct;
 
@@ -200,7 +199,6 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                 return calculatePercentage(correct, totalQuestions);
             });
         });
-        console.log(analytics)
         return analytics;
     };
 
@@ -489,8 +487,6 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
     if (loading || !state.series[0].data) {
         return <div></div>;
     }
-    console.log(state.options)
-    console.log(state.series)
     return (
         <div>
             <div id="chart">

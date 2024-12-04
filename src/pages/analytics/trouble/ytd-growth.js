@@ -98,7 +98,6 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
   // Function to analyze data
   function analyzeData(data, months, category = null) {
     const result = {};
-
     // Loop through each session (s1, s4, s5, etc.)
     for (const sessionKey in data) {
       const sessionData = data[sessionKey];
@@ -107,6 +106,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
       // Loop through each month in the provided months array
       for (const month of months) {
         let correct = 0;
+        let incorrect = 0;
         let totalQuestions = 0;
 
         // Check if the month exists in the session data
@@ -117,6 +117,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
               const categoryData = sessionData[month].categories[category];
               correct += categoryData.correct;
               totalQuestions += categoryData.questions;
+              incorrect += categoryData.incorrect;
             }
           } else {
             // If no category specified, aggregate across all categories
@@ -124,12 +125,13 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
               const categoryData = sessionData[month].categories[cat];
               correct += categoryData.correct;
               totalQuestions += categoryData.questions;
+              incorrect += categoryData.incorrect;
             }
           }
         }
 
         // Calculate the correct percentage for the month and round to the nearest integer
-        const correctPercentage = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+        const correctPercentage = correct + incorrect;
         sessionResult.push(correctPercentage);
       }
 
@@ -145,6 +147,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
     // Loop through each month in the provided months array
     for (const month of months) {
       let correct = 0;
+      let incorrect = 0;
       let totalQuestions = 0;
 
       // Check if the given month exists in the student's data
@@ -154,6 +157,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
           if (data[month].categories[category]) {
             const categoryData = data[month].categories[category];
             correct += categoryData.correct;
+            incorrect += categoryData.incorrect;
             totalQuestions += categoryData.questions;
           }
         } else {
@@ -161,12 +165,13 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
           for (const cat in data[month].categories) {
             const categoryData = data[month].categories[cat];
             correct += categoryData.correct;
+            incorrect += categoryData.incorrect;
             totalQuestions += categoryData.questions;
           }
         }
 
         // Calculate the correct percentage for the month and push it to the result array
-        const correctPercentage = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+        const correctPercentage = incorrect + correct;
         result.push(correctPercentage);
       } else {
         // If the month is not found, push 0 (no data for that month)
@@ -200,18 +205,20 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
           const monthDetails = sectionData[month];
 
           // Calculate data for the specified category or total
-          let correct = 0, questions = 0;
+          let correct = 0, questions = 0, incorrect = 0;
           if (category && monthDetails.categories[category]) {
             const catData = monthDetails.categories[category];
             correct += catData.correct;
+            incorrect += catData.incorrect;
             questions += catData.questions;
           } else if (!category) {
             correct += monthDetails.totalCorrect;
+            incorrect += monthDetails.totalIncorrect;
             questions += monthDetails.totalQuestions;
           }
 
           // Calculate percentage and update the result
-          result[user][monthIndex] += questions > 0 ? Math.round((correct / questions) * 100) : 0;
+          result[user][monthIndex] += correct + incorrect;
         }
       }
     }
@@ -389,7 +396,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
       height: 430
     },
     title: {
-      text: 'Skill Drill - YTD Growth ( % )',
+      text: 'Skill Drill - YTD Growth',
     },
     plotOptions: {
       bar: {

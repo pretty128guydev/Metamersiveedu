@@ -27,7 +27,6 @@ const TopScoringStudents = ({ teacher_id }) => {
                 let ListeningBQuestions = 0;
                 let PronunciationQuestions = 0;
                 let SpeakingQuestions = 0;
-                console.log(studentData)
                 const studentTotalQuestions = studentData.total_questions;
                 // Loop through all subjects (listening, reading, writing) and calculate scores
                 for (const [subject, subjectData] of Object.entries(studentData)) {
@@ -152,7 +151,6 @@ const TopScoringStudents = ({ teacher_id }) => {
 
                 // Wait for all API calls to complete
                 await Promise.all(promises);
-                console.log(aggregatedData)
                 const data = analyzeData(aggregatedData, uniqueClasses)
                 setdata(data)
 

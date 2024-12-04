@@ -12,7 +12,6 @@ const NegativeProgress = ({ teacher_id }) => {
 
     function analyzeStudentData(data) {
         const currentDate = new Date();
-
         const parseDate = (dateStr) => new Date(dateStr);
 
         const filterByMonth = (records, year, month) =>
@@ -42,12 +41,14 @@ const NegativeProgress = ({ teacher_id }) => {
         const calculateCategoryPercentage = (records, category) => {
             const categoryRecords = records.filter((record) => record.category === category);
             const correct = categoryRecords.reduce((acc, record) => acc + parseInt(record.questions.correct, 10), 0);
+            const inCorrect = categoryRecords.reduce((acc, record) => acc + parseInt(record.questions.inCorrect, 10), 0);
             const total = categoryRecords.reduce((acc, record) => acc + parseInt(record.questions.total, 10), 0);
-            return total > 0 ? (correct / total) * 100 : 0;
+            return correct + inCorrect;
         };
 
-        const calculateGrowth = (current, previous) =>
-            previous === 0 ? (current > 0 ? 100 : 0) : ((current - previous) / previous) * 100;
+        const calculateGrowth = (current, previous) => {
+            return previous !== 0 ? ((current - previous) / previous) * 100 : 0
+        }
 
         const results = {};
         const categories = ["reading", "speaking", "writing", "listening A", "listening B", "pronunciation"];
@@ -83,14 +84,22 @@ const NegativeProgress = ({ teacher_id }) => {
                 0
             );
             const thisMonthTotal = thisMonthData.reduce((acc, record) => acc + parseInt(record.questions.total, 10), 0);
+            const thisMonthInCorrect = thisMonthData.reduce(
+                (acc, record) => acc + parseInt(record.questions.inCorrect, 10),
+                0
+            );
             const lastMonthCorrect = lastMonthData.reduce(
                 (acc, record) => acc + parseInt(record.questions.correct, 10),
                 0
             );
+            const lastMonthInCorrect = lastMonthData.reduce(
+                (acc, record) => acc + parseInt(record.questions.inCorrect, 10),
+                0
+            );
             const lastMonthTotal = lastMonthData.reduce((acc, record) => acc + parseInt(record.questions.total, 10), 0);
 
-            const totalThisMonthPercentage = thisMonthTotal > 0 ? (thisMonthCorrect / thisMonthTotal) * 100 : 0;
-            const totalLastMonthPercentage = lastMonthTotal > 0 ? (lastMonthCorrect / lastMonthTotal) * 100 : 0;
+            const totalThisMonthPercentage = thisMonthCorrect + thisMonthInCorrect;
+            const totalLastMonthPercentage = lastMonthCorrect + lastMonthInCorrect;
             const totalMonthlyGrowth = calculateGrowth(totalThisMonthPercentage, totalLastMonthPercentage);
 
             studentResults.monthly = {
@@ -131,6 +140,10 @@ const NegativeProgress = ({ teacher_id }) => {
                 (acc, record) => acc + parseInt(record.questions.correct, 10),
                 0
             );
+            const thisQuarterInCorrect = thisQuarterData.reduce(
+                (acc, record) => acc + parseInt(record.questions.inCorrect, 10),
+                0
+            );
             const thisQuarterTotal = thisQuarterData.reduce(
                 (acc, record) => acc + parseInt(record.questions.total, 10),
                 0
@@ -139,13 +152,17 @@ const NegativeProgress = ({ teacher_id }) => {
                 (acc, record) => acc + parseInt(record.questions.correct, 10),
                 0
             );
+            const lastQuarterInCorrect = lastQuarterData.reduce(
+                (acc, record) => acc + parseInt(record.questions.inCorrect, 10),
+                0
+            );
             const lastQuarterTotal = lastQuarterData.reduce(
                 (acc, record) => acc + parseInt(record.questions.total, 10),
                 0
             );
 
-            const totalThisQuarterPercentage = thisQuarterTotal > 0 ? (thisQuarterCorrect / thisQuarterTotal) * 100 : 0;
-            const totalLastQuarterPercentage = lastQuarterTotal > 0 ? (lastQuarterCorrect / lastQuarterTotal) * 100 : 0;
+            const totalThisQuarterPercentage = thisQuarterCorrect + thisQuarterInCorrect;
+            const totalLastQuarterPercentage = lastQuarterCorrect + lastQuarterInCorrect;
             const totalQuarterlyGrowth = calculateGrowth(totalThisQuarterPercentage, totalLastQuarterPercentage);
 
             studentResults.quarterly = {
@@ -235,35 +252,44 @@ const NegativeProgress = ({ teacher_id }) => {
 };
 
 const StudentsTable = ({ data }) => {
-    console.log(data)
     const [timeFilter, setTimeFilter] = useState("monthly"); // Default to "monthly"
     const [skillFilter, setSkillFilter] = useState(""); // Default to showing all skills
+    const [scoreFilter, setScoreFilter] = useState(null); // New filter for scores
     const [currentPage, setCurrentPage] = useState(1); // Pagination control
     const itemsPerPage = 5; // Define how many students to show per page
 
     // Function to handle time and skill-based filtering
     const getFilteredData = () => {
-        const filteredData = Object.values(data).map((student) => {
-            const studentData = student.results[timeFilter]; // Get data based on time filter (monthly/quarterly)
-            console.log(skillFilter)
-            // If a skill filter is applied, we will include only the relevant skill's data
-            if (skillFilter) {
-                const skillData = studentData[`${timeFilter}GrowthPercentages`]; // Access relevant percentage data based on time filter
-                console.log(skillData, skillFilter)
-                return {
-                    ...student,
-                    skillData: skillData[skillFilter] ? skillData[skillFilter] : null,
-                    growth: studentData[`${timeFilter}GrowthPercentages`][skillFilter] || null,
-                };
-            } else {
-                // If no skill filter is applied, show total percentage and growth
-                return {
-                    ...student,
-                    total: studentData[`totalThis${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}GrowthPercentage`] || 0,
-                    growth: studentData[`total${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}Growth`] || 0,
-                };
-            }
-        }).filter((student) => skillFilter ? student.skillData !== null : true);
+        const filteredData = Object.values(data)
+            .map((student) => {
+                const studentData = student.results[timeFilter]; // Get data based on time filter (monthly/quarterly)
+
+                // If a skill filter is applied, include only the relevant skill's data
+                if (skillFilter) {
+                    const skillData = studentData[`${timeFilter}GrowthPercentages`]; // Access relevant percentage data based on time filter
+                    return {
+                        ...student,
+                        skillData: skillData[skillFilter] ? skillData[skillFilter] : null,
+                        growth: skillData[skillFilter] || null,
+                    };
+                } else {
+                    // If no skill filter is applied, show total percentage and growth
+                    return {
+                        ...student,
+                        total: studentData[`totalThis${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}Percentage`] || 0,
+                        growth: studentData[`total${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}Growth`] || 0,
+                    };
+                }
+            })
+            .filter((student) => {
+                // Apply skill filter
+                const matchesSkill = skillFilter ? student.skillData !== null : true;
+
+                // Apply score filter
+                const matchesScore = scoreFilter !== null ? student.growth <= scoreFilter : true;
+
+                return matchesSkill && matchesScore;
+            });
 
         const sortedData = [...filteredData].sort((a, b) => b.growth - a.growth);
 
@@ -277,8 +303,11 @@ const StudentsTable = ({ data }) => {
     const totalPages = Math.ceil(displayedData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
+
+    // Slice the data for the current page and filter out students with negative growth
     const currentPageData = displayedData.slice(startIndex, endIndex)
-        .filter(item => item.growth < 0);
+        .filter((item) => item.growth < 0);
+
     return (
         <div>
             <Card className="bg-transparent" style={{ border: "solid 1px #a8b6bc" }}>
@@ -314,6 +343,20 @@ const StudentsTable = ({ data }) => {
                                 <option value="writing">Writing</option>
                                 <option value="pronunciation">Pronunciation</option>
                             </select>
+
+                            {/* Score Filter */}
+                            <select
+                                className="form-select w-auto"
+                                onChange={(e) => {
+                                    setScoreFilter(Number(e.target.value) || null);
+                                    setCurrentPage(1); // Reset to first page on filter change
+                                }}
+                            >
+                                <option value="">All Scores</option>
+                                <option value="-10">{"Scores < -10%"}</option>
+                                <option value="-30">{"Scores < -30%"}</option>
+                                <option value="-50">{"Scores < -50%"}</option>
+                            </select>
                         </div>
                     </div>
                     <div className="p-3 mb-2" style={{ border: "solid 1px #a8b6bc" }}>
@@ -333,7 +376,7 @@ const StudentsTable = ({ data }) => {
                                 style={{ borderBottom: "solid 1px #a8b6bc" }}
                             >
                                 <div style={{ width: '25%' }}>{startIndex + index + 1}</div>
-                                <div style={{ width: '25%' }} >{student.studentName}</div>
+                                <div style={{ width: '25%' }}>{student.studentName}</div>
                                 <div style={{ width: '25%' }}>{skillFilter || "All Skills"}</div>
                                 <div style={{ width: '25%' }}>{student.growth !== null ? student.growth.toFixed(2) + "%" : "N/A"}</div>
                             </div>
