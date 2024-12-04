@@ -206,7 +206,7 @@ const StudentsTable = ({ data }) => {
                 <Card className="bg-transparent" style={{ border: "solid 1px #a8b6bc" }}>
                     <CardBody>
                         <div className="d-flex justify-content-between align-items-center mb-2">
-                            <div className="fw-bold fs-16px">Student Analysis</div>
+                            <div className="fw-bold fs-16px">IDENTIFY TOP- SCORING STUDENTS :</div>
                             <select
                                 className="form-select w-auto"
                                 onChange={(e) => {
@@ -222,24 +222,24 @@ const StudentsTable = ({ data }) => {
                         </div>
                         <div className="p-3 mb-2" style={{ border: "solid 1px #a8b6bc" }}>
                             <div
-                                className="d-flex justify-content-between gap-4 fw-bold"
+                                className="d-flex fw-bold"
                                 style={{ borderBottom: "solid 1px #a8b6bc" }}
                             >
-                                <div className="fs-5">No.</div>
-                                <div className="fs-5">Classname</div>
-                                <div className="fs-5">Student Name</div>
-                                <div className="fs-5">Total Score</div>
+                                <div className="fs-5" style={{ width: '25%' }}>No.</div>
+                                <div className="fs-5" style={{ width: '25%' }}>Classname</div>
+                                <div className="fs-5" style={{ width: '25%' }}>Student Name</div>
+                                <div className="fs-5" style={{ width: '25%' }}>Total Score</div>
                             </div>
                             {displayedData.map((student) => (
                                 <div
                                     key={student.no}
-                                    className="d-flex justify-content-between gap-4 py-2"
+                                    className="d-flex py-2"
                                     style={{ borderBottom: "solid 1px #a8b6bc" }}
                                 >
-                                    <div>{student.no}</div>
-                                    <div>{student.classname}</div>
-                                    <div>{student.studentName}</div>
-                                    <div>{student.total}%</div>
+                                    <div style={{ width: '25%' }}>{student.no}</div>
+                                    <div style={{ width: '25%' }}>{student.classname}</div>
+                                    <div style={{ width: '25%' }}>{student.studentName}</div>
+                                    <div style={{ width: '25%' }}>{student.total}%</div>
                                 </div>
                             ))}
                         </div>

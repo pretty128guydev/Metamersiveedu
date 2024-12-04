@@ -11,6 +11,7 @@ import VillageApi from "../../../api-clients/VillageApi";
 import SkillProgress from "../students/skill-progress";
 import WordApi from "../../../api-clients/WordApi";
 import TagApi from "../../../api-clients/TagApi";
+import StudentsByAnswers from "../students/students-answers";
 
 const ChartApex = ({ data }) => {
   const themeFont = getComputedStyle(document.body)
@@ -554,6 +555,9 @@ const Activity = () => {
             </div>
             <div className="mt-4">
               <SkillProgress studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+            </div>
+            <div className="mt-4">
+              <StudentsByAnswers data={studentsData} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
             </div>
           </>
         )}

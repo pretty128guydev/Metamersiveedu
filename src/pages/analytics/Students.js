@@ -564,9 +564,6 @@ const Students = () => {
             <div className="mt-4">
               <QuestionsChart studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedStudent={selectedStudent} teacher_id={userInfo.uid} />
             </div>
-            <div className="mt-4">
-              <StudentsByAnswers data={studentsData} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
-            </div>
           </>
         )}
       </>

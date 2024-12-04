@@ -106,7 +106,6 @@ const Scores = () => {
         class_id,
         student_id,
       });
-      console.log(data)
       return data.data;
     } catch (error) {
       console.log(error);
@@ -146,7 +145,7 @@ const Scores = () => {
       Tag: ["Images", "Signs", "Vocabulary", "Comprehension"],
       WordDash: ["Ranking", "W/L Ratio", "Spelling", "Mystery Words"],
     };
-    console.log(data)
+    console.log(data);
     switch (selectedGame) {
       case "Village":
         setChartData({
@@ -443,7 +442,7 @@ const Scores = () => {
                       >
                         {Object.keys(villageData).map((key, index) => {
                           const item = villageData[key];
-                          console.log(item)
+                          console.log(item);
                           return (
                             <>
                               <div
@@ -462,6 +461,7 @@ const Scores = () => {
                                 className="accordion-collapse collapse show"
                               >
                                 {item.map((childItem, idx) => (
+                                  childItem.last_practiced &&
                                   <div
                                     className="d-flex align-items-center justify-content-between"
                                     style={{ height: "36px" }}
@@ -479,25 +479,25 @@ const Scores = () => {
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"
                                         style={{ width: "150px" }}
                                       >
-                                        {childItem.totalQuestions || ""}
+                                        {childItem.totalQuestions || 0}
                                       </div>
                                       <div
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"
                                         style={{ width: "150px" }}
                                       >
-                                        {childItem.totalcorrect || ""}
+                                        {childItem.totalcorrect || 0}
                                       </div>
                                       <div
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"
                                         style={{ width: "150px" }}
                                       >
-                                        {childItem.totalIncorrect || ""}
+                                        {childItem.totalIncorrect || 0}
                                       </div>
                                       <div
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"
                                         style={{ width: "150px" }}
                                       >
-                                        {childItem.totalSpentTime || ""}
+                                        {childItem.totalSpentTime || 0}
                                       </div>
                                       <div
                                         className="text-center border-secondary border-bottom d-flex align-items-center justify-content-center align-self-stretch"

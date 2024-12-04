@@ -277,14 +277,14 @@ const StudentsTable = ({ data }) => {
     const totalPages = Math.ceil(displayedData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const currentPageData = displayedData.slice(startIndex, endIndex);
-
+    const currentPageData = displayedData.slice(startIndex, endIndex)
+        .filter(item => item.growth < 0);
     return (
         <div>
             <Card className="bg-transparent" style={{ border: "solid 1px #a8b6bc" }}>
                 <CardBody>
                     <div className="d-flex justify-content-between align-items-center mb-2">
-                        <div className="fw-bold fs-16px">Student Analysis</div>
+                        <div className="fw-bold fs-16px">IDENTIFY STUDENTS WITH NEGATIVE PROGRESS:</div>
                         <div className="d-flex align-items-center gap-2">
                             {/* Time Filter */}
                             <select
@@ -318,25 +318,24 @@ const StudentsTable = ({ data }) => {
                     </div>
                     <div className="p-3 mb-2" style={{ border: "solid 1px #a8b6bc" }}>
                         <div
-                            className="d-flex justify-content-between gap-4 fw-bold"
+                            className="d-flex fw-bold"
                             style={{ borderBottom: "solid 1px #a8b6bc" }}
                         >
-                            <div className="fs-5">No.</div>
-                            <div className="fs-5">Student Name</div>
-                            <div className="fs-5">Category</div>
-                            <div className="fs-5">Growth</div>
+                            <div className="fs-5" style={{ width: '25%' }}>No.</div>
+                            <div className="fs-5" style={{ width: '25%' }}>Student Name</div>
+                            <div className="fs-5" style={{ width: '25%' }}>Category</div>
+                            <div className="fs-5" style={{ width: '25%' }}>Growth</div>
                         </div>
                         {currentPageData.map((student, index) => (
-                            student.growth < 0 &&
                             <div
                                 key={student.studentName}
-                                className="d-flex justify-content-between gap-4 py-2"
+                                className="d-flex py-2"
                                 style={{ borderBottom: "solid 1px #a8b6bc" }}
                             >
-                                <div>{startIndex + index + 1}</div>
-                                <div>{student.studentName}</div>
-                                <div>{skillFilter || "All Skills"}</div>
-                                <div>{student.growth !== null ? student.growth.toFixed(2) + "%" : "N/A"}</div>
+                                <div style={{ width: '25%' }}>{startIndex + index + 1}</div>
+                                <div style={{ width: '25%' }} >{student.studentName}</div>
+                                <div style={{ width: '25%' }}>{skillFilter || "All Skills"}</div>
+                                <div style={{ width: '25%' }}>{student.growth !== null ? student.growth.toFixed(2) + "%" : "N/A"}</div>
                             </div>
                         ))}
                     </div>

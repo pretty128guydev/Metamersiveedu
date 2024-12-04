@@ -214,13 +214,13 @@ const Progress = () => {
             </div>
           </div>
           <YTD_Growth studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
+          {userInfo.type != "Student" &&
+            <NegativeProgress teacher_id={userInfo.uid} />
+          }
           <Progress_Report studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
           <TopStudentPerformance studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
           {userInfo.type != "Student" &&
             <TopScoringStudents selectedClass={selectedClass} selectedCategory={selectedCategory} selectedStudent={selectedStudentName} teacher_id={userInfo.uid} />
-          }
-          {userInfo.type != "Student" &&
-            <NegativeProgress teacher_id={userInfo.uid} />
           }
           {userInfo.type != "Student" &&
             <TroubleZone />
