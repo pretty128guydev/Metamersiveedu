@@ -166,12 +166,12 @@ const TopQuestionsLevel = () => {
                                   </p>
                                   <div>
                                     <p>{questions[currentIndex].data[key]}</p>
-                                    <ul className="">
+                                    <ul className="list-unstyled">
                                       {questions[currentIndex].data[
                                         "sub_questions"
                                       ].map((item, idx) => (
                                         <li key={idx + "sub_questions"}>
-                                          {item}
+                                          <span className="fw-bold">{`${String.fromCharCode(97 + idx)})`}</span> {item}
                                         </li>
                                       ))}
                                     </ul>
@@ -180,11 +180,12 @@ const TopQuestionsLevel = () => {
                               </>
                             );
                           } else if (key === "sub_questions") return <></>;
+                          else if (key === "test_info") return <></>;
                           else
                             return (
                               <div key={index}>
                                 <span className="fw-bold text-capitalize">
-                                  {key.replace("_", " ")}:
+                                  {key === "Text" ? `${key.replace("_", " ")}:` : "Data File"}
                                 </span>{" "}
                                 {questions[currentIndex].data[key]}
                               </div>
