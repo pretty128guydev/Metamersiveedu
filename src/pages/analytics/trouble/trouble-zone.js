@@ -8,7 +8,7 @@ const TroubleZone = () => {
     <div>
       <div className="h5">TROUBLE ZONE</div>
       <div className="row">
-        <TopQuestions />
+        {/* <TopQuestions /> */}
         <TopQuestionsLevel />
         {/* <LevelsByPaper /> */}
       </div>

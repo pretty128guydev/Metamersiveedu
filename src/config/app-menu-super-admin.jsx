@@ -18,69 +18,69 @@ const Menu = [
       },
     ],
   },
-  {
-    path: "/mock",
-    icon: "bi bi-envelope",
-    title: "Practice Drills",
-    children: [
-      {
-        path: "",
-        title: "2015",
-        children: [
-          { path: "/mock/reading-2015", title: "Reading" },
-          { path: "/mock/writing-2015", title: "Writing" },
-        ],
-      },
-      {
-        path: "",
-        title: "2016",
-        children: [
-          { path: "/mock/reading-2016", title: "Reading" },
-          { path: "/mock/writing-2016", title: "Writing" },
-        ],
-      },
-      {
-        path: "",
-        title: "2017",
-        children: [
-          { path: "/mock/reading-2017", title: "Reading" },
-          { path: "/mock/writing-2017", title: "Writing" },
-        ],
-      },
-      {
-        path: "",
-        title: "2021",
-        children: [
-          { path: "/mock/reading-2021", title: "Reading" },
-          { path: "/mock/writing-2021", title: "Writing" },
-        ],
-      },
-      {
-        path: "",
-        title: "2022",
-        children: [
-          { path: "/mock/reading-2022", title: "Reading" },
-          { path: "/mock/writing-2022", title: "Writing" },
-        ],
-      },
-      {
-        path: "/teacher_uploads",
-        title: "Teacher Uploads",
-        children: [
-          { path: "/teacher_uploads/writing-parta", title: "Writing Part A" },
-          { path: "/teacher_uploads/writing-partb", title: "Writing Part B" },
-          {
-            path: "/teacher_uploads/listening-partb1",
-            title: "Listening Part B1",
-          },
-          {
-            path: "/teacher_uploads/listening-partb2",
-            title: "Listening Part B2",
-          },
-        ],
-      },
-    ],
-  },
+  // {
+  //   path: "/mock",
+  //   icon: "bi bi-envelope",
+  //   title: "Practice Drills",
+  //   children: [
+  //     {
+  //       path: "",
+  //       title: "2015",
+  //       children: [
+  //         { path: "/mock/reading-2015", title: "Reading" },
+  //         { path: "/mock/writing-2015", title: "Writing" },
+  //       ],
+  //     },
+  //     {
+  //       path: "",
+  //       title: "2016",
+  //       children: [
+  //         { path: "/mock/reading-2016", title: "Reading" },
+  //         { path: "/mock/writing-2016", title: "Writing" },
+  //       ],
+  //     },
+  //     {
+  //       path: "",
+  //       title: "2017",
+  //       children: [
+  //         { path: "/mock/reading-2017", title: "Reading" },
+  //         { path: "/mock/writing-2017", title: "Writing" },
+  //       ],
+  //     },
+  //     {
+  //       path: "",
+  //       title: "2021",
+  //       children: [
+  //         { path: "/mock/reading-2021", title: "Reading" },
+  //         { path: "/mock/writing-2021", title: "Writing" },
+  //       ],
+  //     },
+  //     {
+  //       path: "",
+  //       title: "2022",
+  //       children: [
+  //         { path: "/mock/reading-2022", title: "Reading" },
+  //         { path: "/mock/writing-2022", title: "Writing" },
+  //       ],
+  //     },
+  //     {
+  //       path: "/teacher_uploads",
+  //       title: "Teacher Uploads",
+  //       children: [
+  //         { path: "/teacher_uploads/writing-parta", title: "Writing Part A" },
+  //         { path: "/teacher_uploads/writing-partb", title: "Writing Part B" },
+  //         {
+  //           path: "/teacher_uploads/listening-partb1",
+  //           title: "Listening Part B1",
+  //         },
+  //         {
+  //           path: "/teacher_uploads/listening-partb2",
+  //           title: "Listening Part B2",
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
   // {
   //   path: "/class",
   //   icon: "bi bi-pen",

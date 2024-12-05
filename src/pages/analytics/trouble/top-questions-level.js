@@ -55,7 +55,7 @@ const TopQuestionsLevel = () => {
       <Card className="bg-transparent border">
         <CardBody>
           <div className="fw-bold fs-16px mb-2">
-            Top 20 wrong questions{" "}
+            Top 20 questions Answered Incorrectly{" "}
             <span className="fw-normal fs-6">(By level of each paper)</span>
           </div>
           <div className="d-flex flex-wrap justify-content-between gap-2 mb-2">

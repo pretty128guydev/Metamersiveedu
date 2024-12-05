@@ -49,55 +49,56 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
             let SpeakingQuestions = 0;
             let ListeningAQuestions = 0;
             let ListeningBQuestions = 0;
+            let ReadingAllQuestions = 0;
+            let WritingAllQuestions = 0;
+            let SpeakingAllQuestions = 0;
+            let ListeningAAllQuestions = 0;
+            let ListeningBAllQuestions = 0;
             let PronunciationQuestions = 0;
             let mastered = [];
 
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "student_name" && category !== "total_questions") {
-                    if (stats.totalQuestions) {
+                    if (stats.correct) {
                         if (category === "listening A") {
-                            ListeningAQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            ListeningAQuestions = stats.correct;
+                            ListeningAAllQuestions = stats.totalQuestions;
                         } else if (category === "listening B") {
-                            ListeningBQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            ListeningBQuestions = stats.correct;
+                            ListeningBAllQuestions = stats.totalQuestions;
                         } else if (category === "reading") {
-                            ReadingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            ReadingQuestions = stats.correct;
+                            ReadingAllQuestions = stats.totalQuestions;
                         } else if (category === "writing") {
-                            WritingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            WritingQuestions = stats.correct;
+                            WritingAllQuestions = stats.totalQuestions;
                         } else if (category === "speaking") {
-                            SpeakingQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
-                        } else if (category === "pronunciation") {
-                            PronunciationQuestions = stats.totalQuestions;
-                            stats.correct > stats.totalQuestions / 2 && mastered.push(category);
+                            SpeakingQuestions = stats.correct;
+                            SpeakingAllQuestions = stats.totalQuestions;
                         }
 
                         // Accumulate student totals
                         studentTotalScore += stats.totalScore;
-                        studentCorrectAnswers += stats.correct;
+                        studentCorrectAnswers += stats.totalcorrect;
                     }
                 }
             });
-
             // Add the student data to the students array
             students.push({
                 name: studentName,
                 totalQuestions: studentTotalQuestions,
-                R: Math.round((ReadingQuestions / studentTotalQuestions) * 20),
-                W: Math.round((WritingQuestions / studentTotalQuestions) * 20),
-                S: Math.round((SpeakingQuestions / studentTotalQuestions) * 20),
-                LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 15),
-                LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 15),
+                R: ReadingAllQuestions != 0 ? Math.round((ReadingQuestions / ReadingAllQuestions) * 20) : 0,
+                W: WritingAllQuestions != 0 ? Math.round((WritingQuestions / WritingAllQuestions) * 20) : 0,
+                S: SpeakingAllQuestions != 0 ? Math.round((SpeakingQuestions / SpeakingAllQuestions) * 20) : 0,
+                LA: ListeningAAllQuestions != 0 ? Math.round((ListeningAQuestions / ListeningAAllQuestions) * 15) : 0,
+                LB: ListeningBAllQuestions != 0 ? Math.round((ListeningBQuestions / ListeningBAllQuestions) * 15) : 0,
                 SA: 15,
-                total: Math.round((ReadingQuestions / studentTotalQuestions) * 20) +
-                    Math.round((WritingQuestions / studentTotalQuestions) * 20) +
-                    Math.round((SpeakingQuestions / studentTotalQuestions) * 20) +
-                    Math.round((ListeningAQuestions / studentTotalQuestions) * 15) +
-                    Math.round((ListeningBQuestions / studentTotalQuestions) * 15) +
+                total: (ReadingAllQuestions != 0 ? Math.round((ReadingQuestions / ReadingAllQuestions) * 20) : 0) +
+                    (WritingAllQuestions != 0 ? Math.round((WritingQuestions / WritingAllQuestions) * 20) : 0) +
+                    (SpeakingAllQuestions != 0 ? Math.round((SpeakingQuestions / SpeakingAllQuestions) * 20) : 0) +
+                    (ListeningAAllQuestions != 0 ? Math.round((ListeningAQuestions / ListeningAAllQuestions) * 15) : 0) +
+                    (ListeningBAllQuestions != 0 ? Math.round((ListeningBQuestions / ListeningBAllQuestions) * 15) : 0) +
                     15,
             });
         });
@@ -114,6 +115,12 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
             totalListeningAQuestions: 0,
             totalListeningBQuestions: 0,
             totalPronunciationQuestions: 0,
+            totalAllReadingQuestions: 0,
+            totalAllWritingQuestions: 0,
+            totalAllSpeakingQuestions: 0,
+            totalAllListeningAQuestions: 0,
+            totalAllListeningBQuestions: 0,
+            totalAllPronunciationQuestions: 0,
             totalCorrectAnswers: 0,
             totalScore: 0,
         };
@@ -121,46 +128,44 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
 
         Object.entries(data).forEach(([studentId, studentInfo]) => {
             const studentTotalQuestions = studentInfo.total_questions;
-
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "student_name" && category !== "total_questions") {
-                    if (stats.totalQuestions) {
-                        if (category === "reading") classTotals.totalReadingQuestions += stats.totalQuestions;
-                        if (category === "writing") classTotals.totalWritingQuestions += stats.totalQuestions;
-                        if (category === "speaking") classTotals.totalSpeakingQuestions += stats.totalQuestions;
-                        if (category === "listening A") classTotals.totalListeningAQuestions += stats.totalQuestions;
-                        if (category === "listening B") classTotals.totalListeningBQuestions += stats.totalQuestions;
+                    if (stats.correct) {
+                        if (category === "reading") { classTotals.totalReadingQuestions += stats.correct; classTotals.totalAllReadingQuestions += stats.totalQuestions }
+                        if (category === "writing") { classTotals.totalWritingQuestions += stats.correct; classTotals.totalAllWritingQuestions += stats.totalQuestions }
+                        if (category === "speaking") { classTotals.totalSpeakingQuestions += stats.correct; classTotals.totalAllSpeakingQuestions += stats.totalQuestions }
+                        if (category === "listening A") { classTotals.totalListeningAQuestions += stats.correct; classTotals.totalAllListeningAQuestions += stats.totalQuestions }
+                        if (category === "listening B") { classTotals.totalListeningBQuestions += stats.correct; classTotals.totalAllListeningBQuestions += stats.totalQuestions }
                     }
                 }
             });
 
             classTotals.totalQuestions += studentTotalQuestions;
         });
-
         // Calculate class-wide metrics
         return {
             name: invalidClassName,
             totalQuestions: classTotals.totalQuestions,
-            R: Math.round((classTotals.totalReadingQuestions / classTotals.totalQuestions) * 20),
-            W: Math.round((classTotals.totalWritingQuestions / classTotals.totalQuestions) * 20),
-            S: Math.round((classTotals.totalSpeakingQuestions / classTotals.totalQuestions) * 20),
-            LA: Math.round((classTotals.totalListeningAQuestions / classTotals.totalQuestions) * 15),
-            LB: Math.round((classTotals.totalListeningBQuestions / classTotals.totalQuestions) * 15),
+            R: classTotals.totalAllReadingQuestions != 0 ? Math.round((classTotals.totalReadingQuestions / classTotals.totalAllReadingQuestions) * 20) : 0,
+            W: classTotals.totalAllWritingQuestions != 0 ? Math.round((classTotals.totalWritingQuestions / classTotals.totalAllWritingQuestions) * 20) : 0,
+            S: classTotals.totalAllSpeakingQuestions != 0 ? Math.round((classTotals.totalSpeakingQuestions / classTotals.totalAllSpeakingQuestions) * 20) : 0,
+            LA: classTotals.totalAllListeningAQuestions != 0 ? Math.round((classTotals.totalListeningAQuestions / classTotals.totalAllListeningAQuestions) * 15) : 0,
+            LB: classTotals.totalAllListeningBQuestions != 0 ? Math.round((classTotals.totalListeningBQuestions / classTotals.totalAllListeningBQuestions) * 15) : 0,
             SA: 15,
-            total: Math.round((classTotals.totalReadingQuestions / classTotals.totalQuestions) * 20) +
-                Math.round((classTotals.totalWritingQuestions / classTotals.totalQuestions) * 20) +
-                Math.round((classTotals.totalSpeakingQuestions / classTotals.totalQuestions) * 20) +
-                Math.round((classTotals.totalListeningAQuestions / classTotals.totalQuestions) * 15) +
-                Math.round((classTotals.totalListeningBQuestions / classTotals.totalQuestions) * 15) +
+            total: (classTotals.totalAllReadingQuestions != 0 ? Math.round((classTotals.totalReadingQuestions / classTotals.totalAllReadingQuestions) * 20) : 0) +
+                (classTotals.totalAllWritingQuestions != 0 ? Math.round((classTotals.totalWritingQuestions / classTotals.totalAllWritingQuestions) * 20) : 0) +
+                (classTotals.totalAllSpeakingQuestions != 0 ? Math.round((classTotals.totalSpeakingQuestions / classTotals.totalAllSpeakingQuestions) * 20) : 0) +
+                (classTotals.totalAllListeningAQuestions != 0 ? Math.round((classTotals.totalListeningAQuestions / classTotals.totalAllListeningAQuestions) * 15) : 0) +
+                (classTotals.totalAllListeningBQuestions != 0 ? Math.round((classTotals.totalListeningBQuestions / classTotals.totalAllListeningBQuestions) * 15) : 0) +
                 15,
         };
     };
 
     const analyzeStudentData = (studentData) => {
+        console.log(studentData)
         const studentName = studentData.student_name;
         const studentTotalQuestions = studentData.total_questions;
-
         let studentTotalScore = 0;
         let studentCorrectAnswers = 0;
         let ReadingQuestions = 0;
@@ -169,29 +174,41 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
         let ListeningBQuestions = 0;
         let PronunciationQuestions = 0;
         let SpeakingQuestions = 0;
+        let ReadingAllQuestions = 0;
+        let WritingAllQuestions = 0;
+        let ListeningAAllQuestions = 0;
+        let ListeningBAllQuestions = 0;
+        let PronunciationAllQuestions = 0;
+        let SpeakingAllQuestions = 0;
 
         // Process each category for the student
         Object.entries(studentData).forEach(([category, stats]) => {
             if (category !== "student_name" && category !== "total_questions") {
-                if (stats.totalQuestions) {
+                if (stats.correct) {
                     // Handle Reading, Writing, and Listening categories
                     if (category === "reading") {
-                        ReadingQuestions = stats.totalQuestions;
+                        ReadingQuestions = stats.correct;
+                        ReadingAllQuestions = stats.totalQuestions;
                     } else if (category === "writing") {
-                        WritingQuestions = stats.totalQuestions;
+                        WritingQuestions = stats.correct;
+                        WritingAllQuestions = stats.totalQuestions;
                     } else if (category === "listening A") {
-                        ListeningAQuestions = stats.totalQuestions;
+                        ListeningAQuestions = stats.correct;
+                        ListeningAAllQuestions = stats.totalQuestions;
                     } else if (category === "listening B") {
-                        ListeningBQuestions = stats.totalQuestions;
+                        ListeningBQuestions = stats.correct;
+                        ListeningBAllQuestions = stats.totalQuestions;
                     } else if (category === "pronunciation") {
-                        PronunciationQuestions = stats.totalQuestions;
+                        PronunciationQuestions = stats.correct;
+                        PronunciationAllQuestions = stats.totalQuestions;
                     } else if (category === "speaking") {
-                        SpeakingQuestions = stats.totalQuestions;
+                        SpeakingQuestions = stats.correct;
+                        SpeakingAllQuestions = stats.totalQuestions;
                     }
 
-                    // Add the total score and correct answers
+                    // Add the total score and totalcorrect answers
                     studentTotalScore += stats.totalScore;
-                    studentCorrectAnswers += stats.correct;
+                    studentCorrectAnswers += stats.totalcorrect;
                 }
             }
         });
@@ -199,17 +216,17 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
         return {
             name: studentName,
             totalQuestions: studentTotalQuestions,
-            R: Math.round((ReadingQuestions / studentTotalQuestions) * 20),
-            W: Math.round((WritingQuestions / studentTotalQuestions) * 20),
-            S: Math.round((SpeakingQuestions / studentTotalQuestions) * 20),
-            LA: Math.round((ListeningAQuestions / studentTotalQuestions) * 15),
-            LB: Math.round((ListeningBQuestions / studentTotalQuestions) * 15),
+            R: ReadingAllQuestions != 0 ? Math.round((ReadingQuestions / ReadingAllQuestions) * 20) : 0,
+            W: WritingAllQuestions != 0 ? Math.round((WritingQuestions / WritingAllQuestions) * 20) : 0,
+            S: SpeakingAllQuestions != 0 ? Math.round((SpeakingQuestions / SpeakingAllQuestions) * 20) : 0,
+            LA: ListeningAAllQuestions != 0 ? Math.round((ListeningAQuestions / ListeningAAllQuestions) * 15) : 0,
+            LB: ListeningBAllQuestions != 0 ? Math.round((ListeningBQuestions / ListeningBAllQuestions) * 15) : 0,
             SA: 15,
-            total: Math.round((ReadingQuestions / studentTotalQuestions) * 20) +
-                Math.round((WritingQuestions / studentTotalQuestions) * 20) +
-                Math.round((SpeakingQuestions / studentTotalQuestions) * 20) +
-                Math.round((ListeningAQuestions / studentTotalQuestions) * 15) +
-                Math.round((ListeningBQuestions / studentTotalQuestions) * 15) +
+            total: (ReadingAllQuestions != 0 ? Math.round((ReadingQuestions / ReadingAllQuestions) * 20) : 0) +
+                (WritingAllQuestions != 0 ? Math.round((WritingQuestions / WritingAllQuestions) * 20) : 0) +
+                (SpeakingAllQuestions != 0 ? Math.round((SpeakingQuestions / SpeakingAllQuestions) * 20) : 0) +
+                (ListeningAAllQuestions != 0 ? Math.round((ListeningAQuestions / ListeningAAllQuestions) * 15) : 0) +
+                (ListeningBAllQuestions != 0 ? Math.round((ListeningBQuestions / ListeningBAllQuestions) * 15) : 0) +
                 15,
         };
     };
@@ -358,6 +375,8 @@ const TopStudentPerformance = ({ studentPage, selectedClass, selectedStudent, te
                         } else {
                             if (selectedClass) {
                                 if (selectedStudent) {
+                                    console.log(aggregatedData[selectedClass][selectedStudent]);
+                                    console.log(aggregatedData[selectedClass]);
                                     if (aggregatedData[selectedClass][selectedStudent]) {
                                         StudentsArray[0] = analyzeStudentData(aggregatedData[selectedClass][selectedStudent])
                                     } else {

@@ -9,6 +9,7 @@ import VillageApi from "../../../api-clients/VillageApi";
 import { formatDate } from "../utils";
 import WordApi from "../../../api-clients/WordApi";
 import TagApi from "../../../api-clients/TagApi";
+import TopStudentPerformance from "../trouble/topstudentperformance";
 
 const initialData = {
   options: {
@@ -18,7 +19,7 @@ const initialData = {
     stroke: { show: false },
     labels: ["Reading", "Writing", "Listening", "Speaking"],
     title: {
-      text: "Student Scores",
+      text: "Student Skill Accuracy",
       style: {
         fontSize: "14px",
         fontWeight: "bold",
@@ -40,6 +41,7 @@ const Scores = () => {
   const [selectedStudent, setSelectedStudent] = useState("");
   const [chartData, setChartData] = useState(initialData);
   const [villageData, setVillageData] = useState(null);
+  const [selectedStudentName, setSelectedStudentName] = useState("");
 
 
   const extractStudentNames = (data) => {
@@ -68,6 +70,10 @@ const Scores = () => {
       selectedClass,
       e.target.value
     );
+    const studentName = studentData.find(
+      (student) => student.student_id === selectedStudent
+    )?.name
+    setSelectedStudentName(studentName)
     changeChartData(getData);
     if (selectedGame === "Village") {
       const villageData = await getVillageScoreData(
@@ -145,7 +151,6 @@ const Scores = () => {
       Tag: ["Images", "Signs", "Vocabulary", "Comprehension"],
       WordDash: ["Ranking", "W/L Ratio", "Spelling", "Mystery Words"],
     };
-    console.log(data);
     switch (selectedGame) {
       case "Village":
         setChartData({
@@ -289,7 +294,12 @@ const Scores = () => {
       ? selectedGame === "Village"
       : selectedGame && selectedClass && selectedStudent && selectedGame === "Village";
 
-  return (
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+  }
+
+  return (<div>
     <div>
       <div className="h5">STUDENT SCORE CHART</div>
       <div className="">
@@ -362,6 +372,9 @@ const Scores = () => {
           }
         </div>
         <div className="mt-4">
+          {selectedStudent &&
+            <TopStudentPerformance studentPage={userInfo.type == "Student" && userInfo.uid} selectedClass={selectedClass} selectedCategory={""} selectedStudent={selectedStudent} teacher_id={userInfo.uid} />
+          }
           {isAllowed ? (
             <>
               <Card>
@@ -442,11 +455,21 @@ const Scores = () => {
                       >
                         {Object.keys(villageData).map((key, index) => {
                           const item = villageData[key];
+                          const totalQuestions = item.reduce((sum, childItem) => sum + (childItem.totalQuestions || 0), 0);
+                          const totalCorrect = item.reduce((sum, childItem) => sum + (childItem.totalcorrect || 0), 0);
+                          const totalIncorrect = item.reduce((sum, childItem) => sum + (childItem.totalIncorrect || 0), 0);
+                          const totalSpentTime = item.reduce((sum, childItem) => sum + (childItem.totalSpentTime || 0), 0);
+                          const lastPracticed = item
+                            .filter(childItem => childItem.last_practiced) // Ensure there's a date
+                            .map(childItem => new Date(childItem.last_practiced)) // Convert to Date objects
+                            .sort((a, b) => b - a)[0];
+                          const totalPerformance = totalCorrect / totalQuestions * 100 >= 0 ? Math.round(totalCorrect / totalQuestions * 100) : 0
+
                           console.log(item);
                           return (
                             <>
                               <div
-                                className="accordion-header bg-theme text-uppercase align-middle ps-3 pt-2 mb-1"
+                                className="accordion-header bg-theme text-uppercase align-middle ps-3 pt-2 mb-1 d-flex justify-content-between "
                                 data-bs-toggle="collapse"
                                 data-bs-target={`#collapse-${key}-${index}`}
                                 aria-expanded="true"
@@ -454,7 +477,36 @@ const Scores = () => {
                                 style={{ height: "36px" }}
                                 key={index}
                               >
-                                {key}
+                                <span>
+                                  {key}
+                                </span>
+
+                                <div className="d-flex align-items-center align-self-stretch">
+                                  <span style={{ width: "150px" }}
+                                    className="text-center d-flex align-items-center justify-content-center align-self-stretch">
+                                    {totalPerformance} %
+                                  </span>
+                                  <span style={{ width: "150px" }}
+                                    className="text-center d-flex align-items-center justify-content-center align-self-stretch">
+                                    {totalQuestions}
+                                  </span>
+                                  <span style={{ width: "150px" }}
+                                    className="text-center d-flex align-items-center justify-content-center align-self-stretch">
+                                    {totalCorrect}
+                                  </span>
+                                  <span style={{ width: "150px" }}
+                                    className="text-center d-flex align-items-center justify-content-center align-self-stretch">
+                                    {totalIncorrect}
+                                  </span>
+                                  <span style={{ width: "150px" }}
+                                    className="text-center d-flex align-items-center justify-content-center align-self-stretch">
+                                    {totalSpentTime}
+                                  </span>
+                                  <span style={{ width: "150px" }}
+                                    className="text-center d-flex align-items-center justify-content-center align-self-stretch">
+                                    {lastPracticed ? formatDate(lastPracticed.toISOString()) : "N/A"}
+                                  </span>
+                                </div>
                               </div>
                               <div
                                 id={`collapse-${key}-${index}`}
@@ -528,6 +580,7 @@ const Scores = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

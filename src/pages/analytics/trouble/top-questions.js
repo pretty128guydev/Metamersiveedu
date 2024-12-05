@@ -32,7 +32,6 @@ const TopQuestions = () => {
         const res = await AnalyticsAPI.getTop10WrongQuestions(schoolId);
         if (res.status === 200) {
           setQuestions(res.data);
-          console.log(res.data)
           setLoading(false);
         }
       } catch (error) {

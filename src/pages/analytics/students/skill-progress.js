@@ -456,7 +456,7 @@ const SkillProgress = ({ selectedClass, selectedStudent, teacher_id, studentPage
                     </tr>
                     <tr className="bg-light">
                         <th rowSpan={2} className="align-middle">{selectedClass ? selectedStudent ? "Student" : "Student" : studentPage ? "Student" : "Class"}</th>
-                        <th rowSpan={2} className="align-middle">Total questions answered</th>
+                        <th rowSpan={2} className="align-middle">Total Correct</th>
                         <th colSpan={6}>Skills practiced</th>
                         <th colSpan={2}>Skills proficient</th>
                         <th rowSpan={2} className="align-middle">Skills mastered</th>

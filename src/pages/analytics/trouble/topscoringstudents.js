@@ -25,8 +25,13 @@ const TopScoringStudents = ({ teacher_id }) => {
                 let WritingQuestions = 0;
                 let ListeningAQuestions = 0;
                 let ListeningBQuestions = 0;
-                let PronunciationQuestions = 0;
                 let SpeakingQuestions = 0;
+                let ReadingCorrectQuestions = 0;
+                let WritingCorrectQuestions = 0;
+                let ListeningACorrectQuestions = 0;
+                let ListeningBCorrectQuestions = 0;
+                let SpeakingCorrectQuestions = 0;
+                let PronunciationQuestions = 0;
                 const studentTotalQuestions = studentData.total_questions;
                 // Loop through all subjects (listening, reading, writing) and calculate scores
                 for (const [subject, subjectData] of Object.entries(studentData)) {
@@ -35,27 +40,30 @@ const TopScoringStudents = ({ teacher_id }) => {
                         totalQuestions += subjectData.totalQuestions;
                         if (subject === "reading") {
                             ReadingQuestions = subjectData.totalQuestions;
+                            ReadingCorrectQuestions = subjectData.correct
                         } else if (subject === "writing") {
                             WritingQuestions = subjectData.totalQuestions;
+                            WritingCorrectQuestions = subjectData.correct
                         } else if (subject === "listening A") {
                             ListeningAQuestions = subjectData.totalQuestions;
+                            ListeningACorrectQuestions = subjectData.correct
                         } else if (subject === "listening B") {
                             ListeningBQuestions = subjectData.totalQuestions;
-                        } else if (subject === "pronunciation") {
-                            PronunciationQuestions = subjectData.totalQuestions;
+                            ListeningBCorrectQuestions = subjectData.correct
                         } else if (subject === "speaking") {
                             SpeakingQuestions = subjectData.totalQuestions;
+                            SpeakingCorrectQuestions = subjectData.correct
                         }
                     }
                 }
 
-                const total = Math.round((ReadingQuestions / studentTotalQuestions) * 20) +
-                    Math.round((WritingQuestions / studentTotalQuestions) * 20) +
-                    Math.round((SpeakingQuestions / studentTotalQuestions) * 20) +
-                    Math.round((ListeningAQuestions / studentTotalQuestions) * 15) +
-                    Math.round((ListeningBQuestions / studentTotalQuestions) * 15) +
+                const total = (ReadingQuestions != 0 ? Math.round((ReadingCorrectQuestions / ReadingQuestions) * 20) : 0) +
+                    (WritingQuestions != 0 ? Math.round((WritingCorrectQuestions / WritingQuestions) * 20) : 0) +
+                    (SpeakingQuestions != 0 ? Math.round((SpeakingCorrectQuestions / SpeakingQuestions) * 20) : 0) +
+                    (ListeningAQuestions != 0 ? Math.round((ListeningACorrectQuestions / ListeningAQuestions) * 15) : 0) +
+                    (ListeningBQuestions != 0 ? Math.round((ListeningBCorrectQuestions / ListeningBQuestions) * 15) : 0) +
                     15;
-                const totalScore = ((totalCorrect / totalQuestions) * 100).toFixed(2); // Calculate percentage
+                const totalScore = totalQuestions != 0 ? ((totalCorrect / totalQuestions) * 100).toFixed(2) : 0; // Calculate percentage
                 result.push({ classname: originalName, studentName, totalScore, totalCorrect, totalQuestions, total });
             }
         }

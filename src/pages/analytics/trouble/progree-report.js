@@ -460,6 +460,17 @@ const Progress_Report = ({ studentPage, selectedClass, selectedCategory, selecte
         },
         xaxis: {
             categories: months,
+        },
+        export: {
+            csv: {
+                filename: 'Progress_Report_By_Month',
+            },
+            svg: {
+                filename: 'Progress_Report_By_Month',
+            },
+            png: {
+                filename: 'Progress_Report_By_Month',
+            }
         }
     };
 
