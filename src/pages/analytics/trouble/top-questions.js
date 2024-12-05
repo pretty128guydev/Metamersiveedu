@@ -31,6 +31,7 @@ const TopQuestions = () => {
       try {
         const res = await AnalyticsAPI.getTop10WrongQuestions(schoolId);
         if (res.status === 200) {
+          console.log(res.data)
           setQuestions(res.data);
           setLoading(false);
         }
@@ -45,7 +46,7 @@ const TopQuestions = () => {
     <div className="mb-4">
       <Card className="bg-transparent border">
         <CardBody>
-          <div className="fw-bold fs-16px mb-2">Top 10 wrong questions</div>
+          <div className="fw-bold fs-16px mb-2">Top 20 questions Answered Incorrectly{" "}</div>
           <div className="p-3 border mb-2">
             {loading ? (
               <div className="d-flex align-items-center justify-content-center h-100">

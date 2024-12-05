@@ -309,7 +309,7 @@ const StudentsTable = ({ data }) => {
         .filter((item) => item.growth < 0);
 
     return (
-        <div>
+        <div className="mb-4">
             <Card className="bg-transparent" style={{ border: "solid 1px #a8b6bc" }}>
                 <CardBody>
                     <div className="d-flex justify-content-between align-items-center mb-2">

@@ -9,7 +9,7 @@ const TopQuestionsLevel = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
-  const [category, setCategory] = useState("listening-A");
+  const [category, setCategory] = useState("listeningA");
   const [level, setLevel] = useState(1);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +37,7 @@ const TopQuestionsLevel = () => {
         paperLevel
       );
       if (res.status === 200) {
+        console.log(res.data)
         setQuestions(res.data);
         setCurrentIndex(0);
         setLoading(false);
@@ -56,20 +57,32 @@ const TopQuestionsLevel = () => {
         <CardBody>
           <div className="fw-bold fs-16px mb-2">
             Top 20 questions Answered Incorrectly{" "}
-            <span className="fw-normal fs-6">(By level of each paper)</span>
+            {/* <span className="fw-normal fs-6">(By level of each paper)</span> */}
           </div>
           <div className="d-flex flex-wrap justify-content-between gap-2 mb-2">
             <ul className="nav nav-tabs nav-tabs-v2">
               <li
                 className="nav-item me-3"
                 style={{ cursor: "pointer" }}
-                onClick={() => setCategory("listening")}
+                onClick={() => setCategory("listeningA")}
               >
                 <a
                   className="nav-link active px-2 text-black"
                   data-bs-toggle="tab"
                 >
-                  Listening
+                  ListeningA
+                </a>
+              </li>
+              <li
+                className="nav-item me-3"
+                style={{ cursor: "pointer" }}
+                onClick={() => setCategory("listeningB")}
+              >
+                <a
+                  className="nav-link px-2 text-black"
+                  data-bs-toggle="tab"
+                >
+                  ListeningB
                 </a>
               </li>
               <li

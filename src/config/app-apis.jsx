@@ -108,7 +108,7 @@ export const result_skills_scores_by_one_student =
 export const result_skills_scores_by_student =
   "analytics/game_result/skills_scores_by_student";
 export const result_skills_progress = "analytics/game_result/skills_progress";
-export const top_10_wrong_questions = "analytics/trouble/wrong-top10";
+export const top_10_wrong_questions = "analytics/trouble/wrong-top10/";
 export const top_20_wrong_questions_by_level = "analytics/trouble/wrong-top20";
 export const wrong_questions_by_category = "analytics/trouble/category-rank";
 export const wrong_questions_by_level = "analytics/trouble/level-rank";

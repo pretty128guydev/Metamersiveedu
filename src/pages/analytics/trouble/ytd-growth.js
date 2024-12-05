@@ -278,7 +278,6 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
         // Initialize an array to hold promises for all API calls
         const aggregatedData = {}; // Temporary variable to hold all the aggregated data
         let aggregatedByCategory = {}; // Use let if reassignment is needed
-
         const promises = uniqueClasses.map(async (classId) => {
           try {
             const studentsData = await AnalyticsAPI.getStudentsData({
@@ -307,6 +306,7 @@ const YTD_Growth = ({ studentPage, selectedClass, selectedCategory, selectedStud
 
         // Wait for all API calls to complete
         await Promise.all(promises);
+        console.log(aggregatedData);
         // Set the aggregated data to the state after all promises have completed
         setLoading(false); // Set loading to false after all API calls are finished
         let newSeries = [];
