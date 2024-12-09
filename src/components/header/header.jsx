@@ -302,7 +302,7 @@ function Header() {
                     <UsergroupDeleteOutlined className="text-theme fs-16px ms-auto" />
                   </Link>
                 )}
-              {isLoggedIn && userInfo.email === "kh@aloestreeltd.com" && (
+              {/* {isLoggedIn && userInfo.email === "kh@aloestreeltd.com" && (
                 <Link
                   to="/admin"
                   className="text-primary dropdown-item d-flex align-items-center"
@@ -310,7 +310,7 @@ function Header() {
                   Admin Page
                   <SolutionOutlined className="text-theme fs-16px ms-auto" />
                 </Link>
-              )}
+              )} */}
               {/* <Link
                 to="/profile"
                 className="text-primary dropdown-item d-flex align-items-center"

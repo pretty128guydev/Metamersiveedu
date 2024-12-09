@@ -51,6 +51,18 @@ const TopQuestionsLevel = () => {
     fetchData(category, level);
   }, [category, level]);
 
+  function extractWords(text) {
+    // Split the text into an array of words
+    const words = text.trim().split(/\s+/); // Splitting by whitespace
+
+    // Extract the first word and the last three words
+    const firstWord = words[0];
+    const lastThreeWords = words.slice(-3).join(' ');
+
+    return { firstWord, lastThreeWords };
+  }
+
+
   return (
     <div className="mb-4">
       <Card className="bg-transparent border">
@@ -181,6 +193,15 @@ const TopQuestionsLevel = () => {
                             );
                           } else if (key === "sub_questions") return <></>;
                           else if (key === "test_info") return <></>;
+                          else if (key === "recording_url") {
+                            return (
+                              <div key={index}>
+                                <a className="fw-bold text-capitalize" href={questions[currentIndex].data["recording_url"]} target="_blank">
+                                  Lv.{level}  {extractWords(questions[currentIndex].data["recording_name"]).firstWord}  {extractWords(questions[currentIndex].data["recording_name"]).lastThreeWords}
+                                </a>{" "}
+                              </div>
+                            )
+                          } else if (key === "recording_name") return <></>;
                           else
                             return (
                               <div key={index}>
