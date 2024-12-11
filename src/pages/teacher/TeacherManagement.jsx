@@ -136,6 +136,14 @@ const TeacherManagement = () => {
         url = `/word-dash/${teacherId}`;
       } else if (type === "village") {
         url = `/village/${teacherId}`;
+      } else if (type === "dashboard") {
+        url = `/teacher-management/dashboard/analytic/${teacherId}`;
+      } else if (type === "activity") {
+        url = `/teacher-management/activity/analytic/${teacherId}`;
+      } else if (type === "scores") {
+        url = `/teacher-management/scores/analytic/${teacherId}`;
+      } else if (type === "progress") {
+        url = `/teacher-management/progress/analytic/${teacherId}`;
       }
       navigate(url);
     }
@@ -798,6 +806,42 @@ const TeacherManagement = () => {
                           {selectedTable?.classrooms?.villageClassrooms?.ret.length >= 2
                             ? "Classes"
                             : "Class"}
+                        </span>
+                        <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
+                      </div>
+                      <div
+                        className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
+                        onClick={() => handleNavigate("dashboard")}
+                      >
+                        <span className="text-decoration-underline mr-1">
+                          Go to Dashboard Analytic Page
+                        </span>
+                        <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
+                      </div>
+                      <div
+                        className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
+                        onClick={() => handleNavigate("scores")}
+                      >
+                        <span className="text-decoration-underline mr-1">
+                          Go to Scores Analytic Page
+                        </span>
+                        <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
+                      </div>
+                      <div
+                        className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
+                        onClick={() => handleNavigate("activity")}
+                      >
+                        <span className="text-decoration-underline mr-1">
+                          Go to Activity Analytic Page
+                        </span>
+                        <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
+                      </div>
+                      <div
+                        className="pos-order py-3 h-10 text-wrap text-break overflow-auto  cursor-pointer"
+                        onClick={() => handleNavigate("progress")}
+                      >
+                        <span className="text-decoration-underline mr-1">
+                          Go to Progress Analytic Page
                         </span>
                         <i class="bi bi-hand-index-fill rotate-right text-yellow rotate-right"></i>
                       </div>

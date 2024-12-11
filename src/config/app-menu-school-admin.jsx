@@ -107,25 +107,25 @@ const Menu = [
   //     { path: "/class/village", title: "Village" },
   //   ],
   // },
-  // {
-  //   path: "/analytics",
-  //   icon: "bi bi-bar-chart",
-  //   title: "Analytics",
-  //   children: [
-  //     { path: "/analytics/dashboard", title: "DASHBOARD" },
-  //     { path: "/analytics/score-chart", title: "SCORE CHART" },
-  //     { path: "/analytics/activity", title: "ACTIVITY" },
-  //     {
-  //       path: "/analytics/progress-improvement",
-  //       title: "PROGRESS & IMPROVEMENT",
-  //       // children: [
-  //       //   // { path: "/analytics/skills/practiced", title: "Skills Practiced" },
-  //       //   { path: "/analytics/skills/analysis", title: "Skills Analysis" },
-  //       // ],
-  //     },
-  //     // { path: "/analytics/progress", title: "Progress" },
-  //   ],
-  // },
+  {
+    path: "/analytics",
+    icon: "bi bi-bar-chart",
+    title: "Analytics",
+    children: [
+      { path: "/analytics/dashboard", title: "DASHBOARD" },
+      { path: "/analytics/score-chart", title: "SCORE CHART" },
+      { path: "/analytics/activity", title: "ACTIVITY" },
+      {
+        path: "/analytics/progress-improvement",
+        title: "PROGRESS & IMPROVEMENT",
+        // children: [
+        //   // { path: "/analytics/skills/practiced", title: "Skills Practiced" },
+        //   { path: "/analytics/skills/analysis", title: "Skills Analysis" },
+        // ],
+      },
+      // { path: "/analytics/progress", title: "Progress" },
+    ],
+  },
 
   // {
   //   path: "/QB",

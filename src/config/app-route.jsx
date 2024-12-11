@@ -112,6 +112,10 @@ import SchoolManagement from "../pages/school/SchoolManagement.jsx";
 import TeacherManagementForAdmin from "../pages/teacher/TeacherManagementForAdmin.jsx";
 import Activity from "../pages/analytics/activity/activity.js";
 import AdminPanel from "../pages/admin/PendingApproval.jsx";
+import StudentsForAdmin from "../pages/analytics/StudentsForAdmin.js";
+import ProgressForAdmin from "../pages/analytics/progress/progressForAdmin.js";
+import ActivityForAdmin from "../pages/analytics/activity/activityForAdmin.js";
+import ScoresForAdmin from "../pages/analytics/scores/scoresForAdmin.js";
 
 const AppRoute = [
   {
@@ -375,6 +379,22 @@ const AppRoute = [
       {
         path: "teacher-management",
         element: <TeacherManagement />,
+      },
+      {
+        path: "teacher-management/dashboard/analytic/:teacher_id",
+        element: <StudentsForAdmin />,
+      },
+      {
+        path: "teacher-management/scores/analytic/:teacher_id",
+        element: <ScoresForAdmin />,
+      },
+      {
+        path: "teacher-management/activity/analytic/:teacher_id",
+        element: <ActivityForAdmin />,
+      },
+      {
+        path: "teacher-management/progress/analytic/:teacher_id",
+        element: <ProgressForAdmin />,
       },
       {
         path: "school-management",
