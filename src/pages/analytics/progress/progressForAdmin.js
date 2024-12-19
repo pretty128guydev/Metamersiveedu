@@ -14,7 +14,7 @@ import BarsScale from "../../../components/loading/BarsScale";
 import TopStudentPerformance from "../trouble/topstudentperformance";
 import TopScoringStudents from "../trouble/topscoringstudents";
 import NegativeProgress from "../trouble/negative-progress";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ProgressForAdmin = () => {
   const [loading, setLoading] = useState(false);

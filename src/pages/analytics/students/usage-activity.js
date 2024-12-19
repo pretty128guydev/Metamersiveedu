@@ -270,7 +270,6 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
         const invalidClassName = getClassNameById(classes, className);
 
         Object.entries(data).forEach(([studentId, studentInfo]) => {
-
             // Process each category
             Object.entries(studentInfo).forEach(([category, stats]) => {
                 if (category !== "student_name" && category !== "total_questions") {
@@ -531,6 +530,7 @@ const UsageActivity = ({ selectedClass, selectedStudent, teacher_id, studentPage
                             }
                         } else {
                             allClassesArray = allClassesArray.concat(processClass(aggregatedData[key], key, uniqueClasses));
+                            console.log(allClassesArray)
                         }
                     }
                 }

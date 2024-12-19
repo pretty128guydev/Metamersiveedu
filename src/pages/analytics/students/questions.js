@@ -188,7 +188,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id, studentPag
     }
 
     function analyzeAllData(data) {
-        const skills = ['Pronunciation', 'Listening B', 'Listening A', 'Reading', 'Writing', 'Speaking'];
+        const skills = ['pronunciation', 'listening B', 'listening A', 'reading', 'writing', 'speaking'];
         const result = {
             CR: [],
             E: [],
@@ -197,9 +197,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id, studentPag
 
         skills.forEach(skill => {
             // Convert skill name to match key format in the input data
-            const skillKey = skill.trim().toLowerCase().replace(/\s+/g, '_');
-            const skillData = data[skillKey] || {}; // Default to an empty object if the skill is missing
-
+            const skillData = data[skill] || {}; // Default to an empty object if the skill is missing
             const totalQuestions = skillData.totalQuestions || 0;
             const totalCorrect = skillData.totalCorrect || 0;
             const totalIncorrect = skillData.totalIncorrect || 0;
@@ -223,7 +221,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id, studentPag
 
     function analyzeClassesData(classesData) {
         const skills = ['Pronunciation', 'Listening B', 'Listening A', 'Reading', 'Writing', 'Speaking'];
-
+        console.log(classesData)
         let totalCorrect = Array(skills.length).fill(0);
         let totalIncorrect = Array(skills.length).fill(0);
         let totalUnanswered = Array(skills.length).fill(0);
@@ -391,7 +389,7 @@ const QuestionsChart = ({ selectedClass, selectedStudent, teacher_id, studentPag
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
                             const result = aggregateQuestionsByCategory(studentInfo.data);
-
+                            console.log(studentInfo)
                             if (studentPage && studentPage === studentId) {
                                 aggregatedByCategory = studentInfo.data.reduce(
                                     (acc, activity) => {

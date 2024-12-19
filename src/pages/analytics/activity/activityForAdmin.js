@@ -12,7 +12,19 @@ import SkillProgress from "../students/skill-progress";
 import WordApi from "../../../api-clients/WordApi";
 import TagApi from "../../../api-clients/TagApi";
 import StudentsByAnswers from "../students/students-answers";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
+import { getFirestore, doc, onSnapshot } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD39dxQBzAlxgN8fcm1mMHIsFXUCJrzpCU",
+  authDomain: "metamersive-beta.firebaseapp.com",
+  projectId: "metamersive-beta",
+  storageBucket: "metamersive-beta.appspot.com",
+  messagingSenderId: "64124456719",
+  appId: "1:64124456719:web:38704900bdcc82ac78387a",
+  measurementId: "G-DSG3ZPR565",
+};
 
 const ChartApex = ({ data }) => {
   const themeFont = getComputedStyle(document.body)
@@ -187,6 +199,21 @@ const ActivityForAdmin = () => {
   const [teacherData, setTeacherData] = useState([]);
   const { teacher_id } = useParams();
   const navigate = useNavigate();
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+
+  useEffect(() => {
+    const countDocRef = doc(db, "analytics", "active_students_count");
+
+    const unsubscribe = onSnapshot(countDocRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        console.log("hi")
+        setcount(docSnapshot.data().count);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const userInfo = useSelector((store) => store.auth.userInfo);
 
@@ -264,13 +291,6 @@ const ActivityForAdmin = () => {
         const TagData = await TagApi.getClassroomsByTeacherId({
           teacher_id: teacher_id,
         });
-
-        // Get active student count
-        const count = await AnalyticsAPI.getActiveStudentsCount({
-          school_id: userInfo.schoolId,
-          class_id: selectedClass,
-        });
-        setcount(count.data.count);
 
         if (userInfo.type == "Student") {
           const selectedStudentData = studentData.find(

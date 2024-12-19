@@ -206,7 +206,7 @@ const TopQuestionsLevel = () => {
                             return (
                               <div key={index}>
                                 <span className="fw-bold text-capitalize">
-                                  {key === "Text" ? `${key.replace("_", " ")}:` : "Data File"}
+                                  {key}:
                                 </span>{" "}
                                 {questions[currentIndex].data[key]}
                               </div>

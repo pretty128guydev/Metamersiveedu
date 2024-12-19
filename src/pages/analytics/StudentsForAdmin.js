@@ -14,7 +14,19 @@ import PerformanceIndex from "./students/performanceindex";
 import QuestionsChart from "./students/questions";
 import WordApi from "../../api-clients/WordApi";
 import TagApi from "../../api-clients/TagApi";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
+import { getFirestore, doc, onSnapshot } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD39dxQBzAlxgN8fcm1mMHIsFXUCJrzpCU",
+  authDomain: "metamersive-beta.firebaseapp.com",
+  projectId: "metamersive-beta",
+  storageBucket: "metamersive-beta.appspot.com",
+  messagingSenderId: "64124456719",
+  appId: "1:64124456719:web:38704900bdcc82ac78387a",
+  measurementId: "G-DSG3ZPR565",
+};
 
 const ChartApex = ({ data }) => {
   const themeFont = getComputedStyle(document.body)
@@ -190,6 +202,22 @@ const StudentsForAdmin = () => {
   const { teacher_id } = useParams();
   const navigate = useNavigate();
 
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+
+  useEffect(() => {
+    const countDocRef = doc(db, "analytics", "active_students_count");
+
+    const unsubscribe = onSnapshot(countDocRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        console.log("hi")
+        setcount(docSnapshot.data().count);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+  
   const userInfo = useSelector((store) => store.auth.userInfo);
 
   const extractStudentNames = (data) => {

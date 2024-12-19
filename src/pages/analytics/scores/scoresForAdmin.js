@@ -10,7 +10,7 @@ import { formatDate } from "../utils";
 import WordApi from "../../../api-clients/WordApi";
 import TagApi from "../../../api-clients/TagApi";
 import TopStudentPerformance from "../trouble/topstudentperformance";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 
 const initialData = {
   options: {

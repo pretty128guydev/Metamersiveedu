@@ -78,6 +78,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
     }
 
     function transformAggregatedDataToResultFormat(aggregatedData) {
+        console.log(aggregatedData)
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
 
@@ -155,6 +156,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
     }
 
     const getTotalAnalyticsData = (data) => {
+        console.log(data)
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
         // Helper function to calculate percentage
@@ -196,15 +198,17 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
             analytics[level] = categories.map((category) => {
                 const { correct } = totals[level].categories[category];
                 const { totalQuestions } = totals[level];
+                console.log(correct, totalQuestions)
                 return calculatePercentage(correct, totalQuestions);
             });
         });
+        console.log(analytics)
         return analytics;
     };
 
 
     function analyzeSingleStudentData(studentData) {
-        const categories = ["speaking", "writing", "reading", "listening A", "listeningB", "pronunciation"];
+        const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
         const levels = ["level-1", "level-2", "level-3", "level-4"];
         const result = {};
         // Initialize the result object with level keys
@@ -234,7 +238,7 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
     }
 
     function aggregateStudentsDataByCategoryAndLevel(studentData) {
-        const categories = ["speaking", "writing", "reading", "listening A", "listeningB", "pronunciation"];
+        const categories = ["speaking", "writing", "reading", "listening A", "listening B", "pronunciation"];
         const levels = ["level-1", "level-2", "level-3", "level-4"];
 
         // Initialize the structure with all categories and levels
@@ -325,9 +329,9 @@ const PerformanceIndex = ({ selectedClass, selectedStudent, teacher_id, studentP
                         });
                         // Iterate over each student in the response
                         Object.entries(studentsData.data).forEach(([studentId, studentInfo]) => {
-
-
+                            
                             aggregatedByCategory = aggregateStudentsDataByCategoryAndLevel(studentInfo.data);
+                            console.log(aggregatedByCategory)
 
                             // Aggregate questions by category for this student
                             const result = aggregateQuestionsByCategoryAndLevel(studentInfo.data);
